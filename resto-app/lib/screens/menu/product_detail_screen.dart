@@ -17,6 +17,8 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  static const Color _brandGold = Color(0xFFD0A030);
+  static const Color _brandGoldDark = Color(0xFFB08010);
   int _quantity = 1;
 
   @override
@@ -163,29 +165,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     color: const Color(0xFF252525),
                                     child: const Center(
                                       child: CircularProgressIndicator(
-                                        color: Colors.orange,
+                                        color: _brandGold,
                                       ),
                                     ),
                                   ),
                                   errorWidget: (context, url, error) =>
-                                      Container(
-                                        color: const Color(0xFF252525),
-                                        alignment: Alignment.center,
-                                        child: const Icon(
-                                          Icons.restaurant_menu,
-                                          size: 100,
-                                          color: Colors.grey,
-                                        ),
+                                      Image.asset(
+                                        'assets/app_icon.png',
+                                        fit: BoxFit.cover,
                                       ),
                                 )
-                              : Container(
-                                  color: const Color(0xFF252525),
-                                  alignment: Alignment.center,
-                                  child: const Icon(
-                                    Icons.restaurant_menu,
-                                    size: 100,
-                                    color: Colors.grey,
-                                  ),
+                              : Image.asset(
+                                  'assets/app_icon.png',
+                                  fit: BoxFit.cover,
                                 ),
                         ),
                       ),
@@ -229,7 +221,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           Text(
                             Formatters.formatCurrency(widget.product.prix),
                             style: const TextStyle(
-                              color: Colors.orange,
+                              color: _brandGold,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
@@ -290,11 +282,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              Icon(
-                                Icons.star,
-                                color: Colors.orange.shade400,
-                                size: 20,
-                              ),
+                              Icon(Icons.star, color: _brandGold, size: 20),
                               const SizedBox(width: 4),
                               Text(
                                 '4.8 (163)',
@@ -401,7 +389,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   color: const Color(0xFF1E1E1E),
                                   borderRadius: BorderRadius.circular(15),
                                   border: Border.all(
-                                    color: Colors.orange.withValues(alpha: 0.2),
+                                    color: _brandGold.withValues(alpha: 0.2),
                                   ),
                                 ),
                                 child: Text(
@@ -409,7 +397,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     widget.product.prix * _quantity,
                                   ),
                                   style: const TextStyle(
-                                    color: Colors.orange,
+                                    color: _brandGold,
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -430,10 +418,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               decoration: BoxDecoration(
                                 gradient: widget.product.disponible
                                     ? const LinearGradient(
-                                        colors: [
-                                          Colors.orange,
-                                          Colors.deepOrange,
-                                        ],
+                                        colors: [_brandGold, _brandGoldDark],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                       )
@@ -449,7 +434,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 boxShadow: widget.product.disponible
                                     ? [
                                         BoxShadow(
-                                          color: Colors.orange.withValues(
+                                          color: _brandGold.withValues(
                                             alpha: 0.4,
                                           ),
                                           offset: const Offset(4, 4),
@@ -515,13 +500,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         width: 45,
         height: 45,
         decoration: BoxDecoration(
-          color: isAdd ? Colors.orange : const Color(0xFF252525),
+          color: isAdd ? _brandGold : const Color(0xFF252525),
           borderRadius: BorderRadius.circular(12),
           boxShadow: isEnabled
               ? [
                   BoxShadow(
                     color: isAdd
-                        ? Colors.orange.withValues(alpha: 0.4)
+                        ? _brandGold.withValues(alpha: 0.4)
                         : Colors.black.withValues(alpha: 0.4),
                     offset: const Offset(4, 4),
                     blurRadius: 8,

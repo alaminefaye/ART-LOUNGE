@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../models/product.dart';
 
 class ProductCard extends StatelessWidget {
+  static const Color _brandGold = Color(0xFFD0A030);
   final Product product;
   final VoidCallback? onAddToCart;
   final bool showAddButton;
@@ -54,28 +55,16 @@ class ProductCard extends StatelessWidget {
                           child: const Center(
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.orange,
+                              color: _brandGold,
                             ),
                           ),
                         ),
-                        errorWidget: (context, url, error) => Container(
-                          color: const Color(0xFF2A2A2A),
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.image_not_supported,
-                            color: Colors.grey,
-                          ),
+                        errorWidget: (context, url, error) => Image.asset(
+                          'assets/app_icon.png',
+                          fit: BoxFit.cover,
                         ),
                       )
-                    : Container(
-                        color: const Color(0xFF2A2A2A),
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.restaurant_menu,
-                          size: 48,
-                          color: Colors.grey,
-                        ),
-                      ),
+                    : Image.asset('assets/app_icon.png', fit: BoxFit.cover),
               ),
             ),
           ),
@@ -105,7 +94,7 @@ class ProductCard extends StatelessWidget {
                       Text(
                         '${product.prix.toStringAsFixed(0)} FCFA',
                         style: const TextStyle(
-                          color: Colors.orange,
+                          color: _brandGold,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -166,13 +155,13 @@ class ProductCard extends StatelessWidget {
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: product.disponible
-                                  ? Colors.orange
+                                  ? _brandGold
                                   : Colors.grey[800],
                               shape: BoxShape.circle,
                               boxShadow: product.disponible
                                   ? [
                                       BoxShadow(
-                                        color: Colors.orange.withValues(
+                                        color: _brandGold.withValues(
                                           alpha: 0.4,
                                         ),
                                         offset: const Offset(2, 2),

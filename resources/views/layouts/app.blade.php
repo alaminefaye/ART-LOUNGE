@@ -153,6 +153,16 @@
                             <div>Paiements</div>
                         </a>
                     </li>
+
+                    <!-- Avis -->
+                    @can('view_dashboard')
+                    <li class="menu-item {{ request()->routeIs('avis.*') ? 'active' : '' }}">
+                        <a href="{{ route('avis.index') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-star"></i>
+                            <div>Avis</div>
+                        </a>
+                    </li>
+                    @endcan
                     
                     @can('view_roles')
                     <!-- Rôles & Permissions -->
@@ -334,4 +344,3 @@
     @stack('page-js')
 </body>
 </html>
-

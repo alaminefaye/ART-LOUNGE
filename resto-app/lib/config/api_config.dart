@@ -38,6 +38,10 @@ class ApiConfig {
   static String validatePayment(int id) => '/paiements/$id/valider';
   static const String payCash = '/paiements/especes';
 
+  // Avis
+  static const String avis = '/avis';
+  static String avisForOrder(int commandeId) => '/avis/commande/$commandeId';
+
   // Reservations
   static const String reservations = '/reservations';
   static const String checkAvailability =

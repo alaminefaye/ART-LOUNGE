@@ -22,7 +22,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _activeOrdersCount = 0;
   int _dailyOrderCount = 0;
   double _dailyRevenue = 0.0;
   List<Order> _recentOrders = [];
@@ -124,7 +123,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       if (mounted) {
         setState(() {
-          _activeOrdersCount = currentOrders.length;
           _dailyOrderCount = todayOrders.length;
           _dailyRevenue = revenue;
           _recentOrders = recentOrders;
@@ -191,7 +189,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
@@ -327,12 +325,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
+                        color: Colors.black.withValues(alpha: 0.4),
                         offset: const Offset(4, 4),
                         blurRadius: 8,
                       ),
                       BoxShadow(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         offset: const Offset(-2, -2),
                         blurRadius: 4,
                       ),
@@ -346,10 +344,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.15),
+                          color: Colors.orange.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Colors.orange.withOpacity(0.3),
+                            color: Colors.orange.withValues(alpha: 0.3),
                             width: 1,
                           ),
                         ),
@@ -521,7 +519,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.15),
+                          color: Colors.orange.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
@@ -648,7 +646,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.2),
+                      color: color.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(icon, size: 40, color: color),
@@ -789,7 +787,7 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
         border: Border(left: BorderSide(color: statusColor, width: 4)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -823,7 +821,7 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -856,7 +854,7 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.2),
+                              color: statusColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -891,7 +889,9 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
                               style: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 14,
-                                fontStyle: all.isEmpty ? FontStyle.normal : FontStyle.italic,
+                                fontStyle: all.isEmpty
+                                    ? FontStyle.normal
+                                    : FontStyle.italic,
                               ),
                             ),
                           );
@@ -903,7 +903,8 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
                                 (p) => Padding(
                                   padding: const EdgeInsets.only(bottom: 4),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         '${p.quantite}x ',
@@ -942,38 +943,44 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
                   children: [
                     Builder(
                       builder: (context) {
-                        final nonServis = (widget.order.produits ?? []).where((p) => !p.servi).toList();
+                        final nonServis = (widget.order.produits ?? [])
+                            .where((p) => !p.servi)
+                            .toList();
                         final hasUnserved = nonServis.isNotEmpty;
                         return ElevatedButton(
-                          onPressed: _isLoading || !hasUnserved ? null : _markOrderAsServed,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.green.withOpacity(0.5),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Text(
-                              'Servi',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                          onPressed: _isLoading || !hasUnserved
+                              ? null
+                              : _markOrderAsServed,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: Colors.green.withValues(
+                              alpha: 0.5,
                             ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Text(
+                                  'Servi',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                         );
                       },
                     ),

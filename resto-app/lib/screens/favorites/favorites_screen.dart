@@ -15,6 +15,7 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
+  static const Color _brandGold = Color(0xFFD0A030);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -202,30 +203,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             child: const Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.orange,
+                                color: _brandGold,
                               ),
                             ),
                           ),
-                          errorWidget: (context, url, error) => Container(
+                          errorWidget: (context, url, error) => Image.asset(
+                            'assets/app_icon.png',
                             width: 80,
                             height: 80,
-                            color: const Color(0xFF1E1E1E),
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.restaurant_menu,
-                              color: Colors.grey[600],
-                            ),
+                            fit: BoxFit.cover,
                           ),
                         )
-                      : Container(
+                      : Image.asset(
+                          'assets/app_icon.png',
                           width: 80,
                           height: 80,
-                          color: const Color(0xFF1E1E1E),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            Icons.restaurant_menu,
-                            color: Colors.grey[600],
-                          ),
+                          fit: BoxFit.cover,
                         ),
                 ),
               ),
@@ -249,7 +242,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Text(
                       Formatters.formatCurrency(product.prix),
                       style: const TextStyle(
-                        color: Colors.orange,
+                        color: _brandGold,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         shadows: [
@@ -301,11 +294,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   if (product.disponible)
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.orange,
+                        color: _brandGold,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.orange.withValues(alpha: 0.4),
+                            color: _brandGold.withValues(alpha: 0.4),
                             offset: const Offset(2, 2),
                             blurRadius: 6,
                           ),

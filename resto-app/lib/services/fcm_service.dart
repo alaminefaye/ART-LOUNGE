@@ -97,11 +97,11 @@ class FCMService {
     // 3. Gestionnaire de messages en premier plan
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
 
       // Déclencher un événement global pour rafraîchir l'UI
       if (message.data['type'] == 'commande_update' ||
-          message.data['type'] == 'new_order') {
+          message.data['type'] == 'new_order' ||
+          message.data['type'] == 'payment_validated') {
         FCMEvents.triggerOrderUpdate();
       }
 
@@ -141,13 +141,15 @@ class FCMService {
       debugPrint('Notification ouverte: ${message.data}');
       // Déclencher aussi l'update au cas où
       if (message.data['type'] == 'commande_update' ||
-          message.data['type'] == 'new_order') {
+          message.data['type'] == 'new_order' ||
+          message.data['type'] == 'payment_validated') {
         FCMEvents.triggerOrderUpdate();
       }
 
       // Naviguer vers l'écran approprié
-      if (message.data['order_id'] != null) {
-        final orderId = int.tryParse(message.data['order_id'].toString());
+      final rawId = message.data['order_id'] ?? message.data['commande_id'];
+      if (rawId != null) {
+        final orderId = int.tryParse(rawId.toString());
         if (orderId != null) {
           navigatorKey.currentState?.push(
             MaterialPageRoute(

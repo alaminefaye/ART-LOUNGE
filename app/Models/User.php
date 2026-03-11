@@ -58,6 +58,11 @@ class User extends Authenticatable
         return $this->hasMany(UserNotification::class)->orderByDesc('created_at');
     }
 
+    public function avis()
+    {
+        return $this->hasMany(Avis::class)->orderByDesc('created_at');
+    }
+
     // Toutes les méthodes de gestion des rôles et permissions sont fournies par Spatie\Permission\Traits\HasRoles
     // hasRole(), assignRole(), removeRole(), hasPermissionTo(), givePermissionTo(), etc.
 }

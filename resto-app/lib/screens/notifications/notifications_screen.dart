@@ -203,7 +203,7 @@ class _NotificationTile extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isRead
-                ? const Color(0xFF252525).withOpacity(0.6)
+                ? const Color(0xFF252525).withValues(alpha: 0.6)
                 : const Color(0xFF252525),
             borderRadius: BorderRadius.circular(12),
             border: Border(

@@ -25,6 +25,7 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
+  static const Color _brandGold = Color(0xFFD0A030);
   final MenuService _menuService = MenuService();
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
@@ -216,10 +217,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
-                            const Icon(
-                              Icons.shopping_cart,
-                              color: Colors.orange,
-                            ),
+                            const Icon(Icons.shopping_cart, color: _brandGold),
                             if (cart.itemCount > 0)
                               Positioned(
                                 right: -4,
@@ -323,7 +321,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: Colors.orange),
+                      child: CircularProgressIndicator(color: _brandGold),
                     )
                   : _filteredProducts.isEmpty
                   ? Center(
@@ -370,7 +368,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     )
                   : RefreshIndicator(
                       onRefresh: _loadProducts,
-                      color: Colors.orange,
+                      color: _brandGold,
                       backgroundColor: const Color(0xFF252525),
                       child: GridView.builder(
                         padding: const EdgeInsets.all(20),
@@ -410,12 +408,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.orange : const Color(0xFF252525),
+            color: isSelected ? _brandGold : const Color(0xFF252525),
             borderRadius: BorderRadius.circular(20),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.orange.withValues(alpha: 0.4),
+                      color: _brandGold.withValues(alpha: 0.4),
                       offset: const Offset(2, 2),
                       blurRadius: 4,
                     ),
@@ -481,28 +479,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Center(
                             child: CircularProgressIndicator(
-                              color: Colors.orange.withValues(alpha: 0.5),
+                              color: _brandGold.withValues(alpha: 0.5),
                               strokeWidth: 2,
                             ),
                           ),
-                          errorWidget: (context, url, error) => Container(
-                            color: const Color(0xFF1E1E1E),
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.image_not_supported,
-                              color: Colors.grey[700],
-                            ),
+                          errorWidget: (context, url, error) => Image.asset(
+                            'assets/app_icon.png',
+                            fit: BoxFit.cover,
                           ),
                         )
-                      : Container(
-                          color: const Color(0xFF1E1E1E),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            Icons.restaurant_menu,
-                            size: 40,
-                            color: Colors.grey[700],
-                          ),
-                        ),
+                      : Image.asset('assets/app_icon.png', fit: BoxFit.cover),
                   // Gradient overlay
                   Positioned.fill(
                     child: Container(
@@ -548,7 +534,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         Text(
                           Formatters.formatCurrency(product.prix),
                           style: const TextStyle(
-                            color: Colors.orange,
+                            color: _brandGold,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -611,13 +597,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: product.disponible
-                                  ? Colors.orange
+                                  ? _brandGold
                                   : Colors.grey[700],
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: product.disponible
                                   ? [
                                       BoxShadow(
-                                        color: Colors.orange.withValues(
+                                        color: _brandGold.withValues(
                                           alpha: 0.4,
                                         ),
                                         offset: const Offset(2, 2),
@@ -693,7 +679,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             duration: const Duration(seconds: 2),
             action: SnackBarAction(
               label: 'VOIR',
-              textColor: Colors.orange,
+              textColor: _brandGold,
               onPressed: () {
                 Navigator.push(
                   context,

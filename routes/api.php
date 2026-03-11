@@ -206,6 +206,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{paiement}/facture', [App\Http\Controllers\Api\PaiementController::class, 'telechargerFacture'])
             ->middleware('permission:create_orders,generate_invoices');
     });
+
+    // ==========================================
+    // AVIS - Notes & commentaires (clients + staff)
+    // ==========================================
+    Route::prefix('avis')->group(function () {
+        Route::get('/', [App\Http\Controllers\Api\AvisController::class, 'index']);
+        Route::get('/commande/{commandeId}', [App\Http\Controllers\Api\AvisController::class, 'showForCommande']);
+        Route::post('/', [App\Http\Controllers\Api\AvisController::class, 'store']);
+    });
     
     // ==========================================
     // RESERVATIONS - Gestion des réservations de tables

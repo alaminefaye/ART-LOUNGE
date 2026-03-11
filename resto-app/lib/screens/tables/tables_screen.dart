@@ -61,12 +61,12 @@ class _TablesScreenState extends State<TablesScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
+                    color: Colors.black.withValues(alpha: 0.4),
                     offset: const Offset(4, 4),
                     blurRadius: 8,
                   ),
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     offset: const Offset(-2, -2),
                     blurRadius: 4,
                   ),
@@ -84,12 +84,12 @@ class _TablesScreenState extends State<TablesScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
+                            color: Colors.black.withValues(alpha: 0.4),
                             offset: const Offset(4, 4),
                             blurRadius: 8,
                           ),
                           BoxShadow(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             offset: const Offset(-2, -2),
                             blurRadius: 4,
                           ),
@@ -180,12 +180,12 @@ class _TablesScreenState extends State<TablesScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             offset: const Offset(4, 4),
             blurRadius: 8,
           ),
           BoxShadow(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             offset: const Offset(-2, -2),
             blurRadius: 4,
           ),
@@ -223,10 +223,10 @@ class _TablesScreenState extends State<TablesScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.2),
+                        color: statusColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: statusColor.withOpacity(0.5),
+                          color: statusColor.withValues(alpha: 0.5),
                           width: 1,
                         ),
                       ),
@@ -257,12 +257,12 @@ class _TablesScreenState extends State<TablesScreen> {
                     color: const Color(0xFF1E1E1E),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         offset: const Offset(2, 2),
                         blurRadius: 4,
                       ),
                       BoxShadow(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         offset: const Offset(-1, -1),
                         blurRadius: 2,
                       ),
@@ -351,7 +351,7 @@ class _TablesScreenState extends State<TablesScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 20, color: Colors.orange),

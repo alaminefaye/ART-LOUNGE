@@ -8,6 +8,9 @@ import '../../models/product.dart';
 import '../../models/category.dart';
 import '../../services/order_service.dart';
 import '../../services/menu_service.dart';
+import '../../services/invoice_service.dart';
+import '../../services/api_service.dart';
+import '../../models/invoice.dart';
 import '../../utils/formatters.dart';
 import 'payment_screen.dart';
 import 'invoice_screen.dart';
@@ -24,10 +27,15 @@ class OrderDetailScreen extends StatefulWidget {
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final OrderService _orderService = OrderService();
   final MenuService _menuService = MenuService();
+  final InvoiceService _invoiceService = InvoiceService();
+  final ApiService _apiService = ApiService();
   Order? _order;
   bool _isLoading = true;
   bool _canAddProducts = true; // Vérifier si la commande peut être modifiée
   StreamSubscription? _orderUpdateSubscription;
+  bool _reviewPopupShown = false;
+  final TextEditingController _reviewController = TextEditingController();
+  static const Color _brandGold = Color(0xFFD0A030);
 
   @override
   void initState() {
@@ -53,6 +61,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   void dispose() {
+    _reviewController.dispose();
     _orderUpdateSubscription?.cancel();
     super.dispose();
   }
@@ -78,6 +87,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               order.statut != OrderStatus.terminee &&
               order.statut != OrderStatus.annulee;
         });
+        await _maybeShowInvoiceAndReviewPopup();
       }
     } catch (e) {
       debugPrint('Erreur lors du chargement de la commande: $e');
@@ -93,6 +103,271 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         );
       }
     }
+  }
+
+  Future<void> _maybeShowInvoiceAndReviewPopup() async {
+    if (!mounted || _order == null) return;
+    if (_reviewPopupShown) return;
+    if (_order!.statut != OrderStatus.terminee) return;
+
+    try {
+      final existing = await _apiService.get(
+        ApiConfig.avisForOrder(_order!.id),
+      );
+      if (existing.statusCode == 200) {
+        return;
+      }
+    } catch (_) {}
+
+    final invoiceResult = await _invoiceService.getInvoiceByOrder(_order!.id);
+    if (!mounted) return;
+    if (invoiceResult['success'] != true) return;
+
+    final invoice = invoiceResult['data'] as Invoice;
+    _reviewPopupShown = true;
+
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        int rating = 0;
+        bool isSubmitting = false;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            Future<void> submit() async {
+              if (isSubmitting) return;
+              if (rating <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Veuillez choisir une note ⭐'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              setState(() {
+                isSubmitting = true;
+              });
+
+              final messenger = ScaffoldMessenger.of(this.context);
+              final navigator = Navigator.of(dialogContext);
+
+              try {
+                final res = await _apiService.post(
+                  ApiConfig.avis,
+                  data: {
+                    'commande_id': _order!.id,
+                    'note': rating,
+                    'commentaire': _reviewController.text.trim().isEmpty
+                        ? null
+                        : _reviewController.text.trim(),
+                  },
+                );
+
+                if (!mounted) return;
+
+                if (res.statusCode == 201 || res.statusCode == 200) {
+                  navigator.pop();
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Merci pour votre avis !'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  final data = res.data;
+                  final msg = (data is Map && data['message'] != null)
+                      ? data['message'].toString()
+                      : 'Erreur lors de l\'envoi de l\'avis';
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(msg), backgroundColor: Colors.red),
+                  );
+                }
+              } catch (e) {
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text('Erreur: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } finally {
+                if (context.mounted) {
+                  setState(() {
+                    isSubmitting = false;
+                  });
+                }
+              }
+            }
+
+            Widget stars() {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (i) {
+                  final idx = i + 1;
+                  final filled = idx <= rating;
+                  return IconButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () {
+                            setState(() {
+                              rating = idx;
+                            });
+                          },
+                    icon: Icon(
+                      filled ? Icons.star : Icons.star_border,
+                      color: _brandGold,
+                    ),
+                  );
+                }),
+              );
+            }
+
+            return AlertDialog(
+              backgroundColor: const Color(0xFF252525),
+              title: const Text(
+                'Paiement confirmé',
+                style: TextStyle(color: Colors.white),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E1E),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Aperçu de la facture',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Facture: ${invoice.numeroFacture}',
+                            style: TextStyle(color: Colors.grey[300]),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Date: ${Formatters.formatDateTime(invoice.createdAt)}',
+                            style: TextStyle(color: Colors.grey[400]),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'TOTAL',
+                                style: TextStyle(color: Colors.grey[300]),
+                              ),
+                              Text(
+                                Formatters.formatCurrency(invoice.montantTotal),
+                                style: const TextStyle(
+                                  color: _brandGold,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: isSubmitting
+                                  ? null
+                                  : () {
+                                      Navigator.pop(dialogContext);
+                                      _showInvoiceScreen();
+                                    },
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: _brandGold),
+                              ),
+                              child: const Text(
+                                'Voir la facture',
+                                style: TextStyle(color: _brandGold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Votre avis',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    stars(),
+                    TextField(
+                      controller: _reviewController,
+                      enabled: !isSubmitting,
+                      maxLines: 3,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Commentaire (optionnel)',
+                        hintStyle: TextStyle(color: Colors.grey[500]),
+                        filled: true,
+                        fillColor: const Color(0xFF1E1E1E),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  child: Text(
+                    'Plus tard',
+                    style: TextStyle(color: Colors.grey[400]),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting ? null : submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _brandGold,
+                    foregroundColor: Colors.black,
+                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.black,
+                          ),
+                        )
+                      : const Text('Envoyer'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -802,7 +1077,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (item.statut == 'brouillon') {
       borderColor = Colors.orange;
     } else if (item.statut == 'envoye') {
-      borderColor = Colors.green.withOpacity(0.5);
+      borderColor = Colors.green.withValues(alpha: 0.5);
     }
 
     return Container(

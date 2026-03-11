@@ -5,6 +5,8 @@ import 'orders_history_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+  static const Color _brandGold = Color(0xFFD0A030);
+  static const Color _brandGoldDark = Color(0xFFB08010);
 
   @override
   Widget build(BuildContext context) {
@@ -52,12 +54,12 @@ class ProfileScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
+                            color: Colors.black.withValues(alpha: 0.4),
                             offset: const Offset(4, 4),
                             blurRadius: 8,
                           ),
                           BoxShadow(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             offset: const Offset(-2, -2),
                             blurRadius: 4,
                           ),
@@ -66,7 +68,7 @@ class ProfileScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.person, color: Colors.orange, size: 28),
+                          Icon(Icons.person, color: _brandGold, size: 28),
                           SizedBox(width: 10),
                           Text(
                             'Mon Profil',
@@ -92,12 +94,12 @@ class ProfileScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: Colors.orange,
+                                  color: _brandGold,
                                   width: 2.5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.orange.withOpacity(0.3),
+                                    color: _brandGold.withValues(alpha: 0.3),
                                     blurRadius: 15,
                                     offset: const Offset(0, 6),
                                   ),
@@ -105,7 +107,7 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               child: CircleAvatar(
                                 radius: 45,
-                                backgroundColor: Colors.orange,
+                                backgroundColor: _brandGold,
                                 child: Text(
                                   user.name.isNotEmpty
                                       ? user.name[0].toUpperCase()
@@ -135,15 +137,14 @@ class ProfileScreen extends StatelessWidget {
                                   ),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [
-                                        Colors.orange.shade600,
-                                        Colors.orange.shade400,
-                                      ],
+                                      colors: [_brandGoldDark, _brandGold],
                                     ),
                                     borderRadius: BorderRadius.circular(15),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.orange.withOpacity(0.5),
+                                        color: _brandGold.withValues(
+                                          alpha: 0.5,
+                                        ),
                                         blurRadius: 6,
                                         offset: const Offset(0, 3),
                                       ),
@@ -187,22 +188,19 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [
-                                  Colors.orange.shade400,
-                                  Colors.deepOrange,
-                                ],
+                                colors: [_brandGold, _brandGoldDark],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               borderRadius: BorderRadius.circular(25),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.orange.withOpacity(0.3),
+                                  color: _brandGold.withValues(alpha: 0.3),
                                   offset: const Offset(4, 4),
                                   blurRadius: 10,
                                 ),
                                 BoxShadow(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   offset: const Offset(-2, -2),
                                   blurRadius: 5,
                                 ),
@@ -385,12 +383,12 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             offset: const Offset(4, 4),
             blurRadius: 8,
           ),
           BoxShadow(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             offset: const Offset(-2, -2),
             blurRadius: 4,
           ),
@@ -405,18 +403,18 @@ class ProfileScreen extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   offset: const Offset(2, 2),
                   blurRadius: 4,
                 ),
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   offset: const Offset(-1, -1),
                   blurRadius: 2,
                 ),
               ],
             ),
-            child: Icon(icon, color: Colors.orange, size: 24),
+            child: Icon(icon, color: _brandGold, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -456,7 +454,7 @@ class ProfileScreen extends StatelessWidget {
     required VoidCallback onTap,
     Color? color,
   }) {
-    final themeColor = color ?? Colors.orange;
+    final themeColor = color ?? _brandGold;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -466,12 +464,12 @@ class ProfileScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               offset: const Offset(4, 4),
               blurRadius: 8,
             ),
             BoxShadow(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               offset: const Offset(-2, -2),
               blurRadius: 4,
             ),
@@ -482,7 +480,7 @@ class ProfileScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: themeColor.withOpacity(0.1),
+                color: themeColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: themeColor, size: 22),
@@ -505,7 +503,7 @@ class ProfileScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     offset: const Offset(1, 1),
                     blurRadius: 2,
                   ),

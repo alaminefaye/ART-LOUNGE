@@ -19,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const Color _brandGold = Color(0xFFD0A030);
   final MenuService _menuService = MenuService();
   List<Category> _categories = [];
   List<Product> _products = [];
@@ -76,19 +77,26 @@ class _HomeScreenState extends State<HomeScreen> {
     return 'Good evening';
   }
 
-  String _getCategoryEmoji(String categoryName) {
-    categoryName = categoryName.toLowerCase();
-    if (categoryName.contains('pizza')) return '🍕';
-    if (categoryName.contains('burger')) return '🍔';
-    if (categoryName.contains('boisson') || categoryName.contains('drink')) {
-      return '🥤';
+  IconData _getCategoryIcon(String categoryName) {
+    final name = categoryName.toLowerCase();
+    if (name.contains('pizza')) return Icons.local_pizza;
+    if (name.contains('burger')) return Icons.lunch_dining;
+    if (name.contains('boisson') || name.contains('drink')) {
+      return Icons.local_bar;
     }
-    if (categoryName.contains('dessert')) return '🍰';
-    if (categoryName.contains('pâte') || categoryName.contains('pasta')) {
-      return '🍝';
+    if (name.contains('dessert')) return Icons.cake;
+    if (name.contains('pâte') || name.contains('pasta')) {
+      return Icons.ramen_dining;
     }
-    if (categoryName.contains('salade')) return '🥗';
-    return '🍽️';
+    if (name.contains('salade')) return Icons.eco;
+    if (name.contains('grill') || name.contains('bbq')) {
+      return Icons.outdoor_grill;
+    }
+    if (name.contains('entrée') || name.contains('entree')) {
+      return Icons.restaurant;
+    }
+    if (name.contains('plat')) return Icons.dinner_dining;
+    return Icons.restaurant_menu;
   }
 
   @override
@@ -215,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: TextField(
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              hintText: 'Find your dishes',
+                              hintText: 'Trouvez vos plats',
                               hintStyle: TextStyle(color: Colors.grey[500]),
                               prefixIcon: Icon(
                                 Icons.search,
@@ -270,9 +278,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 );
                               },
-                              child: const Text(
+                              child: Text(
                                 'All →',
-                                style: TextStyle(color: Colors.orange),
+                                style: const TextStyle(color: _brandGold),
                               ),
                             ),
                           ],
@@ -309,13 +317,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? Colors.orange
+                                          ? _brandGold
                                           : const Color(0xFF252525),
                                       borderRadius: BorderRadius.circular(15),
                                       boxShadow: [
                                         BoxShadow(
                                           color: isSelected
-                                              ? Colors.orange.withValues(
+                                              ? _brandGold.withValues(
                                                   alpha: 0.3,
                                                 )
                                               : Colors.black.withValues(
@@ -370,15 +378,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Colors.orange
+                                        ? _brandGold
                                         : const Color(0xFF252525),
                                     borderRadius: BorderRadius.circular(15),
                                     boxShadow: [
                                       BoxShadow(
                                         color: isSelected
-                                            ? Colors.orange.withValues(
-                                                alpha: 0.3,
-                                              )
+                                            ? _brandGold.withValues(alpha: 0.3)
                                             : Colors.black.withValues(
                                                 alpha: 0.3,
                                               ),
@@ -397,9 +403,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   child: Row(
                                     children: [
-                                      Text(
-                                        _getCategoryEmoji(category.nom),
-                                        style: const TextStyle(fontSize: 16),
+                                      Icon(
+                                        _getCategoryIcon(category.nom),
+                                        size: 16,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.grey[400],
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
@@ -445,9 +454,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 );
                               },
-                              child: const Text(
+                              child: Text(
                                 'All →',
-                                style: TextStyle(color: Colors.orange),
+                                style: const TextStyle(color: _brandGold),
                               ),
                             ),
                           ],
@@ -555,28 +564,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: CircularProgressIndicator(),
                             ),
                           ),
-                          errorWidget: (context, url, error) => Container(
+                          errorWidget: (context, url, error) => Image.asset(
+                            'assets/app_icon.png',
                             width: double.infinity,
-                            color: Colors.grey[800],
-                            child: const Center(
-                              child: Icon(
-                                Icons.restaurant_menu,
-                                color: Colors.grey,
-                                size: 36,
-                              ),
-                            ),
+                            fit: BoxFit.cover,
                           ),
                         )
-                      : Container(
+                      : Image.asset(
+                          'assets/app_icon.png',
                           width: double.infinity,
-                          color: Colors.grey[800],
-                          child: const Center(
-                            child: Icon(
-                              Icons.restaurant_menu,
-                              size: 36,
-                              color: Colors.grey,
-                            ),
-                          ),
+                          fit: BoxFit.cover,
                         ),
                 ),
               ),
@@ -609,7 +606,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.star, color: Colors.orange, size: 14),
+                        const Icon(Icons.star, color: _brandGold, size: 14),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
@@ -649,7 +646,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             Formatters.formatCurrency(product.prix),
                             style: const TextStyle(
-                              color: Colors.orange,
+                              color: _brandGold,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -675,13 +672,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               height: 36,
                               decoration: BoxDecoration(
                                 color: product.disponible
-                                    ? Colors.orange
+                                    ? _brandGold
                                     : Colors.grey[700],
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: product.disponible
                                     ? [
                                         BoxShadow(
-                                          color: Colors.orange.withValues(
+                                          color: _brandGold.withValues(
                                             alpha: 0.4,
                                           ),
                                           blurRadius: 8,

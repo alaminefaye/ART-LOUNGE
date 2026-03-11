@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Paiement;
 use App\Models\Commande;
 use App\Models\Facture;
+use App\Models\Table;
 use App\Enums\StatutPaiement;
 use App\Enums\MoyenPaiement;
 use App\Enums\OrderStatus;
 use App\Enums\TableStatus;
 use App\Services\FactureService;
+use App\Services\FCMService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -18,10 +20,37 @@ use Illuminate\Support\Facades\DB;
 class PaiementController extends Controller
 {
     protected $factureService;
+    protected $fcmService;
 
-    public function __construct(FactureService $factureService)
+    public function __construct(FactureService $factureService, FCMService $fcmService)
     {
         $this->factureService = $factureService;
+        $this->fcmService = $fcmService;
+    }
+
+    private function notifierClientPaiementValide(Commande $commande, Facture $facture): void
+    {
+        $client = $commande->user()->first();
+
+        if (!$client) {
+            return;
+        }
+
+        if (empty($client->fcm_token)) {
+            return;
+        }
+
+        $title = 'Paiement validé';
+        $body = 'Votre paiement a été validé. Facture ' . $facture->numero_facture . '.';
+
+        $this->fcmService->sendToTokens([$client->fcm_token], $title, $body, [
+            'type' => 'payment_validated',
+            'commande_id' => (string) $commande->id,
+            'order_id' => (string) $commande->id,
+            'facture_id' => (string) $facture->id,
+            'numero_facture' => (string) $facture->numero_facture,
+            'montant_total' => (string) $facture->montant_total,
+        ]);
     }
 
     /**
@@ -103,9 +132,9 @@ class PaiementController extends Controller
             // Pour Espèces : le gérant doit utiliser payerEspeces
             // Pour Carte Bancaire : peut être validé directement selon le cas
 
-            // Mettre la table en statut "en paiement" si ce n'est pas déjà le cas
-            if ($commande->table->statut !== \App\Enums\TableStatus::EnPaiement) {
-                $commande->table->enPaiement();
+            $table = Table::find($commande->table_id);
+            if ($table && $table->statut !== TableStatus::EnPaiement) {
+                $table->enPaiement();
             }
 
             return response()->json([
@@ -120,7 +149,7 @@ class PaiementController extends Controller
      * Valide un paiement (pour mobile money - Wave, Orange Money)
      * Le client confirme d'abord, puis le gérant valide
      */
-    public function valider(Request $request, Paiement $paiement)
+    public function valider(Paiement $paiement)
     {
         if ($paiement->statut === StatutPaiement::Valide) {
             return response()->json([
@@ -137,7 +166,7 @@ class PaiementController extends Controller
             ], 400);
         }
 
-        return DB::transaction(function () use ($paiement, $request) {
+        return DB::transaction(function () use ($paiement) {
             // Valider le paiement
             $paiement->valider();
 
@@ -147,8 +176,12 @@ class PaiementController extends Controller
             // Mettre à jour le statut de la commande
             $paiement->commande->update(['statut' => OrderStatus::Terminee]);
 
-            // Libérer la table
-            $paiement->commande->table->liberer();
+            $table = Table::find($paiement->commande->table_id);
+            if ($table) {
+                $table->liberer();
+            }
+
+            $this->notifierClientPaiementValide($paiement->commande, $facture);
 
             return response()->json([
                 'success' => true,
@@ -183,7 +216,7 @@ class PaiementController extends Controller
         }
 
         // Vérifier que le client est le propriétaire de la commande
-        $user = auth()->user();
+        $user = $request->user();
         if ($user->hasRole('client') && $paiement->commande->user_id !== $user->id) {
             return response()->json([
                 'success' => false,
@@ -221,8 +254,10 @@ class PaiementController extends Controller
         return DB::transaction(function () use ($paiement) {
             $paiement->echouer();
 
-            // Remettre la table en statut occupé
-            $paiement->commande->table->occuper();
+            $table = Table::find($paiement->commande->table_id);
+            if ($table) {
+                $table->occuper();
+            }
 
             return response()->json([
                 'success' => true,
@@ -247,8 +282,10 @@ class PaiementController extends Controller
         return DB::transaction(function () use ($paiement) {
             $paiement->update(['statut' => StatutPaiement::Annule]);
 
-            // Remettre la table en statut occupé
-            $paiement->commande->table->occuper();
+            $table = Table::find($paiement->commande->table_id);
+            if ($table) {
+                $table->occuper();
+            }
 
             return response()->json([
                 'success' => true,
@@ -328,8 +365,12 @@ class PaiementController extends Controller
             // Terminer la commande
             $commande->update(['statut' => OrderStatus::Terminee]);
 
-            // Libérer la table
-            $commande->table->liberer();
+            $table = Table::find($commande->table_id);
+            if ($table) {
+                $table->liberer();
+            }
+
+            $this->notifierClientPaiementValide($commande, $facture);
 
             return response()->json([
                 'success' => true,

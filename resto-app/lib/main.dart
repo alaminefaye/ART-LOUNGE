@@ -49,6 +49,8 @@ class RestoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const brandGold = Color(0xFFD0A030);
+    const brandGoldLight = Color(0xFFE0B040);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
@@ -64,8 +66,8 @@ class RestoApp extends StatelessWidget {
           brightness: Brightness.dark,
           scaffoldBackgroundColor: const Color(0xFF1E1E1E),
           colorScheme: const ColorScheme.dark(
-            primary: Colors.orange,
-            secondary: Colors.orangeAccent,
+            primary: brandGold,
+            secondary: brandGoldLight,
             surface: Color(0xFF252525),
           ),
           appBarTheme: const AppBarTheme(

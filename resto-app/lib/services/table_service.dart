@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../config/api_config.dart';
 import '../models/table.dart' as models;
 import 'api_service.dart';
@@ -108,10 +109,10 @@ class TableService {
         final data = response.data['data'] as List;
         return data.map((json) => models.Table.fromJson(json)).toList();
       }
-      print('Erreur getTables: ${response.statusCode}');
+      debugPrint('Erreur getTables: ${response.statusCode}');
       return [];
     } catch (e) {
-      print('Exception getTables: $e');
+      debugPrint('Exception getTables: $e');
       return [];
     }
   }

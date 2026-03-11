@@ -84,6 +84,11 @@ class Commande extends Model
         return $this->hasOneThrough(Facture::class, Paiement::class);
     }
 
+    public function avis(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Avis::class);
+    }
+
     /**
      * Obtenir les statuts disponibles
      */

@@ -29,6 +29,7 @@ class MenuScreenWithReservations extends MenuScreen {
 }
 
 class _MenuScreenState extends State<MenuScreen> {
+  static const Color _brandGold = Color(0xFFD0A030);
   late int _currentIndex;
 
   @override
@@ -141,12 +142,12 @@ class _MenuScreenState extends State<MenuScreen> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.orange : Colors.transparent,
+              color: isSelected ? _brandGold : Colors.transparent,
               borderRadius: BorderRadius.circular(15),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: Colors.orange.withValues(alpha: 0.4),
+                        color: _brandGold.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
