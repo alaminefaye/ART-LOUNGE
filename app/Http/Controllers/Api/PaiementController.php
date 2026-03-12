@@ -59,32 +59,32 @@ class PaiementController extends Controller
         $validated = $request->validate([
             'commande_id' => 'required|exists:commandes,id',
             'moyen_paiement' => ['required', Rule::enum(MoyenPaiement::class)],
-            'transaction_id' => 'nullable|string', // Pour mobile money
+            'points_utilises' => 'nullable|integer|min:0',
+            'transaction_id' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
 
         return DB::transaction(function () use ($validated, $request) {
-            $commande = Commande::with('table')->findOrFail($validated['commande_id']);
+            $commande = Commande::with('table', 'client')->findOrFail($validated['commande_id']);
             $user = $request->user();
             $moyenPaiement = MoyenPaiement::from($validated['moyen_paiement']);
+            $pointsUtilises = (int) ($validated['points_utilises'] ?? 0);
 
-            // Vérifier si la commande n'est pas déjà payée
-            if ($commande->paiements()->where('statut', StatutPaiement::Valide)->exists()) {
+            if ($commande->paiements()->where('statut', StatutPaiement::Valide)->sum('montant') >= (float) $commande->montant_total) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Cette commande a déjà été payée.',
                 ], 409);
             }
 
-            // Les clients ne peuvent initier que des paiements Wave ou Orange Money
-            if ($user->hasRole('client') && !in_array($moyenPaiement, [MoyenPaiement::Wave, MoyenPaiement::OrangeMoney])) {
+            $allowedForClient = [MoyenPaiement::Wave, MoyenPaiement::OrangeMoney, MoyenPaiement::PointsFidelite];
+            if ($user->hasRole('client') && !in_array($moyenPaiement, $allowedForClient)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Vous ne pouvez initier que des paiements Wave ou Orange Money. Pour le paiement en espèces, veuillez contacter le serveur.',
+                    'message' => 'Moyen de paiement non autorisé depuis l\'app. Utilisez les points, Wave ou Orange Money, ou réglez en espèces au serveur.',
                 ], 403);
             }
 
-            // Vérifier que le client est propriétaire de la commande
             if ($user->hasRole('client') && $commande->user_id !== $user->id) {
                 return response()->json([
                     'success' => false,
@@ -92,7 +92,91 @@ class PaiementController extends Controller
                 ], 403);
             }
 
-            // Créer le paiement
+            // Paiement en points de fidélité (client app)
+            if ($moyenPaiement === MoyenPaiement::PointsFidelite) {
+                $client = $user->client;
+                if (!$client) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Aucun compte fidélité associé.',
+                    ], 403);
+                }
+                $settings = \App\Models\FidelitySetting::get();
+                if (!$settings->actif) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Le paiement en points est désactivé.',
+                    ], 400);
+                }
+                if ($pointsUtilises <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Indiquez le nombre de points à utiliser.',
+                    ], 422);
+                }
+                if ($client->points_fidelite < $pointsUtilises) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Solde insuffisant. Vous avez ' . $client->points_fidelite . ' points.',
+                    ], 422);
+                }
+                $reductionFcfa = (float) $settings->fcfaPourPoints($pointsUtilises);
+                $montantPoints = min($reductionFcfa, (float) $commande->montant_total);
+                $dejaPaye = (float) $commande->paiements()->where('statut', StatutPaiement::Valide)->sum('montant');
+                $resteDu = (float) $commande->montant_total - $dejaPaye;
+                if ($montantPoints > $resteDu) {
+                    $montantPoints = $resteDu;
+                }
+
+                $paiement = Paiement::create([
+                    'commande_id' => $commande->id,
+                    'user_id' => $user->id,
+                    'client_id' => $client->id,
+                    'moyen_paiement' => MoyenPaiement::PointsFidelite,
+                    'montant' => $montantPoints,
+                    'statut' => StatutPaiement::Valide,
+                    'points_utilises' => $pointsUtilises,
+                    'notes' => $validated['notes'] ?? null,
+                ]);
+
+                app(\App\Services\FidelityService::class)->debiterPoints(
+                    $client,
+                    $pointsUtilises,
+                    'Paiement commande #' . $commande->id,
+                    $commande->id
+                );
+
+                $totalPaye = (float) $commande->paiements()->where('statut', StatutPaiement::Valide)->sum('montant');
+                if ($totalPaye >= (float) $commande->montant_total) {
+                    $commande->update(['statut' => OrderStatus::Terminee]);
+                    $commande->table->liberer();
+                    $montantReel = app(\App\Services\FidelityService::class)->montantPayeReel($commande);
+                    if ($montantReel > 0 && $commande->client_id) {
+                        app(\App\Services\FidelityService::class)->crediterPointsPourPaiement($commande, $montantReel);
+                    }
+                    $facture = $this->factureService->genererFacture($commande, $paiement);
+                    try {
+                        $this->fcmService->notifyClientPaymentValidated($commande, $facture);
+                    } catch (\Throwable $e) {
+                        \Log::warning('FCM: échec notification paiement client', ['error' => $e->getMessage()]);
+                    }
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Paiement en points enregistré. Commande réglée.',
+                        'data' => $paiement->load(['commande', 'facture']),
+                        'facture' => $facture,
+                    ], 201);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Points utilisés. Il reste ' . number_format((float) $commande->montant_total - $totalPaye, 0, '', ' ') . ' FCFA à régler.',
+                    'data' => $paiement->load(['commande', 'facture']),
+                    'reste_a_payer' => (float) $commande->montant_total - $totalPaye,
+                ], 201);
+            }
+
+            // Autres moyens (Wave, OM, etc.)
             $paiement = Paiement::create([
                 'commande_id' => $commande->id,
                 'user_id' => $user->id,
@@ -102,10 +186,6 @@ class PaiementController extends Controller
                 'transaction_id' => $validated['transaction_id'] ?? null,
                 'notes' => $validated['notes'] ?? null,
             ]);
-
-            // Pour Wave et Orange Money : le paiement reste en attente, le client doit confirmer
-            // Pour Espèces : le gérant doit utiliser payerEspeces
-            // Pour Carte Bancaire : peut être validé directement selon le cas
 
             $table = Table::find($commande->table_id);
             if ($table && $table->statut !== TableStatus::EnPaiement) {

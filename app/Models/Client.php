@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Client extends Model
 {
     protected $fillable = [
+        'user_id',
         'nom',
         'prenom',
         'telephone',
@@ -31,6 +33,11 @@ class Client extends Model
         'nombre_visites' => 'integer',
         'actif' => 'boolean',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * Historique des points
@@ -59,7 +66,7 @@ class Client extends Model
     /**
      * Retirer des points
      */
-    public function retirerPoints(int $points, string $description): void
+    public function retirerPoints(int $points, string $description, ?int $commandeId = null): void
     {
         $this->points_fidelite = max(0, $this->points_fidelite - $points);
         $this->save();
@@ -68,23 +75,28 @@ class Client extends Model
             'points' => -$points,
             'type' => 'depense',
             'description' => $description,
+            'commande_id' => $commandeId,
         ]);
     }
 
     /**
-     * Enregistrer une visite
+     * Enregistrer une visite (mise à jour stats + points selon paramètres fidélité)
      */
-    public function enregistrerVisite(float $montant): void
+    public function enregistrerVisite(float $montant, ?int $commandeId = null): void
     {
         $this->nombre_visites++;
         $this->total_depenses += $montant;
         $this->date_derniere_visite = now();
         $this->save();
 
-        // Calculer les points à ajouter (1 point par tranche de 1000 FCFA)
-        $pointsGagnes = floor($montant / 1000);
+        $settings = \App\Models\FidelitySetting::get();
+        $pointsGagnes = $settings->pointsPourMontant($montant);
         if ($pointsGagnes > 0) {
-            $this->ajouterPoints($pointsGagnes, "Achat de {$montant} FCFA");
+            $this->ajouterPoints(
+                $pointsGagnes,
+                'Achat ' . number_format($montant, 0, '', ' ') . ' FCFA',
+                $commandeId
+            );
         }
     }
 

@@ -151,12 +151,24 @@
                     @endcan
                     
                     @can('view_customers')
-                    <!-- Clients -->
-                    <li class="menu-item {{ request()->routeIs('clients.*') ? 'active' : '' }}">
-                        <a href="{{ route('clients.index') }}" class="menu-link">
+                    <!-- Clients & Fidélité -->
+                    <li class="menu-item {{ request()->routeIs('clients.*') || request()->routeIs('fidelity.*') ? 'active open' : '' }}">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons bx bx-group"></i>
                             <div>Clients & Fidélité</div>
                         </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item {{ request()->routeIs('clients.index') || request()->routeIs('clients.show') || request()->routeIs('clients.edit') ? 'active' : '' }}">
+                                <a href="{{ route('clients.index') }}" class="menu-link">
+                                    <div>Clients</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ request()->routeIs('fidelity.*') ? 'active' : '' }}">
+                                <a href="{{ route('fidelity.edit') }}" class="menu-link">
+                                    <div>Paramètres points fidélité</div>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endcan
                 </ul>

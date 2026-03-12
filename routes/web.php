@@ -90,5 +90,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('clients/{client}/ajuster-points', [\App\Http\Controllers\Web\ClientController::class, 'ajusterPoints'])
             ->name('clients.ajuster-points')
             ->middleware('can:manage_loyalty');
+        Route::get('fidelity', [\App\Http\Controllers\Web\FidelitySettingController::class, 'edit'])->name('fidelity.edit');
+        Route::put('fidelity', [\App\Http\Controllers\Web\FidelitySettingController::class, 'update'])->name('fidelity.update');
     });
 });

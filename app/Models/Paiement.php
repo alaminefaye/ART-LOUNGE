@@ -14,6 +14,7 @@ class Paiement extends Model
     protected $fillable = [
         'commande_id',
         'user_id',
+        'client_id',
         'montant',
         'moyen_paiement',
         'statut',
@@ -21,6 +22,7 @@ class Paiement extends Model
         'montant_recu',
         'monnaie_rendue',
         'notes',
+        'points_utilises',
     ];
 
     protected $casts = [
@@ -29,6 +31,7 @@ class Paiement extends Model
         'montant' => 'decimal:2',
         'montant_recu' => 'decimal:2',
         'monnaie_rendue' => 'decimal:2',
+        'points_utilises' => 'integer',
     ];
 
     public function commande(): BelongsTo
@@ -39,6 +42,11 @@ class Paiement extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 
     public function facture(): HasOne

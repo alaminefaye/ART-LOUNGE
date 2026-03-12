@@ -134,10 +134,11 @@ class CommandeController extends Controller
                 ], 409); // Conflict
             }
 
-            // Créer la commande
+            // Créer la commande (lier le client si l'utilisateur en a un, pour la fidélité)
             $commande = Commande::create([
                 'table_id' => $request->table_id,
                 'user_id' => $user->id,
+                'client_id' => $user->client?->id,
                 'statut' => OrderStatus::Attente,
                 'notes' => $request->notes,
             ]);

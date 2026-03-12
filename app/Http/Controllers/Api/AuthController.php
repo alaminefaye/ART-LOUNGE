@@ -75,8 +75,9 @@ class AuthController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
-            // Créer le client (pour la fidélité)
+            // Créer le client (pour la fidélité) et le lier à l'utilisateur
             $client = Client::create([
+                'user_id' => $user->id,
                 'nom' => $validated['nom'],
                 'prenom' => $validated['prenom'],
                 'telephone' => $validated['telephone'],
@@ -138,6 +139,7 @@ class AuthController extends Controller
                     'prenom' => $client->prenom,
                     'telephone' => $client->telephone,
                     'email' => $client->email,
+                    'points_fidelite' => (int) $client->points_fidelite,
                 ],
                 'token' => $token,
                 'token_type' => 'Bearer',
@@ -228,6 +230,7 @@ class AuthController extends Controller
         $permissions = $user->getAllPermissions()->pluck('name')->toArray();
         $token = $user->createToken('auth_token', $permissions)->plainTextToken;
 
+        $client = $user->client;
         return response()->json([
             'message' => 'Connexion réussie',
             'user' => [
@@ -238,6 +241,12 @@ class AuthController extends Controller
                 'roles' => $user->roles->pluck('name'),
                 'permissions' => $permissions,
             ],
+            'client' => $client ? [
+                'id' => $client->id,
+                'nom' => $client->nom,
+                'prenom' => $client->prenom,
+                'points_fidelite' => (int) $client->points_fidelite,
+            ] : null,
             'token' => $token,
             'token_type' => 'Bearer',
         ]);
@@ -302,7 +311,10 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
-        $user->load('roles.permissions');
+        $user->load('roles.permissions', 'client');
+
+        $client = $user->client;
+        $fidelitySettings = \App\Models\FidelitySetting::get();
 
         return response()->json([
             'user' => [
@@ -327,6 +339,16 @@ class AuthController extends Controller
                         'group' => $permission->group,
                     ];
                 }),
+            ],
+            'client' => $client ? [
+                'id' => $client->id,
+                'nom' => $client->nom,
+                'prenom' => $client->prenom,
+                'points_fidelite' => (int) $client->points_fidelite,
+            ] : null,
+            'fidelity_settings' => [
+                'actif' => $fidelitySettings->actif,
+                'valeur_fcfa_1_point' => (float) $fidelitySettings->valeur_fcfa_1_point,
             ],
         ]);
     }

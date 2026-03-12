@@ -22,6 +22,7 @@ class Commande extends Model
     protected $fillable = [
         'table_id',
         'user_id',
+        'client_id',
         'statut',
         'montant_total',
         'notes',
@@ -48,6 +49,14 @@ class Commande extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Client associé (optionnel, pour fidélité)
+     */
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 
     /**

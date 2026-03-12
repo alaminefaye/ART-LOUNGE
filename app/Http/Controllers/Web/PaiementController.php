@@ -9,8 +9,11 @@ use App\Models\Facture;
 use App\Enums\MoyenPaiement;
 use App\Enums\StatutPaiement;
 use App\Enums\OrderStatus;
+use App\Models\Client;
+use App\Models\FidelitySetting;
 use App\Services\FactureService;
 use App\Services\FCMService;
+use App\Services\FidelityService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -19,11 +22,13 @@ class PaiementController extends Controller
 {
     protected $factureService;
     protected $fcmService;
+    protected $fidelityService;
 
-    public function __construct(FactureService $factureService, FCMService $fcmService)
+    public function __construct(FactureService $factureService, FCMService $fcmService, FidelityService $fidelityService)
     {
         $this->factureService = $factureService;
         $this->fcmService = $fcmService;
+        $this->fidelityService = $fidelityService;
     }
 
     /**
@@ -49,10 +54,12 @@ class PaiementController extends Controller
                             ->with('error', 'Cette commande a déjà été payée.');
         }
 
-        $commande->load(['table', 'produits']);
+        $commande->load(['table', 'produits', 'client']);
         $moyensPaiement = MoyenPaiement::cases();
+        $clients = Client::orderBy('nom')->orderBy('prenom')->get();
+        $fidelitySettings = FidelitySetting::get();
 
-        return view('caisse.payer', compact('commande', 'moyensPaiement'));
+        return view('caisse.payer', compact('commande', 'moyensPaiement', 'clients', 'fidelitySettings'));
     }
 
     /**
@@ -81,6 +88,8 @@ class PaiementController extends Controller
         }
 
         $validated = $request->validate([
+            'client_id' => 'nullable|exists:clients,id',
+            'points_utilises' => 'nullable|integer|min:0',
             'moyen_paiement' => ['required', Rule::enum(MoyenPaiement::class)],
             'montant_recu' => 'nullable|numeric|min:0',
             'reference_transaction' => 'nullable|string|max:255',
@@ -88,94 +97,130 @@ class PaiementController extends Controller
         ]);
 
         if ($commande->statut === OrderStatus::Terminee) {
-            // Vérifier si une facture existe déjà pour cette commande
             $facture = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)
                 ->latest()
                 ->first()
                 ?->facture;
-            
             if ($facture) {
                 return redirect()->route('caisse.facture', $facture)
                                 ->with('error', 'Cette commande a déjà été payée.');
             }
-            
             return redirect()->route('caisse.index')
                             ->with('error', 'Cette commande a déjà été payée.');
         }
 
-        return DB::transaction(function () use ($validated, $request, $commande) {
-            $montantAPayer = $commande->montant_total;
-            $moyenPaiement = MoyenPaiement::from($validated['moyen_paiement']);
-            $montantRecu = $validated['montant_recu'] ?? $montantAPayer;
-            $monnaieRendue = 0;
-            $statutPaiement = StatutPaiement::EnAttente;
+        $pointsUtilises = (int) ($validated['points_utilises'] ?? 0);
+        $moyenPaiement = MoyenPaiement::from($validated['moyen_paiement']);
 
-            // Validation selon le moyen de paiement
-            if ($moyenPaiement === MoyenPaiement::Especes) {
-                if ($montantRecu < $montantAPayer) {
-                    return back()->with('error', 'Le montant reçu est insuffisant.')
-                                 ->withInput();
-                }
-                $monnaieRendue = $montantRecu - $montantAPayer;
-                $statutPaiement = StatutPaiement::Valide;
-            } else {
-                // Pour mobile money et carte bancaire
-                if (empty($validated['reference_transaction'])) {
-                    return back()->with('error', 'La référence de transaction est requise pour ce moyen de paiement.')
-                                 ->withInput();
-                }
-                $statutPaiement = StatutPaiement::Valide; // On suppose que c'est validé immédiatement
+        if ($pointsUtilises > 0) {
+            if (empty($validated['client_id'])) {
+                return back()->with('error', 'Veuillez sélectionner un client pour utiliser les points de fidélité.')->withInput();
+            }
+            $client = Client::findOrFail($validated['client_id']);
+            if ($client->points_fidelite < $pointsUtilises) {
+                return back()->with('error', 'Le client n\'a que ' . $client->points_fidelite . ' points.')->withInput();
+            }
+            if ($moyenPaiement === MoyenPaiement::PointsFidelite && $pointsUtilises <= 0) {
+                return back()->with('error', 'Indiquez le nombre de points à utiliser.')->withInput();
+            }
+        }
+
+        return DB::transaction(function () use ($validated, $commande, $pointsUtilises, $moyenPaiement) {
+            $settings = FidelitySetting::get();
+            $montantTotal = (float) $commande->montant_total;
+            $reductionFcfa = $pointsUtilises > 0 ? (float) $settings->fcfaPourPoints($pointsUtilises) : 0;
+            $resteAPayer = $montantTotal - $reductionFcfa;
+
+            if ($resteAPayer < 0) {
+                return back()->with('error', 'Les points couvrent plus que le montant total. Réduisez le nombre de points.')->withInput();
             }
 
-            // Créer le paiement
-            $paiement = Paiement::create([
-                'commande_id' => $commande->id,
-                'user_id' => auth()->id(),
-                'moyen_paiement' => $moyenPaiement,
-                'montant' => $montantAPayer,
-                'montant_recu' => $montantRecu,
-                'monnaie_rendue' => $monnaieRendue,
-                'statut' => $statutPaiement,
-                'transaction_id' => $validated['reference_transaction'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-            ]);
+            $paiementPourFacture = null;
 
-            // Mettre à jour la commande
+            // Paiement en points (partiel ou total)
+            if ($pointsUtilises > 0) {
+                $client = Client::findOrFail($validated['client_id']);
+                $montantPoints = min($reductionFcfa, $montantTotal);
+                Paiement::create([
+                    'commande_id' => $commande->id,
+                    'user_id' => auth()->id(),
+                    'client_id' => $client->id,
+                    'moyen_paiement' => MoyenPaiement::PointsFidelite,
+                    'montant' => $montantPoints,
+                    'statut' => StatutPaiement::Valide,
+                    'points_utilises' => $pointsUtilises,
+                    'notes' => $validated['notes'] ?? null,
+                ]);
+                $this->fidelityService->debiterPoints(
+                    $client,
+                    $pointsUtilises,
+                    'Paiement commande #' . $commande->id,
+                    $commande->id
+                );
+                $paiementPourFacture = $commande->paiements()->latest()->first();
+            }
+
+            // Lier le client à la commande pour attribution des points
+            if (!empty($validated['client_id'])) {
+                $commande->client_id = $validated['client_id'];
+                $commande->save();
+            }
+
+            // Paiement du reste (espèces, carte, etc.)
+            if ($resteAPayer > 0) {
+                if ($moyenPaiement === MoyenPaiement::PointsFidelite) {
+                    return back()->with('error', 'Il reste ' . number_format($resteAPayer, 0, '', ' ') . ' FCFA à payer. Choisissez un autre moyen pour le reste.')->withInput();
+                }
+                $montantRecu = (float) ($validated['montant_recu'] ?? $resteAPayer);
+                $monnaieRendue = 0;
+                if ($moyenPaiement === MoyenPaiement::Especes) {
+                    if ($montantRecu < $resteAPayer) {
+                        return back()->with('error', 'Le montant reçu est insuffisant.')->withInput();
+                    }
+                    $monnaieRendue = $montantRecu - $resteAPayer;
+                } else {
+                    if (empty($validated['reference_transaction'])) {
+                        return back()->with('error', 'Référence de transaction requise.')->withInput();
+                    }
+                }
+                $paiementPourFacture = Paiement::create([
+                    'commande_id' => $commande->id,
+                    'user_id' => auth()->id(),
+                    'client_id' => $validated['client_id'] ?? null,
+                    'moyen_paiement' => $moyenPaiement,
+                    'montant' => $resteAPayer,
+                    'montant_recu' => $montantRecu,
+                    'monnaie_rendue' => $monnaieRendue,
+                    'statut' => StatutPaiement::Valide,
+                    'transaction_id' => $validated['reference_transaction'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                ]);
+            }
+
             $commande->statut = OrderStatus::Terminee;
             $commande->save();
-
-            // Libérer la table
             $commande->table->liberer();
 
-            try {
-                // Générer la facture
-                $facture = $this->factureService->genererFacture($commande, $paiement);
+            // Créditer les points pour la part payée en argent réel
+            $montantReel = $this->fidelityService->montantPayeReel($commande);
+            if ($montantReel > 0 && $commande->client_id) {
+                $this->fidelityService->crediterPointsPourPaiement($commande, $montantReel);
+            }
 
-                // Notifier le client sur l'app mobile (reçu + note de satisfaction)
+            try {
+                $facture = $this->factureService->genererFacture($commande, $paiementPourFacture);
                 try {
                     $this->fcmService->notifyClientPaymentValidated($commande, $facture);
                 } catch (\Throwable $e) {
-                    \Log::warning('FCM: échec envoi notification paiement au client', [
-                        'commande_id' => $commande->id,
-                        'error' => $e->getMessage(),
-                    ]);
+                    \Log::warning('FCM: échec envoi notification paiement au client', ['commande_id' => $commande->id, 'error' => $e->getMessage()]);
                 }
-
-                // Utiliser redirect avec code 303 (See Other) pour forcer une nouvelle requête GET
                 return redirect()->route('caisse.facture', $facture)
-                                ->with('success', 'Paiement enregistré avec succès !')
-                                ->setStatusCode(303);
+                    ->with('success', 'Paiement enregistré avec succès !')
+                    ->setStatusCode(303);
             } catch (\Exception $e) {
-                // En cas d'erreur lors de la génération de la facture, rediriger quand même vers la caisse
-                \Log::error('Erreur lors de la génération de la facture', [
-                    'commande_id' => $commande->id,
-                    'paiement_id' => $paiement->id,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-                
+                \Log::error('Erreur génération facture', ['commande_id' => $commande->id, 'error' => $e->getMessage()]);
                 return redirect()->route('caisse.index')
-                                ->with('warning', 'Paiement enregistré avec succès, mais erreur lors de la génération de la facture. Le paiement a été enregistré (ID: ' . $paiement->id . ').');
+                    ->with('warning', 'Paiement enregistré. Erreur lors de la génération de la facture.');
             }
         });
     }

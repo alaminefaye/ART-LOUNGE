@@ -63,6 +63,12 @@ class User extends Authenticatable
         return $this->hasMany(Avis::class)->orderByDesc('created_at');
     }
 
+    /** Lien vers le profil Client (fidélité) si l'utilisateur est un client */
+    public function client()
+    {
+        return $this->hasOne(Client::class);
+    }
+
     // Toutes les méthodes de gestion des rôles et permissions sont fournies par Spatie\Permission\Traits\HasRoles
     // hasRole(), assignRole(), removeRole(), hasPermissionTo(), givePermissionTo(), etc.
 }

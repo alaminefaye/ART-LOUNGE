@@ -22,7 +22,39 @@
                     @csrf
                     
                     <div class="mb-3">
-                        <label class="form-label"><strong>Moyen de Paiement *</strong></label>
+                        <label class="form-label"><strong>Client (optionnel)</strong></label>
+                        <select name="client_id" id="clientId" class="form-select" onchange="onClientChange()">
+                            <option value="">— Aucun —</option>
+                            @foreach($clients as $c)
+                                <option value="{{ $c->id }}" data-points="{{ $c->points_fidelite }}"
+                                    {{ old('client_id', $commande->client_id) == $c->id ? 'selected' : '' }}>
+                                    {{ $c->nom }} {{ $c->prenom }} ({{ $c->points_fidelite }} pts)
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Pour utiliser les points ou en gagner</small>
+                    </div>
+                    
+                    <div id="pointsFideliteBlock" style="display: none;">
+                        <div class="mb-3 p-3 border rounded bg-light">
+                            <label class="form-label"><strong>⭐ Points de fidélité</strong></label>
+                            <div class="row align-items-end">
+                                <div class="col-md-6">
+                                    <label class="form-label small">Points à utiliser</label>
+                                    <input type="number" name="points_utilises" id="pointsUtilises" class="form-control" 
+                                           value="{{ old('points_utilises', 0) }}" min="0" step="1" onchange="updateReste()">
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-0 small text-muted">Équivalent: <strong id="equivalentFcfa">0</strong> FCFA</p>
+                                    <p class="mb-0 small text-muted">1 point = {{ number_format($fidelitySettings->valeur_fcfa_1_point, 0, '', ' ') }} FCFA</p>
+                                </div>
+                            </div>
+                            <p class="mb-0 mt-2 small" id="resteLabel">Reste à payer: <strong id="resteFcfa">{{ number_format($commande->montant_total, 0, ',', ' ') }}</strong> FCFA</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Moyen de Paiement (pour le reste) *</strong></label>
                         <select name="moyen_paiement" id="moyenPaiement" class="form-select" required onchange="togglePaymentFields()">
                             <option value="">Sélectionner...</option>
                             @foreach($moyensPaiement as $moyen)
@@ -32,6 +64,7 @@
                                         @case('wave') 📱 Wave @break
                                         @case('orange_money') 📱 Orange Money @break
                                         @case('carte_bancaire') 💳 Carte Bancaire @break
+                                        @case('points_fidelite') ⭐ Points de fidélité (total) @break
                                     @endswitch
                                 </option>
                             @endforeach
@@ -43,9 +76,7 @@
                             <label class="form-label"><strong>Montant Reçu (FCFA) *</strong></label>
                             <input type="number" name="montant_recu" id="montantRecu" class="form-control" 
                                    value="{{ old('montant_recu', $commande->montant_total) }}" 
-                                   min="{{ $commande->montant_total }}" 
-                                   step="1"
-                                   onkeyup="calculateChange()">
+                                   min="0" step="1" onkeyup="calculateChange()">
                         </div>
                         
                         <div class="mb-3">
@@ -128,8 +159,9 @@ function togglePaymentFields() {
         especesFields.style.display = 'block';
         referenceFields.style.display = 'none';
         montantRecuInput.required = true;
+        montantRecuInput.min = getResteAPayer();
         calculateChange();
-    } else if (moyenPaiement === 'wave' || moyenPaiement === 'orange_money' || moyenPaiement === 'carte_bancaire') {
+    } else if (moyenPaiement === 'wave' || moyenPaiement === 'orange_money' || moyenPaiement === 'carte_bancaire' || moyenPaiement === 'points_fidelite') {
         especesFields.style.display = 'none';
         referenceFields.style.display = 'block';
         montantRecuInput.required = false;
@@ -141,9 +173,9 @@ function togglePaymentFields() {
 }
 
 function calculateChange() {
-    const montantTotal = {{ $commande->montant_total }};
+    const reste = getResteAPayer();
     const montantRecu = parseFloat(document.getElementById('montantRecu').value) || 0;
-    const monnaie = montantRecu - montantTotal;
+    const monnaie = montantRecu - reste;
     
     if (monnaie >= 0) {
         document.getElementById('monnaieRendue').value = new Intl.NumberFormat('fr-FR').format(monnaie) + ' FCFA';
@@ -154,8 +186,46 @@ function calculateChange() {
     }
 }
 
-// Initialize on load
+const valeurFcfa1Point = {{ $fidelitySettings->valeur_fcfa_1_point }};
+const montantTotal = {{ $commande->montant_total }};
+
+function getResteAPayer() {
+    const pts = parseInt(document.getElementById('pointsUtilises').value) || 0;
+    const reduction = pts * valeurFcfa1Point;
+    return Math.max(0, montantTotal - reduction);
+}
+
+function onClientChange() {
+    const sel = document.getElementById('clientId');
+    const block = document.getElementById('pointsFideliteBlock');
+    const pts = parseInt(sel.options[sel.selectedIndex]?.dataset?.points) || 0;
+    block.style.display = pts > 0 ? 'block' : 'none';
+    document.getElementById('pointsUtilises').max = pts;
+    updateReste();
+}
+
+function updateReste() {
+    const pts = parseInt(document.getElementById('pointsUtilises').value) || 0;
+    const reduction = pts * valeurFcfa1Point;
+    const equivalent = Math.min(reduction, montantTotal);
+    const reste = montantTotal - equivalent;
+    document.getElementById('equivalentFcfa').textContent = new Intl.NumberFormat('fr-FR').format(equivalent);
+    document.getElementById('resteFcfa').textContent = new Intl.NumberFormat('fr-FR').format(reste);
+    document.getElementById('montantRecu').min = reste;
+    document.getElementById('montantRecu').value = reste;
+    calculateChange();
+    const moyenPaiement = document.getElementById('moyenPaiement').value;
+    if (reste <= 0 && moyenPaiement !== 'points_fidelite') {
+    document.getElementById('moyenPaiement').value = 'points_fidelite';
+    togglePaymentFields();
+    } else if (reste > 0 && moyenPaiement === 'points_fidelite') {
+    document.getElementById('moyenPaiement').value = 'especes';
+    togglePaymentFields();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    onClientChange();
     togglePaymentFields();
 });
 </script>

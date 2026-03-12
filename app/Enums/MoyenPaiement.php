@@ -8,5 +8,6 @@ enum MoyenPaiement: string
     case Wave = 'wave';
     case OrangeMoney = 'orange_money';
     case CarteBancaire = 'carte_bancaire';
+    case PointsFidelite = 'points_fidelite';
 }
 
