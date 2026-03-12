@@ -635,7 +635,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     'Articles',
                                     style: TextStyle(
                                       color: Colors.grey[700],
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                       letterSpacing: 0.5,
                                     ),
@@ -656,7 +656,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                           'Aucun article',
                                           style: TextStyle(
                                             color: Colors.grey[700],
-                                            fontSize: 14,
+                                            fontSize: 13,
                                           ),
                                         ),
                                       ),
@@ -1024,13 +1024,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       style: const TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 14,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
                       '${Formatters.formatCurrency(item.prix)} x ${item.quantite}',
-                      style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                      style: TextStyle(color: Colors.grey[700], fontSize: 12),
                     ),
                   ],
                 ),
@@ -1040,7 +1040,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 Formatters.formatCurrency(item.total),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Color(0xFFD0A030),
                 ),
               ),

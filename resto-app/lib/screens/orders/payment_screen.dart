@@ -33,6 +33,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _amountReceivedController.text = widget.order.montantTotal.toStringAsFixed(
       0,
     );
+    // Client : seule option = espèces, pré-sélectionnée
+    if (_isClient) _selectedPaymentMethod = PaymentMethod.especes;
   }
 
   String _generateTransactionId() {
@@ -67,29 +69,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    // Pour Wave et Orange Money, le client peut initier
-    if (_isClient &&
-        ![
-          _selectedPaymentMethod!.value,
-          PaymentMethod.wave.value,
-          PaymentMethod.orangeMoney.value,
-        ].contains(_selectedPaymentMethod!.value)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Pour le paiement en espèces, veuillez contacter le serveur',
-          ),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _isProcessing = true;
     });
 
-    // Pour espèces (gérant uniquement), utiliser payerEspeces
+    // Client : uniquement espèces (remettre au serveur, enregistré à la caisse)
+    if (_isClient && _selectedPaymentMethod == PaymentMethod.especes) {
+      setState(() {
+        _isProcessing = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Remettez le montant au serveur. Le paiement sera enregistré à la caisse.',
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+      return;
+    }
+
+    // Pour espèces (personnel uniquement), utiliser payerEspeces
     if (_selectedPaymentMethod == PaymentMethod.especes && !_isClient) {
       final montantRecu =
           double.tryParse(_amountReceivedController.text) ?? 0.0;
@@ -333,33 +337,42 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                     ),
 
-                    // Options de paiement
-                    _buildPaymentMethodOption(
-                      PaymentMethod.wave,
-                      'Wave',
-                      'Paiement mobile via Wave',
-                      Icons.phone_android,
-                    ),
-                    _buildPaymentMethodOption(
-                      PaymentMethod.orangeMoney,
-                      'Orange Money',
-                      'Paiement mobile via Orange Money',
-                      Icons.phone_android,
-                    ),
-                    if (!_isClient)
+                    // Options de paiement : client = espèces uniquement ; personnel = tous
+                    if (_isClient)
+                      _buildPaymentMethodOption(
+                        PaymentMethod.especes,
+                        'Espèces',
+                        'Remettez le montant au serveur',
+                        Icons.money,
+                      )
+                    else ...[
+                      _buildPaymentMethodOption(
+                        PaymentMethod.wave,
+                        'Wave',
+                        'Paiement mobile via Wave',
+                        Icons.phone_android,
+                      ),
+                      _buildPaymentMethodOption(
+                        PaymentMethod.orangeMoney,
+                        'Orange Money',
+                        'Paiement mobile via Orange Money',
+                        Icons.phone_android,
+                      ),
                       _buildPaymentMethodOption(
                         PaymentMethod.especes,
                         'Espèces',
                         'Paiement en espèces',
                         Icons.money,
                       ),
+                    ],
 
                     const SizedBox(height: 30),
 
-                    // Champs conditionnels selon le mode de paiement
-                    if (_selectedPaymentMethod == PaymentMethod.wave ||
-                        _selectedPaymentMethod ==
-                            PaymentMethod.orangeMoney) ...[
+                    // Champs conditionnels selon le mode de paiement (personnel uniquement pour Wave/OM)
+                    if (!_isClient &&
+                        (_selectedPaymentMethod == PaymentMethod.wave ||
+                            _selectedPaymentMethod ==
+                                PaymentMethod.orangeMoney)) ...[
                       _buildTextField(
                         controller: _transactionIdController,
                         label: 'Numéro de transaction',
@@ -507,7 +520,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     IconData icon,
   ) {
     final isSelected = _selectedPaymentMethod == method;
-    final isDisabled = _isClient && method == PaymentMethod.especes;
+    // Client : seule option espèces (activée). Personnel : toutes options.
+    final isDisabled = _isClient && method != PaymentMethod.especes;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
