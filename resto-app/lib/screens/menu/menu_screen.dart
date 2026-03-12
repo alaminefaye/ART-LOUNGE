@@ -13,6 +13,7 @@ import '../../models/cart.dart';
 import '../../models/favorites.dart';
 import '../../models/order.dart';
 import '../../services/order_service.dart';
+import '../../services/auth_service.dart';
 import '../../services/fcm_events.dart';
 import '../../utils/formatters.dart';
 
@@ -47,7 +48,19 @@ class _MenuScreenState extends State<MenuScreen> {
     _currentIndex = widget.initialIndex ?? 0;
     _paymentValidatedSubscription =
         FCMEvents.paymentValidatedStream.listen((orderId) {
-      if (mounted) _showPaymentReceivedDialog(orderId);
+      if (!mounted) return;
+      final user = Provider.of<AuthService>(context, listen: false).currentUser;
+      if (user != null && user.hasRole('client')) {
+        _showPaymentReceivedDialog(orderId);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Paiement validé pour la commande #$orderId'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     });
   }
 

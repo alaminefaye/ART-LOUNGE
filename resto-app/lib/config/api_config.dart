@@ -1,10 +1,14 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class ApiConfig {
-  // URL de base de l'API - Changez cette URL selon votre serveur de déploiement
-  // Pour la production: http://restaurant.universaltechnologiesafrica.com/api
-  // Pour le développement local: http://localhost:8000/api
-  // Pour un autre serveur: http://votre-domaine.com/api
-  static const String baseUrl =
-      'http://restaurant.universaltechnologiesafrica.com/api';
+  // En web : utilise le même domaine que la page (ex: https://mondomaine.com/client → API https://mondomaine.com/api)
+  // En mobile : utilise l'URL de production
+  static String get baseUrl {
+    if (kIsWeb) {
+      return '${Uri.base.origin}/api';
+    }
+    return 'http://restaurant.universaltechnologiesafrica.com/api';
+  }
 
   // URL de base du serveur (sans /api)
   static String get serverBaseUrl {

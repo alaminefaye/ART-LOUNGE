@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -33,13 +34,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialiser Firebase avec les options explicites
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Enregistrer le handler de background
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  if (!kIsWeb) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  }
+  // Sur le web : pas d'init Firebase (pas de firebase_options web configuré)
 
-  // Initialiser les données de locale pour le formatage de date
   await initializeDateFormatting('fr_FR', null);
   runApp(const RestoApp());
 }
@@ -136,8 +139,8 @@ class _AuthWrapperState extends State<AuthWrapper>
     final authService = Provider.of<AuthService>(context, listen: false);
     await authService.checkAuth();
 
-    // Initialiser le service FCM une fois l'auth vérifiée
-    if (authService.isAuthenticated) {
+    // Initialiser le service FCM une fois l'auth vérifiée (mobile uniquement)
+    if (authService.isAuthenticated && !kIsWeb) {
       await FCMService().initialize(authService);
     }
 

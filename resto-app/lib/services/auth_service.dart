@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/user.dart';
 import '../config/api_config.dart';
 import 'api_service.dart';
@@ -23,6 +24,13 @@ class AuthService extends ChangeNotifier {
     required String password,
     required String passwordConfirmation,
   }) async {
+    final hasNetwork = await _hasConnectivity();
+    if (!hasNetwork) {
+      return {
+        'success': false,
+        'message': 'Pas de connexion internet. Vérifiez que le Wi-Fi ou les données mobiles sont activés et que l\'accès réseau est autorisé pour l\'application.',
+      };
+    }
     try {
       final response = await _apiService.post(
         ApiConfig.register,
@@ -93,9 +101,9 @@ class AuthService extends ChangeNotifier {
       } else if (e.type == DioExceptionType.connectionTimeout ||
                  e.type == DioExceptionType.receiveTimeout ||
                  e.type == DioExceptionType.sendTimeout) {
-        message = 'Délai d\'attente dépassé. Vérifiez votre connexion internet.';
+        message = 'Délai d\'attente dépassé. Vérifiez votre connexion internet et que l\'accès réseau est autorisé.';
       } else if (e.type == DioExceptionType.connectionError) {
-        message = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet.';
+        message = 'Impossible de joindre le serveur. Vérifiez votre connexion internet et que l\'accès réseau est autorisé pour l\'application.';
       }
       
       return {'success': false, 'message': message};
@@ -104,8 +112,28 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  /// Vérifie si une connexion réseau est disponible (Wi-Fi, données mobiles, etc.).
+  Future<bool> _hasConnectivity() async {
+    try {
+      final result = await Connectivity().checkConnectivity();
+      if (result.isEmpty) return false;
+      if (result.contains(ConnectivityResult.none) && result.length == 1) return false;
+      if (result.every((r) => r == ConnectivityResult.none)) return false;
+      return true;
+    } catch (_) {
+      return true; // En cas de doute, laisser tenter l'appel API
+    }
+  }
+
   // Login (accepte email ou téléphone)
   Future<Map<String, dynamic>> login(String emailOrPhone, String password) async {
+    final hasNetwork = await _hasConnectivity();
+    if (!hasNetwork) {
+      return {
+        'success': false,
+        'message': 'Pas de connexion internet. Vérifiez que le Wi-Fi ou les données mobiles sont activés et que l\'accès réseau est autorisé pour l\'application.',
+      };
+    }
     try {
       final response = await _apiService.post(
         ApiConfig.login,
@@ -174,9 +202,9 @@ class AuthService extends ChangeNotifier {
       } else if (e.type == DioExceptionType.connectionTimeout ||
                  e.type == DioExceptionType.receiveTimeout ||
                  e.type == DioExceptionType.sendTimeout) {
-        message = 'Délai d\'attente dépassé. Vérifiez votre connexion internet.';
+        message = 'Délai d\'attente dépassé. Vérifiez votre connexion internet et que l\'accès réseau est autorisé.';
       } else if (e.type == DioExceptionType.connectionError) {
-        message = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet.';
+        message = 'Impossible de joindre le serveur. Vérifiez votre connexion internet, que l\'accès réseau est autorisé pour l\'application, et que l\'adresse du serveur est correcte.';
       }
       
       return {'success': false, 'message': message};

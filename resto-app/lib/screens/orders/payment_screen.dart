@@ -671,10 +671,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
     IconData icon,
   ) {
     final isSelected = _selectedPaymentMethod == method;
-    // Client : espèces + points de fidélité (si dispo). Personnel : toutes options.
+    // Client : espèces, points de fidélité, Wave et Orange Money (si affichés). Personnel : toutes options.
     final isDisabled = _isClient &&
         method != PaymentMethod.especes &&
-        method != PaymentMethod.pointsFidelite;
+        method != PaymentMethod.pointsFidelite &&
+        method != PaymentMethod.wave &&
+        method != PaymentMethod.orangeMoney;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

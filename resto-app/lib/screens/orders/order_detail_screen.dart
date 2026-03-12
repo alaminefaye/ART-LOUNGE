@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
+import '../../services/auth_service.dart';
 import '../../services/fcm_events.dart';
 import '../../config/api_config.dart';
 import '../../models/order.dart';
@@ -50,10 +52,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         // Mais pour l'instant on recharge tout car on n'a pas l'ID dans le stream
         _loadOrder();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Commande mise à jour 🔔'),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.notifications_active, color: Colors.white, size: 22),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Commande mise à jour !',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: Colors.orange,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -110,6 +123,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (!mounted || _order == null) return;
     if (_reviewPopupShown) return;
     if (_order!.statut != OrderStatus.terminee) return;
+    // Facture + avis réservés au client qui a passé la commande
+    final user = Provider.of<AuthService>(context, listen: false).currentUser;
+    if (user == null || !user.hasRole('client')) return;
 
     try {
       final existing = await _apiService.get(

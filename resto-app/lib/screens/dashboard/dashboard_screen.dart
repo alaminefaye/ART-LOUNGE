@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../services/auth_service.dart';
@@ -37,6 +38,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    // Barre de statut en sombre pour être lisible sur fond clair
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Color(0xFFFFF6EC),
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
     _loadDashboardData();
     _startClock();
 
@@ -45,19 +56,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (mounted) {
         _loadDashboardData();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nouvelle commande reçue ! 🔔'),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.notifications_active, color: Colors.white, size: 22),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Nouvelle commande reçue !',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: Colors.orange,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
     });
 
-    // Popup "Paiement reçu" avec aperçu reçu et note de satisfaction
+    // Popup "Paiement reçu" (facture + avis) réservé au client uniquement
     _paymentValidatedSubscription =
         FCMEvents.paymentValidatedStream.listen((orderId) {
-      if (mounted) _showPaymentReceivedDialog(orderId);
+      if (!mounted) return;
+      final user = Provider.of<AuthService>(context, listen: false).currentUser;
+      if (user != null && user.hasRole('client')) {
+        _showPaymentReceivedDialog(orderId);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Paiement validé pour la commande #$orderId'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     });
   }
 
@@ -284,87 +318,99 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'DOLCE VITA',
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'DOLCE VITA',
                           style: TextStyle(
-                            color: Colors.orange,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
+                            color: Color(0xFFB07018),
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.4,
+                            height: 1.2,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
                           'Bonjour, ${user.name}',
                           style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 16,
+                            color: Colors.grey[800],
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         // Date et Heure
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
+                            horizontal: 12,
+                            vertical: 8,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
-                                offset: const Offset(0, 4),
-                                blurRadius: 12,
+                                color: Colors.black.withValues(alpha: 0.06),
+                                offset: const Offset(0, 3),
+                                blurRadius: 10,
                               ),
                             ],
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.calendar_today,
-                                size: 14,
-                                color: Colors.grey[700],
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '${_getFormattedDate().substring(0, 1).toUpperCase()}${_getFormattedDate().substring(1)}',
-                                style: TextStyle(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.calendar_today_rounded,
+                                  size: 16,
                                   color: Colors.grey[800],
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Container(
-                                width: 1,
-                                height: 12,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(width: 10),
-                              Icon(
-                                Icons.access_time,
-                                size: 14,
-                                color: Color(0xFFD0A030),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _getFormattedTime(),
-                                style: const TextStyle(
-                                  color: Color(0xFFD0A030),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${_getFormattedDate().substring(0, 1).toUpperCase()}${_getFormattedDate().substring(1)}',
+                                  style: TextStyle(
+                                    color: Colors.grey[900],
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.2,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 12),
+                                Container(
+                                  width: 1,
+                                  height: 14,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(width: 12),
+                                Icon(
+                                  Icons.access_time_rounded,
+                                  size: 16,
+                                  color: const Color(0xFFB07018),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _getFormattedTime(),
+                                  style: const TextStyle(
+                                    color: Color(0xFFB07018),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
+                    ),
                     ),
                     // Icône notifications
                     Stack(
@@ -382,7 +428,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           },
                           icon: Icon(
                             Icons.notifications_outlined,
-                            color: Colors.grey[800],
+                            color: Colors.grey[900],
                             size: 28,
                           ),
                           tooltip: 'Notifications',
@@ -490,10 +536,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Text(
                               'Statistiques du jour',
                               style: TextStyle(
-                                color: Colors.orange[300],
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
+                                color: Colors.orange[800],
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.4,
                               ),
                             ),
                           ],
@@ -656,53 +702,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Commandes Récentes',
                         style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[900],
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
                         ),
                       ),
                       const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
+                          horizontal: 12,
+                          vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange,
-                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFFD0A030),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFD0A030).withValues(alpha: 0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Text(
                           '${_recentOrders.length}',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _recentOrders.length,
-                  itemBuilder: (context, index) {
-                    final order = _recentOrders[index];
-                    return RecentOrderTile(
-                      order: order,
-                      onOrderUpdated: () {
-                        _loadDashboardData();
-                        FCMEvents.triggerOrderUpdate();
-                      },
-                    );
-                  },
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      for (final order in _recentOrders)
+                        RecentOrderTile(
+                          order: order,
+                          onOrderUpdated: () {
+                            _loadDashboardData();
+                            FCMEvents.triggerOrderUpdate();
+                          },
+                        ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
               ],
             ],
           ),
@@ -727,23 +780,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(width: 8),
             Text(
               label,
-              style: TextStyle(color: Colors.grey[700], fontSize: 12),
+              style: TextStyle(
+                color: Colors.grey[800],
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          style: TextStyle(
+            color: Colors.grey[900],
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.3,
           ),
         ),
         if (subtitle != null)
           Text(
             subtitle,
-            style: TextStyle(color: Colors.grey[700], fontSize: 10),
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
           ),
       ],
     );
@@ -781,14 +843,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     child: Icon(icon, size: 40, color: color),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   Text(
                     title,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey[900],
+                      letterSpacing: 0.2,
+                      height: 1.25,
                     ),
                   ),
                 ],
@@ -910,28 +974,33 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
     final dateStr = DateFormat('dd/MM HH:mm').format(widget.order.createdAt);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border(
-          left: BorderSide(color: statusColor, width: 4),
-          right: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
-          top: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
-          bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
-        ),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Stack(
+          children: [
+            Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 5,
+            child: Container(color: statusColor),
+          ),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -946,24 +1015,24 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
               widget.onOrderUpdated();
             });
           },
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(left: 20, right: 16, top: 16, bottom: 16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Table Info
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF6EC),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+                    border: Border.all(color: const Color(0xFFD0A030).withValues(alpha: 0.4)),
                   ),
                   child: Icon(
-                    Icons.table_restaurant,
-                    color: Colors.grey[800],
-                    size: 20,
+                    Icons.table_restaurant_rounded,
+                    color: Colors.grey[900],
+                    size: 24,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -978,36 +1047,41 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
                           Text(
                             'Table ${widget.order.table?.numero ?? "?"}',
                             style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              color: Color(0xFF1A1A1A),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 18,
+                              letterSpacing: 0.2,
                             ),
                           ),
                           const SizedBox(width: 10),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                              horizontal: 10,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: statusColor.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
+                              color: statusColor.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               statusLabel,
                               style: TextStyle(
                                 color: statusColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         dateStr,
-                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                        style: TextStyle(
+                          color: Colors.grey[800],
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       const SizedBox(height: 12),
 
@@ -1023,8 +1097,9 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
                                   ? 'Aucun produit'
                                   : 'Aucun nouveau produit à servir',
                               style: TextStyle(
-                                color: Colors.grey[700],
-                                fontSize: 14,
+                                color: Colors.grey[800],
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
                                 fontStyle: all.isEmpty
                                     ? FontStyle.normal
                                     : FontStyle.italic,
@@ -1037,7 +1112,7 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
                           children: nonServis
                               .map(
                                 (p) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 4),
+                                  padding: const EdgeInsets.only(bottom: 6),
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -1045,17 +1120,18 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
                                       Text(
                                         '${p.quantite}x ',
                                         style: const TextStyle(
-                                          color: Colors.orange,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          color: Color(0xFFD0A030),
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 15,
                                         ),
                                       ),
                                       Expanded(
                                         child: Text(
                                           p.produitNom,
                                           style: const TextStyle(
-                                            color: Colors.black87,
-                                            fontSize: 14,
+                                            color: Color(0xFF1A1A1A),
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
@@ -1127,6 +1203,9 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
           ),
         ),
       ),
+        ],
+      ),
+    ),
     );
   }
 }

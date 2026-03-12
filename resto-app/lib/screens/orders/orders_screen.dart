@@ -35,10 +35,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
       if (mounted) {
         _loadOrders();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Liste des commandes mise à jour 🔔'),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.notifications_active, color: Colors.white, size: 22),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Liste des commandes mise à jour !',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: Colors.orange,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
