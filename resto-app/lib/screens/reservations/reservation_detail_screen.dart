@@ -231,22 +231,22 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                       'Statut',
                                       style: TextStyle(
                                         color: Colors.white70,
-                                        fontSize: 14,
+                                        fontSize: 12,
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 4),
                                     Text(
                                       _reservation!.statut.displayName,
                                       style: const TextStyle(
                                         color: Colors.white,
-                                        fontSize: 24,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ],
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
@@ -254,7 +254,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                   child: const Icon(
                                     Icons.event,
                                     color: Colors.white,
-                                    size: 32,
+                                    size: 26,
                                   ),
                                 ),
                               ],
@@ -265,7 +265,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                           // Informations de la table
                           if (_reservation!.table != null) ...[
                             Container(
-                              padding: const EdgeInsets.all(20),
+                              padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
@@ -288,33 +288,33 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                   Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.all(10),
+                                        padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFD0A030).withValues(
                                             alpha: 0.15,
                                           ),
                                           borderRadius: BorderRadius.circular(
-                                            12,
+                                            10,
                                           ),
                                         ),
                                         child: const Icon(
                                           Icons.table_restaurant,
                                           color: Color(0xFFD0A030),
-                                          size: 24,
+                                          size: 20,
                                         ),
                                       ),
-                                      const SizedBox(width: 12),
+                                      const SizedBox(width: 10),
                                       const Text(
                                         'Table réservée',
                                         style: TextStyle(
                                           color: Colors.black,
-                                          fontSize: 18,
+                                          fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 16),
+                                  const SizedBox(height: 12),
                                   _buildInfoRow(
                                     Icons.table_restaurant,
                                     'Table',
@@ -340,7 +340,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
 
                           // Informations de la réservation
                           Container(
-                            padding: const EdgeInsets.all(20),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
@@ -363,31 +363,31 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.all(10),
+                                      padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFD0A030).withValues(
                                         alpha: 0.15,
                                       ),
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Icon(
                                       Icons.event,
                                       color: Color(0xFFD0A030),
-                                        size: 24,
+                                        size: 20,
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: 10),
                                     const Text(
                                       'Détails de la réservation',
                                       style: TextStyle(
                                         color: Colors.black,
-                                        fontSize: 18,
+                                        fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 12),
                                 _buildInfoRow(
                                   Icons.calendar_today,
                                   'Date',
@@ -420,7 +420,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
 
                           // Informations client
                           Container(
-                            padding: const EdgeInsets.all(20),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
@@ -443,37 +443,37 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.all(10),
+                                      padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: Colors.blue.withValues(
-                                          alpha: 0.2,
+                                        color: const Color(0xFFD0A030).withValues(
+                                          alpha: 0.15,
                                         ),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: const Icon(
                                         Icons.person,
-                                        color: Colors.blue,
-                                        size: 24,
+                                        color: Color(0xFFD0A030),
+                                        size: 20,
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: 10),
                                     const Text(
                                       'Informations client',
                                       style: TextStyle(
                                         color: Colors.black,
-                                        fontSize: 18,
+                                        fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 12),
                                 _buildInfoRow(
                                   Icons.person,
                                   'Nom',
                                   _reservation!.nomClient,
                                 ),
-                                const Divider(color: Colors.grey, height: 24),
+                                const Divider(color: Colors.grey, height: 20),
                                 _buildInfoRow(
                                   Icons.phone,
                                   'Téléphone',
@@ -530,7 +530,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                   'Prix total',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 20,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -540,7 +540,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                   ),
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 26,
+                                    fontSize: 22,
                                     fontWeight: FontWeight.bold,
                                     shadows: [
                                       Shadow(
@@ -596,14 +596,14 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                       : 'Annuler la réservation',
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red,
                                   padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
+                                    vertical: 12,
                                   ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(15),
@@ -628,17 +628,17 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: Colors.orange.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 18, color: const Color(0xFFD0A030)),
+          child: Icon(icon, size: 16, color: const Color(0xFFD0A030)),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Text(
           '$label: ',
-          style: TextStyle(color: Colors.grey[700], fontSize: 14),
+          style: TextStyle(color: Colors.grey[700], fontSize: 12),
         ),
         Expanded(
           child: Text(
@@ -646,7 +646,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: Colors.black,
-              fontSize: 14,
+              fontSize: 12,
             ),
             overflow: TextOverflow.ellipsis,
           ),

@@ -82,26 +82,26 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             ),
                             child: Icon(
                               Icons.receipt_long_outlined,
-                              size: 60,
+                              size: 48,
                               color: Colors.grey[600],
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
                           Text(
                             'Aucune commande terminée',
                             style: TextStyle(
                               color: Colors.grey[800],
-                              fontSize: 18,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           Text(
                             'Vos commandes terminées apparaîtront ici\navec la possibilité de voir vos reçus',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.grey[700],
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -132,7 +132,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
 
   Widget _buildOrderCard(BuildContext context, Order order) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -159,7 +159,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
           },
           borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -170,23 +170,23 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             color: Colors.orange.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
                             Icons.receipt_long,
                             color: Colors.orange,
-                            size: 20,
+                            size: 18,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         Text(
                           'Commande #${order.id}',
                           style: const TextStyle(
                             color: Colors.black,
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -213,14 +213,14 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                         order.statut.displayName,
                         style: TextStyle(
                           color: _getStatusColor(order.statut),
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 // Informations de la commande
                 Row(
@@ -233,53 +233,53 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             children: [
                               const Icon(
                                 Icons.attach_money,
-                                size: 16,
+                                size: 14,
                                 color: Colors.orange,
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 5),
                               Text(
                                 Formatters.formatCurrency(order.montantTotal),
                                 style: const TextStyle(
                                   color: Colors.orange,
-                                  fontSize: 18,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           Row(
                             children: [
                               Icon(
                                 Icons.access_time,
-                                size: 14,
+                                size: 12,
                                 color: Colors.grey[500],
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 5),
                               Text(
                                 _formatDate(order.createdAt),
                                 style: TextStyle(
                                   color: Colors.grey[700],
-                                  fontSize: 13,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
                           ),
                           if (order.table != null) ...[
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             Row(
                               children: [
                                 Icon(
                                   Icons.table_restaurant,
-                                  size: 14,
+                                  size: 12,
                                   color: Colors.grey[500],
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 5),
                                 Text(
                                   'Table ${order.table!.numero}',
                                   style: TextStyle(
                                     color: Colors.grey[700],
-                                    fontSize: 13,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ],
@@ -291,19 +291,19 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                     Icon(
                       Icons.chevron_right,
                       color: Colors.grey[500],
-                      size: 24,
+                      size: 20,
                     ),
                   ],
                 ),
 
                 // Liste des produits si disponibles
                 if (order.produits != null && order.produits!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   const Divider(color: Colors.grey, thickness: 0.5),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   ...order.produits!.take(3).map((produit) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 6),
                       child: Row(
                         children: [
                           Expanded(
@@ -311,7 +311,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                               '${produit.quantite}x ${produit.produitNom}',
                               style: TextStyle(
                                 color: Colors.grey[700],
-                                fontSize: 13,
+                                fontSize: 12,
                               ),
                             ),
                           ),
@@ -319,7 +319,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             Formatters.formatCurrency(produit.total),
                             style: TextStyle(
                               color: Colors.grey[700],
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                           ),
                         ],
@@ -328,19 +328,19 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                   }),
                   if (order.produits!.length > 3)
                     Padding(
-                      padding: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.only(top: 2),
                       child: Text(
                         '+ ${order.produits!.length - 3} autre(s) produit(s)',
                         style: const TextStyle(
                           color: Colors.orange,
-                          fontSize: 12,
+                          fontSize: 11,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
                     ),
                 ],
                 // Bouton "Voir le reçu" pour les commandes terminées
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -351,10 +351,10 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFF6EC),
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFFD0A030).withValues(alpha: 0.3),
                       ),
@@ -372,14 +372,14 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                         Icon(
                           Icons.receipt_long,
                           color: Colors.orange,
-                          size: 20,
+                          size: 18,
                         ),
-                        SizedBox(width: 8),
+                        SizedBox(width: 6),
                         Text(
                           'Voir le reçu',
                           style: TextStyle(
                             color: Colors.orange,
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

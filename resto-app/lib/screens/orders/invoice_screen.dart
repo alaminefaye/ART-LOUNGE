@@ -116,7 +116,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                         children: [
                           Icon(
                             Icons.error_outline,
-                            size: 64,
+                            size: 52,
                             color: Colors.red[400],
                           ),
                           const SizedBox(height: 16),
@@ -163,16 +163,16 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                             ),
                             child: Icon(
                               Icons.receipt_long_outlined,
-                              size: 60,
+                              size: 48,
                               color: Colors.grey[600],
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
                           Text(
                             'Facture non trouvée',
                             style: TextStyle(
                               color: Colors.grey[300],
-                              fontSize: 18,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -199,7 +199,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
           // En-tête de la facture
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -215,7 +215,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF0DC),
                     shape: BoxShape.circle,
@@ -230,28 +230,28 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                   child: const Icon(
                     Icons.check_circle,
                     color: Color(0xFFD0A030),
-                    size: 40,
+                    size: 32,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 const Text(
                   'PAIEMENT REÇU',
                   style: TextStyle(
                     color: Color(0xFFD0A030),
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                    horizontal: 12,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF6EC),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: const Color(0xFFD0A030).withValues(alpha: 0.4),
                     ),
@@ -260,25 +260,25 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     _invoice!.numeroFacture,
                     style: const TextStyle(
                       color: Color(0xFFD0A030),
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 1,
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.calendar_today,
                       color: Colors.grey[500],
-                      size: 16,
+                      size: 14,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Text(
                       Formatters.formatDateTime(_invoice!.createdAt),
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                   ],
                 ),
@@ -290,7 +290,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
           // Informations de la commande
           if (commande != null) ...[
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -309,29 +309,29 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFF0DC),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
                           Icons.restaurant,
                           color: Color(0xFFD0A030),
-                          size: 20,
+                          size: 18,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       const Text(
                         'Informations de la commande',
                         style: TextStyle(
                           color: Colors.black,
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   _buildInfoRow(
                     Icons.table_restaurant,
                     'Table',
@@ -359,7 +359,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             // Articles commandés
             if (commande.produits != null && commande.produits!.isNotEmpty) ...[
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -378,29 +378,29 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFF0DC),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
                             Icons.restaurant_menu,
                             color: Color(0xFFD0A030),
-                            size: 20,
+                            size: 18,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         const Text(
                           'Articles commandés',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
                     ...commande.produits!.map((item) => _buildOrderItem(item)),
                   ],
                 ),
@@ -412,7 +412,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
           // Informations de paiement
           if (paiement != null) ...[
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -436,20 +436,20 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           color: Colors.green.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.payment, color: Colors.green, size: 20),
+                        child: const Icon(Icons.payment, color: Colors.green, size: 18),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       const Text(
                         'Paiement',
                         style: TextStyle(
                           color: Colors.black,
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   _buildInfoRow(
                     Icons.account_balance_wallet,
                     'Moyen de paiement',
@@ -520,7 +520,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     children: [
                       const Text(
                         'Sous-total',
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                       Text(
                         Formatters.formatCurrency(
@@ -528,33 +528,33 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                         ),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Taxe',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                      Text(
+                        Formatters.formatCurrency(_invoice!.montantTaxe),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Taxe',
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
-                      ),
-                      Text(
-                        Formatters.formatCurrency(_invoice!.montantTaxe),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
                   Divider(color: Colors.white.withValues(alpha: 0.4), thickness: 1, height: 1),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                 ],
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -563,7 +563,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       'TOTAL',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1,
                       ),
@@ -572,7 +572,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       Formatters.formatCurrency(_invoice!.montantTotal),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 26,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         shadows: [
                           Shadow(
@@ -634,22 +634,22 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: const Color(0xFFD0A030)),
-        const SizedBox(width: 12),
+        Icon(icon, size: 16, color: const Color(0xFFD0A030)),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                style: TextStyle(color: Colors.grey[500], fontSize: 10),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 2),
               Text(
                 value,
                 style: const TextStyle(
                   color: Colors.black87,
-                  fontSize: 15,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -662,15 +662,15 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
   Widget _buildOrderItem(OrderItem item) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: const Color(0xFFFFF0DC),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: const Color(0xFFD0A030).withValues(alpha: 0.3),
               ),
@@ -681,11 +681,11 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               style: const TextStyle(
                 color: Color(0xFFD0A030),
                 fontWeight: FontWeight.bold,
-                fontSize: 13,
+                fontSize: 12,
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -695,12 +695,12 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                   style: const TextStyle(
                     color: Colors.black87,
                     fontWeight: FontWeight.w600,
-                    fontSize: 15,
+                    fontSize: 13,
                   ),
                 ),
                 Text(
                   Formatters.formatCurrency(item.prix),
-                  style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                  style: TextStyle(color: Colors.grey[500], fontSize: 11),
                 ),
               ],
             ),
@@ -710,7 +710,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             style: const TextStyle(
               color: Color(0xFFD0A030),
               fontWeight: FontWeight.bold,
-              fontSize: 15,
+              fontSize: 13,
             ),
           ),
         ],
