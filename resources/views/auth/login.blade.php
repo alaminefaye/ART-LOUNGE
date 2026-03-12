@@ -9,7 +9,7 @@
         <!-- Logo -->
         <div class="app-brand justify-content-center mb-4">
             <a href="{{ route('dashboard') }}" class="app-brand-link gap-2 d-flex flex-column align-items-center">
-                <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" class="app-brand-logo" style="height: 64px; width: auto;" />
+                <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" class="app-brand-logo" style="height: 88px; width: auto;" />
                 <span class="app-brand-text demo text-body fw-bolder mt-2">{{ config('app.name', 'Dolce Vita') }}</span>
             </a>
         </div>
