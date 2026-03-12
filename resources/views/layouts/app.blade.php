@@ -42,7 +42,7 @@
             <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                 <div class="app-brand demo">
                     <a href="{{ route('dashboard') }}" class="app-brand-link d-flex align-items-center gap-2">
-                        <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" style="height: 52px; width: auto;" />
+                        <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" style="height: 64px; width: auto;" />
                         <span class="app-brand-text demo menu-text fw-bolder">{{ config('app.name', 'Dolce Vita') }}</span>
                     </a>
                     <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
