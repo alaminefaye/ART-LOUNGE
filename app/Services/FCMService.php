@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Commande;
+use App\Models\Facture;
 use Kreait\Firebase\Contract\Messaging;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
@@ -76,5 +78,34 @@ class FCMService
             Log::error("FCM Topic Error: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Notifier le client que son paiement a été validé (reçu + note de satisfaction).
+     * À appeler après enregistrement d'un paiement (caisse web ou API).
+     */
+    public function notifyClientPaymentValidated(Commande $commande, Facture $facture): void
+    {
+        $client = $commande->user;
+
+        if (!$client || empty($client->fcm_token)) {
+            Log::info('FCM payment_validated: pas de client ou token FCM manquant', [
+                'commande_id' => $commande->id,
+                'user_id' => $commande->user_id,
+            ]);
+            return;
+        }
+
+        $title = 'Paiement validé';
+        $body = 'Votre paiement a été enregistré. Facture ' . $facture->numero_facture . '. Consultez votre reçu et notez votre satisfaction.';
+
+        $this->sendToTokens([$client->fcm_token], $title, $body, [
+            'type' => 'payment_validated',
+            'commande_id' => (string) $commande->id,
+            'order_id' => (string) $commande->id,
+            'facture_id' => (string) $facture->id,
+            'numero_facture' => (string) $facture->numero_facture,
+            'montant_total' => (string) $facture->montant_total,
+        ]);
     }
 }

@@ -51,22 +51,29 @@ class FCMService {
 
     // 2. Configuration pour Android (High Importance Channel)
     if (!kIsWeb) {
+      // Pas de son personnalisé pour éviter invalid_sound si la ressource manque
       channel = const AndroidNotificationChannel(
         'dolcevita_order_channel', // id
         'Commandes Dolce Vita', // title
         description: 'Notifications de nouvelles commandes et mises à jour',
         importance: Importance.max,
-        sound: RawResourceAndroidNotificationSound('notification_sound'),
         playSound: true,
       );
 
       flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-      await flutterLocalNotificationsPlugin
+      final androidPlugin = flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.createNotificationChannel(channel);
+          >();
+      await androidPlugin?.createNotificationChannel(channel);
+      // Android 13+ : demander la permission d'afficher les notifications
+      final granted = await androidPlugin?.requestNotificationsPermission();
+      if (granted != true) {
+        debugPrint(
+          '⚠️ Permission notifications Android non accordée (granted=$granted)',
+        );
+      }
 
       // Initialisation pour iOS
       const DarwinInitializationSettings initializationSettingsIOS =
@@ -95,7 +102,7 @@ class FCMService {
     }
 
     // 3. Gestionnaire de messages en premier plan
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       RemoteNotification? notification = message.notification;
 
       // Déclencher un événement global pour rafraîchir l'UI
@@ -104,35 +111,48 @@ class FCMService {
           message.data['type'] == 'payment_validated') {
         FCMEvents.triggerOrderUpdate();
       }
+      // Popup "Paiement reçu" + aperçu reçu + note satisfaction
+      if (message.data['type'] == 'payment_validated') {
+        final rawId = message.data['order_id'] ?? message.data['commande_id'];
+        if (rawId != null) {
+          final orderId = int.tryParse(rawId.toString());
+          if (orderId != null) {
+            FCMEvents.triggerPaymentValidated(orderId);
+          }
+        }
+      }
 
       // Si l'application est au premier plan, on affiche une notification locale
-      if (notification != null && !kIsWeb) {
-        flutterLocalNotificationsPlugin.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          NotificationDetails(
-            android: AndroidNotificationDetails(
-              channel.id,
-              channel.name,
-              channelDescription: channel.description,
-              icon: '@mipmap/ic_launcher',
-              sound: const RawResourceAndroidNotificationSound(
-                'notification_sound',
+      if (notification != null && !kIsWeb && _isInitialized) {
+        try {
+          await flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title ?? 'Notification',
+            notification.body ?? '',
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                channel.id,
+                channel.name,
+                channelDescription: channel.description,
+                icon: '@mipmap/ic_launcher',
+                playSound: true,
+                importance: Importance.max,
+                priority: Priority.high,
               ),
-              playSound: true,
-              importance: Importance.max,
-              priority: Priority.high,
+              iOS: const DarwinNotificationDetails(
+                presentAlert: true,
+                presentBadge: true,
+                presentSound: true,
+                sound:
+                    'notification_sound.mp3', // Le fichier doit être dans le bundle
+              ),
             ),
-            iOS: const DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-              sound:
-                  'notification_sound.mp3', // Le fichier doit être dans le bundle
-            ),
-          ),
-        );
+          );
+        } catch (e, stack) {
+          // Sur simulateur iOS (et parfois ailleurs), show() peut échouer
+          debugPrint('⚠️ Impossible d\'afficher la notification locale: $e');
+          debugPrint('$stack');
+        }
       }
     });
 

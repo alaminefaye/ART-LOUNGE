@@ -7,6 +7,7 @@ import '../../models/table.dart' as models;
 import '../../services/reservation_service.dart';
 import '../../services/table_service.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/app_header.dart';
 
 class CreateReservationScreen extends StatefulWidget {
   const CreateReservationScreen({super.key});
@@ -17,6 +18,7 @@ class CreateReservationScreen extends StatefulWidget {
 }
 
 class _CreateReservationScreenState extends State<CreateReservationScreen> {
+  static const Color _brandGold = Color(0xFFD0A030);
   final ReservationService _reservationService = ReservationService();
   final TableService _tableService = TableService();
   final _formKey = GlobalKey<FormState>();
@@ -134,7 +136,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Aucune salle de jeu disponible'),
-                backgroundColor: Colors.orange,
+                backgroundColor: _brandGold,
               ),
             );
           }
@@ -181,7 +183,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                 content: Text(
                   'Aucune table trouvée pour ce nombre de personnes. Essayez de réduire le nombre.',
                 ),
-                backgroundColor: Colors.orange,
+                backgroundColor: _brandGold,
               ),
             );
           }
@@ -260,7 +262,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(message),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: _brandGold,
                 ),
               );
             }
@@ -300,7 +302,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Veuillez vérifier la disponibilité d\'abord'),
-          backgroundColor: Colors.orange,
+          backgroundColor: _brandGold,
         ),
       );
       return;
@@ -362,68 +364,12 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-2, -2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                  ),
-                  const Text(
-                    'Nouvelle réservation',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 40),
-                ],
-              ),
-            ),
+            // Header gradient
+            const AppHeader(title: 'Nouvelle réservation'),
 
             Expanded(
               child: Form(
@@ -438,7 +384,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                         margin: const EdgeInsets.only(bottom: 20),
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF252525),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(15),
                           boxShadow: [
                             BoxShadow(
@@ -473,7 +419,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: !_isGameRoom
-                                        ? Colors.orange
+                                        ? _brandGold
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -483,7 +429,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                     style: TextStyle(
                                       color: !_isGameRoom
                                           ? Colors.white
-                                          : Colors.grey,
+                                          : Colors.grey[800],
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -510,7 +456,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: _isGameRoom
-                                        ? Colors.orange
+                                        ? _brandGold
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -520,7 +466,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                     style: TextStyle(
                                       color: _isGameRoom
                                           ? Colors.white
-                                          : Colors.grey,
+                                          : Colors.grey[800],
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -540,7 +486,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(15),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252525),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
@@ -561,7 +507,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                   Text(
                                     'Date',
                                     style: TextStyle(
-                                      color: Colors.grey[300],
+                                      color: Colors.grey[800],
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -581,9 +527,9 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                             data: Theme.of(context).copyWith(
                                               colorScheme:
                                                   const ColorScheme.dark(
-                                                    primary: Colors.orange,
+                                                    primary: _brandGold,
                                                     onPrimary: Colors.white,
-                                                    surface: Color(0xFF252525),
+                                                    surface: Colors.white,
                                                     onSurface: Colors.white,
                                                   ),
                                             ),
@@ -608,13 +554,13 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                             'dd/MM/yyyy',
                                           ).format(_selectedDate),
                                           style: const TextStyle(
-                                            color: Colors.white,
+                                            color: Colors.black87,
                                             fontSize: 16,
                                           ),
                                         ),
                                         const Icon(
                                           Icons.calendar_today,
-                                          color: Colors.orange,
+                                          color: _brandGold,
                                           size: 20,
                                         ),
                                       ],
@@ -629,7 +575,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(15),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252525),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
@@ -650,7 +596,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                   Text(
                                     'Heure',
                                     style: TextStyle(
-                                      color: Colors.grey[300],
+                                      color: Colors.grey[800],
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -666,9 +612,9 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                             data: Theme.of(context).copyWith(
                                               colorScheme:
                                                   const ColorScheme.dark(
-                                                    primary: Colors.orange,
+                                                    primary: _brandGold,
                                                     onPrimary: Colors.white,
-                                                    surface: Color(0xFF252525),
+                                                    surface: Colors.white,
                                                     onSurface: Colors.white,
                                                   ),
                                             ),
@@ -690,13 +636,13 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                         Text(
                                           _selectedTime.format(context),
                                           style: const TextStyle(
-                                            color: Colors.white,
+                                            color: Colors.black87,
                                             fontSize: 16,
                                           ),
                                         ),
                                         const Icon(
                                           Icons.access_time,
-                                          color: Colors.orange,
+                                          color: _brandGold,
                                           size: 20,
                                         ),
                                       ],
@@ -714,7 +660,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF252525),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
@@ -739,7 +685,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                   Text(
                                     'Durée (heures)',
                                     style: TextStyle(
-                                      color: Colors.grey[300],
+                                      color: Colors.grey[800],
                                       fontSize: 16,
                                     ),
                                   ),
@@ -761,7 +707,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                         child: Text(
                                           '$_duree',
                                           style: const TextStyle(
-                                            color: Colors.white,
+                                            color: Colors.black87,
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -791,7 +737,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                   Text(
                                     'Personnes',
                                     style: TextStyle(
-                                      color: Colors.grey[300],
+                                      color: Colors.grey[800],
                                       fontSize: 16,
                                     ),
                                   ),
@@ -813,7 +759,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                         child: Text(
                                           '$_nombrePersonnes',
                                           style: const TextStyle(
-                                            color: Colors.white,
+                                            color: Colors.black87,
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -848,14 +794,14 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Colors.orange, Colors.deepOrange],
+                              colors: [_brandGold, Color(0xFFB08010)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.orange.withValues(alpha: 0.4),
+                                color: _brandGold.withValues(alpha: 0.4),
                                 offset: const Offset(4, 4),
                                 blurRadius: 8,
                               ),
@@ -940,7 +886,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                           margin: const EdgeInsets.only(bottom: 24),
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF252525),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
@@ -960,7 +906,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                             children: [
                               const Row(
                                 children: [
-                                  Icon(Icons.event_note, color: Colors.orange),
+                                  Icon(Icons.event_note, color: _brandGold),
                                   SizedBox(width: 8),
                                   Text(
                                     'Programme du jour',
@@ -1002,7 +948,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.orange.withValues(
+                                            color: _brandGold.withValues(
                                               alpha: 0.1,
                                             ),
                                             borderRadius: BorderRadius.circular(
@@ -1012,7 +958,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                           child: const Text(
                                             'Occupé',
                                             style: TextStyle(
-                                              color: Colors.orange,
+                                              color: _brandGold,
                                               fontSize: 12,
                                             ),
                                           ),
@@ -1030,7 +976,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF252525),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
@@ -1051,7 +997,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                             Text(
                               'Informations client',
                               style: TextStyle(
-                                color: Colors.grey[300],
+                                color: Colors.grey[800],
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1100,7 +1046,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                     end: Alignment.bottomRight,
                                   )
                                 : const LinearGradient(
-                                    colors: [Colors.orange, Colors.deepOrange],
+                                    colors: [_brandGold, Color(0xFFB08010)],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
@@ -1109,7 +1055,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                                 ? null
                                 : [
                                     BoxShadow(
-                                      color: Colors.orange.withValues(
+                                      color: _brandGold.withValues(
                                         alpha: 0.4,
                                       ),
                                       offset: const Offset(4, 4),
@@ -1172,12 +1118,12 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
     final isEnabled = onPressed != null;
     return Container(
       decoration: BoxDecoration(
-        color: isEnabled ? Colors.orange : const Color(0xFF252525),
+        color: isEnabled ? const Color(0xFFD0A030) : Colors.white,
         shape: BoxShape.circle,
         boxShadow: isEnabled
             ? [
                 BoxShadow(
-                  color: Colors.orange.withValues(alpha: 0.4),
+                  color: _brandGold.withValues(alpha: 0.4),
                   blurRadius: 8,
                   offset: const Offset(4, 4),
                 ),
@@ -1207,7 +1153,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -1226,8 +1172,8 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.grey),
-          prefixIcon: Icon(icon, color: Colors.orange),
+          labelStyle: TextStyle(color: Colors.grey[700]),
+          prefixIcon: Icon(icon, color: _brandGold),
           filled: true,
           fillColor: Colors.transparent,
           border: OutlineInputBorder(
@@ -1240,10 +1186,10 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.orange, width: 1),
+            borderSide: const BorderSide(color: _brandGold, width: 1),
           ),
         ),
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.black87, fontSize: 16),
         keyboardType: keyboardType,
         maxLines: maxLines,
         validator: (value) {

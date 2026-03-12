@@ -1,13 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../orders/cart_screen.dart';
 import '../orders/orders_screen.dart';
+import '../orders/order_detail_screen.dart';
+import '../orders/invoice_screen.dart';
 import '../profile/profile_screen.dart';
 import '../home/home_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../reservations/reservations_screen.dart';
 import '../../models/cart.dart';
 import '../../models/favorites.dart';
+import '../../models/order.dart';
+import '../../services/order_service.dart';
+import '../../services/fcm_events.dart';
+import '../../utils/formatters.dart';
 
 class MenuScreen extends StatefulWidget {
   final int? initialIndex;
@@ -31,11 +38,138 @@ class MenuScreenWithReservations extends MenuScreen {
 class _MenuScreenState extends State<MenuScreen> {
   static const Color _brandGold = Color(0xFFD0A030);
   late int _currentIndex;
+  final OrderService _orderService = OrderService();
+  StreamSubscription? _paymentValidatedSubscription;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex ?? 0;
+    _paymentValidatedSubscription =
+        FCMEvents.paymentValidatedStream.listen((orderId) {
+      if (mounted) _showPaymentReceivedDialog(orderId);
+    });
+  }
+
+  @override
+  void dispose() {
+    _paymentValidatedSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _showPaymentReceivedDialog(int orderId) async {
+    if (!mounted) return;
+    Order? order;
+    try {
+      order = await _orderService.getOrder(orderId);
+    } catch (_) {}
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text('Paiement reçu !', style: TextStyle(fontSize: 20)),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Commande #$orderId',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              if (order != null) ...[
+                const SizedBox(height: 8),
+                if (order.table != null)
+                  Text(
+                    'Table ${order.table!.numero}',
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                const SizedBox(height: 4),
+                Text(
+                  'Total: ${Formatters.formatCurrency(order.montantTotal)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFD0A030),
+                  ),
+                ),
+                if (order.produits != null && order.produits!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Aperçu de la commande',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  ...order.produits!.take(5).map((p) => Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          '• ${p.quantite}x ${p.produitNom}',
+                          style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                        ),
+                      )),
+                  if (order.produits!.length > 5)
+                    Text(
+                      '... et ${order.produits!.length - 5} autre(s)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                ],
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Fermer'),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => OrderDetailScreen(orderId: orderId),
+                ),
+              );
+            },
+            icon: const Icon(Icons.star_outline, size: 20),
+            label: const Text('Noter la satisfaction'),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFD0A030),
+            ),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => InvoiceScreen(orderId: orderId),
+                ),
+              );
+            },
+            icon: const Icon(Icons.receipt_long, size: 20),
+            label: const Text('Voir le reçu'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.green,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   List<Widget> _buildScreens(BuildContext context) {
@@ -60,7 +194,6 @@ class _MenuScreenState extends State<MenuScreen> {
     return Consumer<Favorites>(
       builder: (context, favorites, _) {
         return Scaffold(
-          backgroundColor: const Color(0xFF1E1E1E),
           body: IndexedStack(
             index: _currentIndex,
             children: _buildScreens(context),
@@ -69,18 +202,14 @@ class _MenuScreenState extends State<MenuScreen> {
             margin: const EdgeInsets.all(20),
             height: 70,
             decoration: BoxDecoration(
-              color: const Color(0xFF252525),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(25),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 10,
-                  offset: const Offset(5, 5),
-                ),
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  blurRadius: 5,
-                  offset: const Offset(-2, -2),
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 22,
+                  offset: const Offset(0, 10),
                 ),
               ],
             ),
@@ -156,7 +285,7 @@ class _MenuScreenState extends State<MenuScreen> {
             ),
             child: Icon(
               icon,
-              color: isSelected ? Colors.white : Colors.grey[600],
+              color: isSelected ? Colors.white : Colors.grey[700],
               size: 24,
             ),
           ),

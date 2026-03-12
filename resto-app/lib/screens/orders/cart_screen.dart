@@ -8,6 +8,7 @@ import '../../models/table.dart' as models;
 import '../../utils/formatters.dart';
 import '../tables/qr_scan_screen.dart';
 import '../menu/menu_screen.dart';
+import '../../widgets/app_header.dart';
 
 class CartScreen extends StatelessWidget {
   final int? tableId;
@@ -21,75 +22,19 @@ class CartScreen extends StatelessWidget {
     final orderService = OrderService();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (showBackButton)
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF252525),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.4),
-                              offset: const Offset(4, 4),
-                              blurRadius: 8,
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              offset: const Offset(-2, -2),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                        ),
-                      ),
-                    )
-                  else
-                    const SizedBox(
-                      width: 40,
-                    ), // Placeholder pour garder l'alignement
-                  const Text(
-                    'Mon Panier',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: cart.isEmpty ? null : () => cart.clear(),
+            // Header gradient
+            Consumer<Cart>(
+              builder: (context, cart, _) => AppHeader(
+                title: 'Mon Panier',
+                showBackButton: showBackButton,
+                actions: [
+                  HeaderActionButton(
+                    icon: Icons.delete_outline,
+                    onTap: cart.isEmpty ? () {} : () => cart.clear(),
                   ),
                 ],
               ),
@@ -104,18 +49,14 @@ class CartScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(30),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF252525),
+                              color: Colors.white,
                               shape: BoxShape.circle,
+                              border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  offset: const Offset(4, 4),
-                                  blurRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-2, -2),
-                                  blurRadius: 4,
+                                  color: Colors.black.withValues(alpha: 0.12),
+                                  offset: const Offset(0, 10),
+                                  blurRadius: 22,
                                 ),
                               ],
                             ),
@@ -129,7 +70,7 @@ class CartScreen extends StatelessWidget {
                           Text(
                             'Votre panier est vide',
                             style: TextStyle(
-                              color: Colors.grey[300],
+                              color: Colors.grey[800],
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -138,7 +79,7 @@ class CartScreen extends StatelessWidget {
                           Text(
                             'Ajoutez des produits pour commencer',
                             style: TextStyle(
-                              color: Colors.grey[500],
+                              color: Colors.grey[700],
                               fontSize: 14,
                             ),
                           ),
@@ -166,18 +107,14 @@ class CartScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            offset: const Offset(4, 4),
-            blurRadius: 8,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-2, -2),
-            blurRadius: 4,
+            color: Colors.black.withValues(alpha: 0.12),
+            offset: const Offset(0, 10),
+            blurRadius: 22,
           ),
         ],
       ),
@@ -225,7 +162,7 @@ class CartScreen extends StatelessWidget {
                   Text(
                     item.product.nom,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -236,7 +173,7 @@ class CartScreen extends StatelessWidget {
                   Text(
                     Formatters.formatCurrency(item.product.prix),
                     style: const TextStyle(
-                      color: Colors.orange,
+                      color: Color(0xFFD0A030),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -254,7 +191,7 @@ class CartScreen extends StatelessWidget {
                 Text(
                   Formatters.formatCurrency(item.total),
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -263,10 +200,10 @@ class CartScreen extends StatelessWidget {
                 Container(
                   height: 32,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
+                    color: const Color(0xFFFFF6EC),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: Colors.black.withValues(alpha: 0.06),
                     ),
                   ),
                   child: Row(
@@ -291,7 +228,7 @@ class CartScreen extends StatelessWidget {
                         child: Text(
                           '${item.quantite}',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -299,7 +236,7 @@ class CartScreen extends StatelessWidget {
                       ),
                       _buildQtyBtn(
                         icon: Icons.add,
-                        color: Colors.orange,
+                        color: const Color(0xFFD0A030),
                         onTap: () {
                           cart.updateQuantity(
                             item.product.id,
@@ -321,7 +258,7 @@ class CartScreen extends StatelessWidget {
   Widget _buildQtyBtn({
     required IconData icon,
     required VoidCallback onTap,
-    Color color = Colors.white,
+    Color color = Colors.black87,
   }) {
     return InkWell(
       onTap: onTap,
@@ -343,11 +280,16 @@ class CartScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        border: Border(
+          top: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+          left: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+          right: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -362,10 +304,10 @@ class CartScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
+                  color: const Color(0xFFFFF6EC),
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(
-                    color: Colors.orange.withValues(alpha: 0.3),
+                    color: const Color(0xFFD0A030).withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -386,10 +328,10 @@ class CartScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
+                          child: const Text(
                             'Sélectionnez une table',
                             style: TextStyle(
-                              color: Colors.orange[300],
+                              color: Color(0xFFD0A030),
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -416,8 +358,8 @@ class CartScreen extends StatelessWidget {
                           icon: const Icon(Icons.qr_code_scanner, size: 20),
                           label: const Text('Scanner le QR code'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.orange,
-                            side: const BorderSide(color: Colors.orange),
+                            foregroundColor: const Color(0xFFD0A030),
+                            side: const BorderSide(color: Color(0xFFD0A030)),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -435,7 +377,7 @@ class CartScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
+                  color: const Color(0xFFFFF6EC),
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(
                     color: Colors.green.withValues(alpha: 0.3),
@@ -446,7 +388,7 @@ class CartScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
+                        color: Colors.green.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -486,7 +428,7 @@ class CartScreen extends StatelessWidget {
                       child: const Text(
                         'Changer',
                         style: TextStyle(
-                          color: Colors.orange,
+                          color: Color(0xFFD0A030),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -502,7 +444,7 @@ class CartScreen extends StatelessWidget {
                 const Text(
                   'Total',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -510,7 +452,7 @@ class CartScreen extends StatelessWidget {
                 Text(
                   Formatters.formatCurrency(cart.total),
                   style: const TextStyle(
-                    color: Colors.orange,
+                    color: Color(0xFFD0A030),
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                   ),
@@ -524,7 +466,7 @@ class CartScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.orange.withValues(alpha: 0.3),
+                    color: const Color(0xFFD0A030).withValues(alpha: 0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -536,13 +478,13 @@ class CartScreen extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Veuillez sélectionner une table'),
-                            backgroundColor: Colors.orange,
+                            backgroundColor: Color(0xFFD0A030),
                           ),
                         );
                       }
                     : () => _createOrder(context, cart, orderService),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+                  backgroundColor: const Color(0xFFD0A030),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

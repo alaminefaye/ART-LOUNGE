@@ -3,6 +3,7 @@ import '../../services/order_service.dart';
 import '../../models/order.dart';
 import '../../utils/formatters.dart';
 import '../orders/invoice_screen.dart';
+import '../../widgets/app_header.dart';
 
 class OrdersHistoryScreen extends StatefulWidget {
   const OrdersHistoryScreen({super.key});
@@ -44,73 +45,19 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-2, -2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                  ),
-                  const Text(
-                    'Historique',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 40), // Pour l'équilibre visuel
-                ],
-              ),
-            ),
+            // Header gradient
+            const AppHeader(title: 'Historique'),
 
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: Colors.orange),
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFD0A030),
+                      ),
                     )
                   : _orders.isEmpty
                   ? Center(
@@ -120,18 +67,16 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                           Container(
                             padding: const EdgeInsets.all(30),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF252525),
+                              color: Colors.white,
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.black.withValues(alpha: 0.06),
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  offset: const Offset(4, 4),
-                                  blurRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-2, -2),
-                                  blurRadius: 4,
+                                  color: Colors.black.withValues(alpha: 0.12),
+                                  offset: const Offset(0, 10),
+                                  blurRadius: 22,
                                 ),
                               ],
                             ),
@@ -145,7 +90,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                           Text(
                             'Aucune commande terminée',
                             style: TextStyle(
-                              color: Colors.grey[300],
+                              color: Colors.grey[800],
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -155,7 +100,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             'Vos commandes terminées apparaîtront ici\navec la possibilité de voir vos reçus',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Colors.grey[500],
+                              color: Colors.grey[700],
                               fontSize: 14,
                             ),
                           ),
@@ -164,8 +109,8 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                     )
                   : RefreshIndicator(
                       onRefresh: _loadOrders,
-                      color: Colors.orange,
-                      backgroundColor: const Color(0xFF252525),
+                      color: const Color(0xFFD0A030),
+                      backgroundColor: Colors.white,
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -189,18 +134,14 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            offset: const Offset(4, 4),
-            blurRadius: 8,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-2, -2),
-            blurRadius: 4,
+            color: Colors.black.withValues(alpha: 0.12),
+            offset: const Offset(0, 10),
+            blurRadius: 22,
           ),
         ],
       ),
@@ -244,7 +185,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                         Text(
                           'Commande #${order.id}',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -318,7 +259,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                               Text(
                                 _formatDate(order.createdAt),
                                 style: TextStyle(
-                                  color: Colors.grey[400],
+                                  color: Colors.grey[700],
                                   fontSize: 13,
                                 ),
                               ),
@@ -337,7 +278,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                                 Text(
                                   'Table ${order.table!.numero}',
                                   style: TextStyle(
-                                    color: Colors.grey[400],
+                                    color: Colors.grey[700],
                                     fontSize: 13,
                                   ),
                                 ),
@@ -369,7 +310,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             child: Text(
                               '${produit.quantite}x ${produit.produitNom}',
                               style: TextStyle(
-                                color: Colors.grey[300],
+                                color: Colors.grey[700],
                                 fontSize: 13,
                               ),
                             ),
@@ -377,7 +318,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                           Text(
                             Formatters.formatCurrency(produit.total),
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: Colors.grey[700],
                               fontSize: 12,
                             ),
                           ),
@@ -412,18 +353,16 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF252525),
+                      color: const Color(0xFFFFF6EC),
                       borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: const Color(0xFFD0A030).withValues(alpha: 0.3),
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          offset: const Offset(-1, -1),
-                          blurRadius: 2,
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          offset: const Offset(2, 2),
-                          blurRadius: 4,
+                          color: Colors.black.withValues(alpha: 0.08),
+                          offset: const Offset(0, 4),
+                          blurRadius: 12,
                         ),
                       ],
                     ),

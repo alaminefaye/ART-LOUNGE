@@ -7,6 +7,7 @@ import '../../models/cart.dart';
 import '../../services/menu_service.dart';
 import '../../utils/formatters.dart';
 import '../orders/cart_screen.dart';
+import '../../widgets/app_header.dart';
 
 class ProductsScreen extends StatefulWidget {
   final int? tableId;
@@ -120,136 +121,31 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Cart? cart;
-    try {
-      cart = Provider.of<Cart>(context, listen: true);
-    } catch (e) {
-      debugPrint('Erreur Cart: $e');
-    }
-
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-2, -2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                  ),
-                  Text(
-                    widget.categoryName ?? 'Produits',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (cart != null && cart.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CartScreen(tableId: widget.tableId),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF252525),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.4),
-                              offset: const Offset(4, 4),
-                              blurRadius: 8,
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              offset: const Offset(-2, -2),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            const Icon(Icons.shopping_cart, color: _brandGold),
-                            if (cart.itemCount > 0)
-                              Positioned(
-                                right: -4,
-                                top: -4,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
-                                  child: Text(
-                                    '${cart.itemCount}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
+            // Header gradient
+            Consumer<Cart>(
+              builder: (context, cartState, _) => AppHeader(
+                title: widget.categoryName ?? 'Produits',
+                actions: cartState.isNotEmpty
+                    ? [
+                        HeaderActionButton(
+                          icon: Icons.shopping_cart,
+                          badgeCount: cartState.itemCount,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CartScreen(tableId: widget.tableId),
                               ),
-                          ],
+                            );
+                          },
                         ),
-                      ),
-                    )
-                  else
-                    const SizedBox(width: 40), // Placeholder for alignment
-                ],
+                      ]
+                    : null,
               ),
             ),
 
@@ -258,30 +154,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Column(
                 children: [
-                  // Recherche 3D
+                  // Barre de recherche
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF252525),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          offset: const Offset(-1, -1),
-                          blurRadius: 2,
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          offset: const Offset(2, 2),
-                          blurRadius: 4,
+                          color: Colors.black.withValues(alpha: 0.08),
+                          offset: const Offset(0, 4),
+                          blurRadius: 10,
                         ),
                       ],
                     ),
                     child: TextField(
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.black87),
                       decoration: InputDecoration(
                         hintText: 'Rechercher un produit...',
-                        hintStyle: TextStyle(color: Colors.grey[600]),
-                        prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -331,25 +223,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           Container(
                             padding: const EdgeInsets.all(30),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF252525),
+                              color: const Color(0xFFFFF0DC),
                               shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  offset: const Offset(4, 4),
-                                  blurRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-2, -2),
-                                  blurRadius: 4,
-                                ),
-                              ],
                             ),
                             child: Icon(
                               Icons.restaurant_menu_outlined,
                               size: 64,
-                              color: Colors.grey[600],
+                              color: const Color(0xFFD0A030),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -358,7 +238,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 ? 'Aucun produit disponible'
                                 : 'Aucun produit trouvé',
                             style: TextStyle(
-                              color: Colors.grey[300],
+                              color: Colors.grey[800],
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -369,7 +249,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   : RefreshIndicator(
                       onRefresh: _loadProducts,
                       color: _brandGold,
-                      backgroundColor: const Color(0xFF252525),
+                      backgroundColor: Colors.white,
                       child: GridView.builder(
                         padding: const EdgeInsets.all(20),
                         gridDelegate:
@@ -408,33 +288,25 @@ class _ProductsScreenState extends State<ProductsScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? _brandGold : const Color(0xFF252525),
+            color: isSelected ? _brandGold : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: _brandGold.withValues(alpha: 0.4),
-                      offset: const Offset(2, 2),
-                      blurRadius: 4,
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      offset: const Offset(2, 2),
-                      blurRadius: 4,
-                    ),
-                    BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      offset: const Offset(-1, -1),
-                      blurRadius: 2,
-                    ),
-                  ],
+            border: isSelected
+                ? null
+                : Border.all(color: Colors.black.withValues(alpha: 0.08)),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected
+                    ? _brandGold.withValues(alpha: 0.35)
+                    : Colors.black.withValues(alpha: 0.07),
+                offset: const Offset(0, 3),
+                blurRadius: 8,
+              ),
+            ],
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey[400],
+              color: isSelected ? Colors.white : Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
@@ -447,18 +319,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget _buildProductCard(BuildContext context, Product product) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            offset: const Offset(4, 4),
-            blurRadius: 8,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-2, -2),
-            blurRadius: 4,
+            color: Colors.black.withValues(alpha: 0.1),
+            offset: const Offset(0, 6),
+            blurRadius: 16,
           ),
         ],
       ),
@@ -523,7 +391,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         Text(
                           product.nom,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.black87,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -670,7 +538,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 Expanded(child: Text('${product.nom} ajouté au panier')),
               ],
             ),
-            backgroundColor: const Color(0xFF252525),
+            backgroundColor: Colors.black87,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),

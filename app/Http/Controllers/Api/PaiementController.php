@@ -28,31 +28,6 @@ class PaiementController extends Controller
         $this->fcmService = $fcmService;
     }
 
-    private function notifierClientPaiementValide(Commande $commande, Facture $facture): void
-    {
-        $client = $commande->user()->first();
-
-        if (!$client) {
-            return;
-        }
-
-        if (empty($client->fcm_token)) {
-            return;
-        }
-
-        $title = 'Paiement validé';
-        $body = 'Votre paiement a été validé. Facture ' . $facture->numero_facture . '.';
-
-        $this->fcmService->sendToTokens([$client->fcm_token], $title, $body, [
-            'type' => 'payment_validated',
-            'commande_id' => (string) $commande->id,
-            'order_id' => (string) $commande->id,
-            'facture_id' => (string) $facture->id,
-            'numero_facture' => (string) $facture->numero_facture,
-            'montant_total' => (string) $facture->montant_total,
-        ]);
-    }
-
     /**
      * Liste tous les paiements
      */
@@ -181,7 +156,7 @@ class PaiementController extends Controller
                 $table->liberer();
             }
 
-            $this->notifierClientPaiementValide($paiement->commande, $facture);
+            $this->fcmService->notifyClientPaymentValidated($paiement->commande, $facture);
 
             return response()->json([
                 'success' => true,
@@ -370,7 +345,7 @@ class PaiementController extends Controller
                 $table->liberer();
             }
 
-            $this->notifierClientPaiementValide($commande, $facture);
+            $this->fcmService->notifyClientPaymentValidated($commande, $facture);
 
             return response()->json([
                 'success' => true,

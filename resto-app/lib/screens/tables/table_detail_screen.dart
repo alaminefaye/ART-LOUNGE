@@ -5,6 +5,7 @@ import '../../models/table.dart' as models;
 import '../../models/cart.dart';
 import '../../utils/formatters.dart';
 import '../menu/products_screen.dart';
+import '../../widgets/app_header.dart';
 
 class TableDetailScreen extends StatelessWidget {
   final models.Table table;
@@ -14,24 +15,18 @@ class TableDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
-      appBar: AppBar(
-        title: Text(
-          'Table ${table.numero}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: const Color(0xFF1A1A1A),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Header gradient
+            AppHeader(title: 'Table ${table.numero}'),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
             // Card avec infos de la table
             Container(
               decoration: BoxDecoration(
@@ -297,6 +292,10 @@ class TableDetailScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(30),
                   ),
                   elevation: 0,
+                ),
+              ),
+            ),
+                  ],
                 ),
               ),
             ),

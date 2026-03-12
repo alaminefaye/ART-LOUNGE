@@ -19,52 +19,68 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            offset: const Offset(4, 4),
-            blurRadius: 8,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-2, -2),
-            blurRadius: 4,
+            color: Colors.black.withValues(alpha: 0.12),
+            offset: const Offset(0, 10),
+            blurRadius: 22,
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Image
+          // Image avec ombre noire
           Expanded(
             flex: 3,
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
-              child: Hero(
-                tag: 'product_${product.id}',
-                child: product.imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: product.imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: const Color(0xFF2A2A2A),
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: _brandGold,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Hero(
+                    tag: 'product_${product.id}',
+                    child: product.imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: product.imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: const Color(0xFFFFF0DC),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: _brandGold,
+                                ),
+                              ),
                             ),
-                          ),
+                            errorWidget: (context, url, error) => Image.asset(
+                              'assets/app_icon.png',
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Image.asset('assets/app_icon.png', fit: BoxFit.cover),
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.6),
+                          ],
+                          stops: const [0.6, 1.0],
                         ),
-                        errorWidget: (context, url, error) => Image.asset(
-                          'assets/app_icon.png',
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Image.asset('assets/app_icon.png', fit: BoxFit.cover),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -85,7 +101,7 @@ class ProductCard extends StatelessWidget {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../models/notification_item.dart';
 import '../../services/notification_service.dart';
 import '../orders/order_detail_screen.dart';
+import '../../widgets/app_header.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -30,7 +31,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       _loading = true;
       _error = null;
     });
-    final result = await _service.getNotifications(unreadOnly: _filterUnreadOnly);
+    final result = await _service.getNotifications(
+      unreadOnly: _filterUnreadOnly,
+    );
     if (!mounted) return;
     setState(() {
       _loading = false;
@@ -60,9 +63,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (id != null) {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => OrderDetailScreen(orderId: id),
-          ),
+          MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: id)),
         ).then((_) => _load());
       }
     }
@@ -71,109 +72,137 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Notifications',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          if (_unreadCount > 0)
-            TextButton.icon(
-              onPressed: () async {
-                await _markAllAsRead();
-              },
-              icon: const Icon(Icons.done_all, color: Colors.orange, size: 20),
-              label: const Text(
-                'Tout marquer lu',
-                style: TextStyle(color: Colors.orange),
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: Column(
+        children: [
+          AppHeader(
+            title: 'Notifications',
+            actions: [
+              if (_unreadCount > 0)
+                HeaderActionButton(
+                  icon: Icons.done_all,
+                  onTap: () async => await _markAllAsRead(),
+                ),
+              HeaderActionButton(
+                icon: Icons.filter_list,
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.white,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (_) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 12),
+                        ListTile(
+                          leading: const Icon(Icons.all_inbox),
+                          title: const Text('Toutes'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            setState(() => _filterUnreadOnly = false);
+                            _load();
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.mark_email_unread),
+                          title: const Text('Non lues uniquement'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            setState(() => _filterUnreadOnly = true);
+                            _load();
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  );
+                },
               ),
-            ),
-          PopupMenuButton<bool>(
-            icon: const Icon(Icons.filter_list, color: Colors.white),
-            onSelected: (v) {
-              setState(() => _filterUnreadOnly = v);
-              _load();
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: false, child: Text('Toutes')),
-              const PopupMenuItem(value: true, child: Text('Non lues uniquement')),
             ],
           ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _load,
-        color: Colors.orange,
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _load,
+              color: const Color(0xFFD0A030),
         child: _loading
-            ? const Center(child: CircularProgressIndicator(color: Colors.orange))
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.orange),
+              )
             : _error != null
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _load,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                        ),
+                        child: const Text('Réessayer'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : _items.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            _error!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey[400]),
+                          Icon(
+                            Icons.notifications_none,
+                            size: 64,
+                            color: Colors.grey[600],
                           ),
                           const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _load,
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange),
-                            child: const Text('Réessayer'),
+                          Text(
+                            _filterUnreadOnly
+                                ? 'Aucune notification non lue'
+                                : 'Aucune notification',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 16,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  )
-                : _items.isEmpty
-                    ? ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.4,
-                            child: Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.notifications_none,
-                                      size: 64, color: Colors.grey[600]),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    _filterUnreadOnly
-                                        ? 'Aucune notification non lue'
-                                        : 'Aucune notification',
-                                    style: TextStyle(
-                                        color: Colors.grey[500], fontSize: 16),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: _items.length,
-                        itemBuilder: (context, index) {
-                          final n = _items[index];
-                          return _NotificationTile(
-                            notification: n,
-                            onTap: () {
-                              _markAsRead(n);
-                              _openOrderIfPossible(n);
-                            },
-                          );
-                        },
-                      ),
+                  ),
+                ],
+              )
+            : ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: _items.length,
+                itemBuilder: (context, index) {
+                  final n = _items[index];
+                  return _NotificationTile(
+                    notification: n,
+                    onTap: () {
+                      _markAsRead(n);
+                      _openOrderIfPossible(n);
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -183,16 +212,15 @@ class _NotificationTile extends StatelessWidget {
   final NotificationItem notification;
   final VoidCallback onTap;
 
-  const _NotificationTile({
-    required this.notification,
-    required this.onTap,
-  });
+  const _NotificationTile({required this.notification, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final isRead = notification.isRead;
-    final dateStr = DateFormat('dd/MM/yyyy HH:mm', 'fr_FR')
-        .format(notification.createdAt);
+    final dateStr = DateFormat(
+      'dd/MM/yyyy HH:mm',
+      'fr_FR',
+    ).format(notification.createdAt);
 
     return Material(
       color: Colors.transparent,
@@ -232,7 +260,9 @@ class _NotificationTile extends StatelessWidget {
                       notification.title,
                       style: TextStyle(
                         color: Colors.white,
-                        fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                        fontWeight: isRead
+                            ? FontWeight.normal
+                            : FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
@@ -241,10 +271,7 @@ class _NotificationTile extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         notification.body!,
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: Colors.grey[400], fontSize: 13),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -252,10 +279,7 @@ class _NotificationTile extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       dateStr,
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                   ],
                 ),

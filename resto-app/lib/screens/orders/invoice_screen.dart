@@ -3,6 +3,7 @@ import '../../models/invoice.dart';
 import '../../models/order.dart';
 import '../../services/invoice_service.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/app_header.dart';
 
 class InvoiceScreen extends StatefulWidget {
   final int orderId;
@@ -76,135 +77,31 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-2, -2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                  ),
-                  const Text(
-                    'Reçu',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      if (_invoice?.pdfUrl != null)
-                        GestureDetector(
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Téléchargement du PDF non implémenté',
-                                ),
-                                backgroundColor: Colors.orange,
-                              ),
-                            );
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.only(right: 12),
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF252525),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  offset: const Offset(4, 4),
-                                  blurRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-2, -2),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.download,
-                              color: Colors.orange,
-                              size: 20,
-                            ),
-                          ),
+            // Header gradient
+            AppHeader(
+              title: 'Reçu',
+              actions: [
+                if (_invoice?.pdfUrl != null)
+                  HeaderActionButton(
+                    icon: Icons.download,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Téléchargement du PDF non implémenté'),
+                          backgroundColor: Colors.orange,
                         ),
-                      GestureDetector(
-                        onTap: _loadInvoice,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF252525),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.4),
-                                offset: const Offset(4, 4),
-                                blurRadius: 8,
-                              ),
-                              BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.05),
-                                offset: const Offset(-2, -2),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.refresh,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ],
-              ),
+                HeaderActionButton(
+                  icon: Icons.refresh,
+                  onTap: _loadInvoice,
+                ),
+              ],
             ),
 
             Expanded(
@@ -226,7 +123,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           Text(
                             _errorMessage!,
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey[300]),
+                            style: TextStyle(color: Colors.grey[800]),
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
@@ -249,7 +146,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           Container(
                             padding: const EdgeInsets.all(30),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF252525),
+                              color: Colors.white,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
@@ -258,7 +155,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                                   blurRadius: 8,
                                 ),
                                 BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
+                                  color: const Color(0xFFFFF6EC),
                                   offset: const Offset(-2, -2),
                                   blurRadius: 4,
                                 ),
@@ -299,23 +196,19 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // En-tête de la facture 3D
+          // En-tête de la facture
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF252525),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  offset: const Offset(4, 4),
-                  blurRadius: 8,
-                ),
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  offset: const Offset(-2, -2),
-                  blurRadius: 4,
+                  color: Colors.black.withValues(alpha: 0.12),
+                  offset: const Offset(0, 10),
+                  blurRadius: 22,
                 ),
               ],
             ),
@@ -324,24 +217,19 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
+                    color: const Color(0xFFFFF0DC),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        offset: const Offset(-2, -2),
-                        blurRadius: 4,
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        offset: const Offset(4, 4),
-                        blurRadius: 8,
+                        color: const Color(0xFFD0A030).withValues(alpha: 0.25),
+                        offset: const Offset(0, 4),
+                        blurRadius: 12,
                       ),
                     ],
                   ),
                   child: const Icon(
                     Icons.check_circle,
-                    color: Colors.orange,
+                    color: Color(0xFFD0A030),
                     size: 40,
                   ),
                 ),
@@ -349,7 +237,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 const Text(
                   'PAIEMENT REÇU',
                   style: TextStyle(
-                    color: Colors.orange,
+                    color: Color(0xFFD0A030),
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
@@ -362,16 +250,16 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
+                    color: const Color(0xFFFFF6EC),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.orange.withValues(alpha: 0.3),
+                      color: const Color(0xFFD0A030).withValues(alpha: 0.4),
                     ),
                   ),
                   child: Text(
                     _invoice!.numeroFacture,
-                    style: TextStyle(
-                      color: Colors.grey[300],
+                    style: const TextStyle(
+                      color: Color(0xFFD0A030),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 1,
@@ -390,7 +278,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     const SizedBox(width: 6),
                     Text(
                       Formatters.formatDateTime(_invoice!.createdAt),
-                      style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                   ],
                 ),
@@ -404,18 +292,14 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF252525),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
+                    color: Colors.black.withValues(alpha: 0.12),
+                    offset: const Offset(0, 10),
+                    blurRadius: 22,
                   ),
                 ],
               ),
@@ -424,17 +308,24 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(
-                        Icons.restaurant,
-                        color: Colors.orange,
-                        size: 24,
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF0DC),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.restaurant,
+                          color: Color(0xFFD0A030),
+                          size: 20,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       const Text(
                         'Informations de la commande',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
+                          color: Colors.black,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -470,18 +361,14 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF252525),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      offset: const Offset(4, 4),
-                      blurRadius: 8,
-                    ),
-                    BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      offset: const Offset(-2, -2),
-                      blurRadius: 4,
+                      color: Colors.black.withValues(alpha: 0.12),
+                      offset: const Offset(0, 10),
+                      blurRadius: 22,
                     ),
                   ],
                 ),
@@ -490,17 +377,24 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(
-                          Icons.restaurant_menu,
-                          color: Colors.orange,
-                          size: 24,
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF0DC),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.restaurant_menu,
+                            color: Color(0xFFD0A030),
+                            size: 20,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         const Text(
                           'Articles commandés',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
+                            color: Colors.black,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -520,19 +414,14 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF252525),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
+                    color: Colors.black.withValues(alpha: 0.12),
+                    offset: const Offset(0, 10),
+                    blurRadius: 22,
                   ),
                 ],
               ),
@@ -541,13 +430,20 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.payment, color: Colors.green, size: 24),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.payment, color: Colors.green, size: 20),
+                      ),
                       const SizedBox(width: 12),
                       const Text(
                         'Paiement',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
+                          color: Colors.black,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -602,22 +498,17 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF252525),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.orange.withValues(alpha: 0.5),
-                width: 2,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFD0A030), Color(0xFFB07018)],
               ),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  offset: const Offset(4, 4),
-                  blurRadius: 8,
-                ),
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  offset: const Offset(-2, -2),
-                  blurRadius: 4,
+                  color: const Color(0xFFD0A030).withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -627,9 +518,9 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'Sous-total',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 16),
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                       Text(
                         Formatters.formatCurrency(
@@ -647,9 +538,9 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'Taxe',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 16),
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                       Text(
                         Formatters.formatCurrency(_invoice!.montantTaxe),
@@ -662,7 +553,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Divider(color: Colors.grey[800], thickness: 1, height: 1),
+                  Divider(color: Colors.white.withValues(alpha: 0.4), thickness: 1, height: 1),
                   const SizedBox(height: 16),
                 ],
                 Row(
@@ -680,9 +571,16 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     Text(
                       Formatters.formatCurrency(_invoice!.montantTotal),
                       style: const TextStyle(
-                        color: Colors.orange,
+                        color: Colors.white,
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black26,
+                            offset: Offset(0, 1),
+                            blurRadius: 3,
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -696,24 +594,12 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
+              color: Colors.green.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(15),
               border: Border.all(
                 color: Colors.green.withValues(alpha: 0.3),
                 width: 1,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  offset: const Offset(-1, -1),
-                  blurRadius: 2,
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  offset: const Offset(2, 2),
-                  blurRadius: 4,
-                ),
-              ],
             ),
             child: Row(
               children: [
@@ -723,7 +609,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                   child: Text(
                     'Merci pour votre commande !',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.green,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -739,8 +625,8 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
   Widget _buildDivider() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Divider(color: Colors.grey[800], height: 1),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Divider(color: Colors.grey[200], height: 1),
     );
   }
 
@@ -748,7 +634,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey[500]),
+        Icon(icon, size: 18, color: const Color(0xFFD0A030)),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -756,15 +642,15 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             children: [
               Text(
                 label,
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                style: TextStyle(color: Colors.grey[500], fontSize: 11),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Text(
                 value,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black87,
                   fontSize: 15,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -783,27 +669,19 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
+              color: const Color(0xFFFFF0DC),
               borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  offset: const Offset(-1, -1),
-                  blurRadius: 2,
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  offset: const Offset(2, 2),
-                  blurRadius: 4,
-                ),
-              ],
+              border: Border.all(
+                color: const Color(0xFFD0A030).withValues(alpha: 0.3),
+              ),
             ),
             alignment: Alignment.center,
             child: Text(
               '${item.quantite}x',
               style: const TextStyle(
-                color: Colors.orange,
+                color: Color(0xFFD0A030),
                 fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
           ),
@@ -815,8 +693,8 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 Text(
                   item.produitNom,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
                     fontSize: 15,
                   ),
                 ),
@@ -830,7 +708,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
           Text(
             Formatters.formatCurrency(item.total),
             style: const TextStyle(
-              color: Colors.white,
+              color: Color(0xFFD0A030),
               fontWeight: FontWeight.bold,
               fontSize: 15,
             ),

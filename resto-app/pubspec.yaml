@@ -85,13 +85,13 @@ flutter_launcher_icons:
   remove_alpha_ios: true
 
 flutter_native_splash:
-  color: "#1E1E1E"
-  image: assets/app_icon.png
+  color: "#FFFFFF"
+  image: assets/logo.png
   android: true
   ios: true
   android_12:
-    color: "#1E1E1E"
-    image: assets/app_icon.png
+    color: "#FFFFFF"
+    image: assets/logo.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -105,6 +105,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/app_icon.png
+    - assets/logo.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

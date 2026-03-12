@@ -8,6 +8,7 @@ import '../../services/auth_service.dart'; // Import AuthService
 import '../../utils/formatters.dart';
 import '../menu/menu_screen.dart';
 import 'order_detail_screen.dart';
+import '../../widgets/app_header.dart';
 
 class OrdersScreen extends StatefulWidget {
   final bool showBackButton;
@@ -90,7 +91,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final String title = isStaff ? 'Toutes les Commandes' : 'Mes Commandes';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: const Color(0xFFFFF6EC),
       floatingActionButton: isStaff
           ? FloatingActionButton.extended(
               onPressed: () {
@@ -110,82 +111,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ),
             )
           : null,
-      body: SafeArea(
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (widget.showBackButton)
-                    GestureDetector(
-                      onTap: () {
-                        if (Navigator.canPop(context)) {
-                          Navigator.pop(context);
-                        } else {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) => const MenuScreen(),
-                            ),
-                          );
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF252525),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.4),
-                              offset: const Offset(4, 4),
-                              blurRadius: 8,
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              offset: const Offset(-2, -2),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                        ),
-                      ),
-                    )
-                  else
-                    const SizedBox(width: 40), // Placeholder
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+            // Header gradient
+            AppHeader(
+              title: title,
+              showBackButton: widget.showBackButton,
+              onBack: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => const MenuScreen(),
                     ),
-                  ),
-                  const SizedBox(width: 40),
-                ],
-              ),
+                  );
+                }
+              },
             ),
 
             Expanded(
@@ -201,32 +144,30 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           Container(
                             padding: const EdgeInsets.all(30),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF252525),
+                              color: Colors.white,
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.black.withValues(alpha: 0.06),
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  offset: const Offset(4, 4),
-                                  blurRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-2, -2),
-                                  blurRadius: 4,
+                                  color: Colors.black.withValues(alpha: 0.12),
+                                  offset: const Offset(0, 10),
+                                  blurRadius: 22,
                                 ),
                               ],
                             ),
                             child: Icon(
                               Icons.receipt_long_outlined,
                               size: 60,
-                              color: Colors.grey[600],
+                              color: Colors.grey[700],
                             ),
                           ),
                           const SizedBox(height: 24),
                           Text(
                             'Aucune commande en cours',
                             style: TextStyle(
-                              color: Colors.grey[300],
+                              color: Colors.grey[800],
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -236,7 +177,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             'Vos commandes du jour en cours\napparaîtront ici',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Colors.grey[500],
+                              color: Colors.grey[700],
                               fontSize: 14,
                             ),
                           ),
@@ -245,8 +186,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     )
                   : RefreshIndicator(
                       onRefresh: _loadOrders,
-                      color: Colors.orange,
-                      backgroundColor: const Color(0xFF252525),
+                      color: const Color(0xFFD0A030),
+                      backgroundColor: Colors.white,
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -270,18 +211,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            offset: const Offset(4, 4),
-            blurRadius: 8,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-2, -2),
-            blurRadius: 4,
+            color: Colors.black.withValues(alpha: 0.12),
+            offset: const Offset(0, 10),
+            blurRadius: 22,
           ),
         ],
       ),
@@ -315,7 +252,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ),
                           child: const Icon(
                             Icons.receipt_long,
-                            color: Colors.orange,
+                            color: Color(0xFFD0A030),
                             size: 20,
                           ),
                         ),
@@ -323,7 +260,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         Text(
                           'Commande #${order.id}',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                           ),
@@ -374,7 +311,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           Text(
                             'Table ${order.table!.numero}',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: Colors.grey[700],
                               fontSize: 13,
                             ),
                           ),
@@ -383,13 +320,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         Icon(
                           Icons.shopping_bag,
                           size: 14,
-                          color: Colors.grey[500],
+                          color: Colors.grey[700],
                         ),
                         const SizedBox(width: 6),
                         Text(
                           '${order.produits?.length ?? 0} article(s)',
                           style: TextStyle(
-                            color: Colors.grey[400],
+                            color: Colors.grey[700],
                             fontSize: 13,
                           ),
                         ),
@@ -400,7 +337,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
-                        color: Colors.orange,
+                        color: Color(0xFFD0A030),
                       ),
                     ),
                   ],
@@ -408,7 +345,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 const SizedBox(height: 8),
                 Text(
                   Formatters.formatRelativeDate(order.createdAt),
-                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  style: TextStyle(color: Colors.grey[700], fontSize: 12),
                 ),
               ],
             ),

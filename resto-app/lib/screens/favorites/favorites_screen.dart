@@ -6,6 +6,7 @@ import '../../models/product.dart';
 import '../../models/cart.dart';
 import '../../utils/formatters.dart';
 import '../menu/product_detail_screen.dart';
+import '../../widgets/app_header.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -19,46 +20,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.favorite, color: Colors.red, size: 28),
-                  SizedBox(width: 10),
-                  Text(
-                    'Mes Favoris',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ],
-              ),
+            // Header gradient (no back button, it's a tab)
+            const AppHeader(
+              title: 'Mes Favoris',
+              showBackButton: false,
             ),
             // Content
             Expanded(
@@ -75,32 +44,30 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           Container(
                             padding: const EdgeInsets.all(30),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF252525),
+                              color: Colors.white,
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.black.withValues(alpha: 0.06),
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  offset: const Offset(4, 4),
-                                  blurRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-2, -2),
-                                  blurRadius: 4,
+                                  color: Colors.black.withValues(alpha: 0.12),
+                                  offset: const Offset(0, 10),
+                                  blurRadius: 22,
                                 ),
                               ],
                             ),
                             child: Icon(
                               Icons.favorite_border,
                               size: 60,
-                              color: Colors.grey[600],
+                              color: Colors.grey[700],
                             ),
                           ),
                           const SizedBox(height: 24),
                           Text(
                             'Aucun favori',
                             style: TextStyle(
-                              color: Colors.grey[300],
+                              color: Colors.grey[800],
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -109,7 +76,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           Text(
                             'Ajoutez des produits à vos favoris',
                             style: TextStyle(
-                              color: Colors.grey[500],
+                              color: Colors.grey[700],
                               fontSize: 14,
                             ),
                           ),
@@ -147,18 +114,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            offset: const Offset(4, 4),
-            blurRadius: 8,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-2, -2),
-            blurRadius: 4,
+            color: Colors.black.withValues(alpha: 0.12),
+            offset: const Offset(0, 10),
+            blurRadius: 22,
           ),
         ],
       ),
@@ -199,7 +162,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           placeholder: (context, url) => Container(
                             width: 80,
                             height: 80,
-                            color: const Color(0xFF1E1E1E),
+                            color: const Color(0xFFFFF0DC),
                             child: const Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
@@ -231,7 +194,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Text(
                       product.nom,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -263,18 +226,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   // Bouton favoris
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF252525),
+                      color: Colors.white,
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.black.withValues(alpha: 0.06),
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          offset: const Offset(2, 2),
-                          blurRadius: 4,
-                        ),
-                        BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          offset: const Offset(-1, -1),
-                          blurRadius: 2,
+                          color: Colors.black.withValues(alpha: 0.12),
+                          offset: const Offset(0, 10),
+                          blurRadius: 18,
                         ),
                       ],
                     ),

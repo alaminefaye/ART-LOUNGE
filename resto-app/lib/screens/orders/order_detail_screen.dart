@@ -14,6 +14,7 @@ import '../../models/invoice.dart';
 import '../../utils/formatters.dart';
 import 'payment_screen.dart';
 import 'invoice_screen.dart';
+import '../../widgets/app_header.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final int orderId;
@@ -373,161 +374,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
+            // Header gradient
+            AppHeader(
+              title: 'Commande #${widget.orderId}',
+              actions: [
+                if (_order != null && _order!.statut == OrderStatus.terminee)
+                  HeaderActionButton(
+                    icon: Icons.receipt_long,
+                    onTap: _showInvoiceScreen,
                   ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
+                if (_order != null && _canAddProducts)
+                  HeaderActionButton(
+                    icon: Icons.add_shopping_cart,
+                    onTap: _showAddProductDialog,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-2, -2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    'Commande #${widget.orderId}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      if (_order != null &&
-                          _order!.statut == OrderStatus.terminee)
-                        GestureDetector(
-                          onTap: _showInvoiceScreen,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF252525),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  offset: const Offset(4, 4),
-                                  blurRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-2, -2),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.receipt_long,
-                              color: Colors.orange,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      if (_order != null && _canAddProducts) ...[
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: _showAddProductDialog,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF252525),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  offset: const Offset(4, 4),
-                                  blurRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-2, -2),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.add_shopping_cart,
-                              color: Colors.orange,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: _loadOrder,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF252525),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.4),
-                                offset: const Offset(4, 4),
-                                blurRadius: 8,
-                              ),
-                              BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.05),
-                                offset: const Offset(-2, -2),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.refresh,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                HeaderActionButton(
+                  icon: Icons.refresh,
+                  onTap: _loadOrder,
+                ),
+              ],
             ),
 
             Expanded(
@@ -549,7 +418,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           Text(
                             'Commande non trouvée',
                             style: TextStyle(
-                              color: Colors.grey[300],
+                              color: Colors.grey[800],
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -558,7 +427,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           Text(
                             'Impossible de charger les détails de la commande',
                             style: TextStyle(
-                              color: Colors.grey[500],
+                              color: Colors.grey[700],
                               fontSize: 14,
                             ),
                           ),
@@ -571,30 +440,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252525),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    offset: const Offset(4, 4),
-                                    blurRadius: 8,
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.white.withValues(alpha: 0.05),
-                                    offset: const Offset(-2, -2),
-                                    blurRadius: 4,
+                                    color: Colors.black.withValues(alpha: 0.08),
+                                    offset: const Offset(0, 4),
+                                    blurRadius: 12,
                                   ),
                                 ],
                               ),
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.refresh, color: Colors.white),
+                                  Icon(Icons.refresh, color: Colors.black87),
                                   SizedBox(width: 8),
                                   Text(
                                     'Réessayer',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: Colors.black,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -607,8 +472,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     )
                   : RefreshIndicator(
                       onRefresh: _loadOrder,
-                      color: Colors.orange,
-                      backgroundColor: const Color(0xFF1E1E1E),
+                      color: const Color(0xFFD0A030),
+                      backgroundColor: Colors.white,
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -621,18 +486,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252525),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    offset: const Offset(4, 4),
-                                    blurRadius: 8,
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.white.withValues(alpha: 0.05),
-                                    offset: const Offset(-2, -2),
-                                    blurRadius: 4,
+                                    color: Colors.black.withValues(alpha: 0.12),
+                                    offset: const Offset(0, 10),
+                                    blurRadius: 22,
                                   ),
                                 ],
                               ),
@@ -643,7 +504,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   const Text(
                                     'Statut',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: Colors.black,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -681,18 +542,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252525),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    offset: const Offset(4, 4),
-                                    blurRadius: 8,
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.white.withValues(alpha: 0.05),
-                                    offset: const Offset(-2, -2),
-                                    blurRadius: 4,
+                                    color: Colors.black.withValues(alpha: 0.12),
+                                    offset: const Offset(0, 10),
+                                    blurRadius: 22,
                                   ),
                                 ],
                               ),
@@ -702,7 +559,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   Text(
                                     'Informations',
                                     style: TextStyle(
-                                      color: Colors.grey[400],
+                                      color: Colors.grey[700],
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       letterSpacing: 0.5,
@@ -760,18 +617,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252525),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    offset: const Offset(4, 4),
-                                    blurRadius: 8,
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.white.withValues(alpha: 0.05),
-                                    offset: const Offset(-2, -2),
-                                    blurRadius: 4,
+                                    color: Colors.black.withValues(alpha: 0.12),
+                                    offset: const Offset(0, 10),
+                                    blurRadius: 22,
                                   ),
                                 ],
                               ),
@@ -781,7 +634,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   Text(
                                     'Articles',
                                     style: TextStyle(
-                                      color: Colors.grey[400],
+                                      color: Colors.grey[700],
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       letterSpacing: 0.5,
@@ -802,7 +655,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                         child: Text(
                                           'Aucun article',
                                           style: TextStyle(
-                                            color: Colors.grey[500],
+                                            color: Colors.grey[700],
                                             fontSize: 14,
                                           ),
                                         ),
@@ -818,7 +671,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                         ),
                                         decoration: BoxDecoration(
                                           border: Border.all(
-                                            color: Colors.orange.withValues(
+                                            color: _brandGold.withValues(
                                               alpha: 0.5,
                                             ),
                                           ),
@@ -832,14 +685,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                           children: [
                                             Icon(
                                               Icons.add,
-                                              color: Colors.orange,
+                                              color: Color(0xFFD0A030),
                                               size: 20,
                                             ),
                                             SizedBox(width: 8),
                                             Text(
                                               'Ajouter un produit',
                                               style: TextStyle(
-                                                color: Colors.orange,
+                                                color: Color(0xFFD0A030),
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -856,18 +709,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             // Total
                             Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252525),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    offset: const Offset(4, 4),
-                                    blurRadius: 8,
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.white.withValues(alpha: 0.05),
-                                    offset: const Offset(-2, -2),
-                                    blurRadius: 4,
+                                    color: Colors.black.withValues(alpha: 0.12),
+                                    offset: const Offset(0, 10),
+                                    blurRadius: 22,
                                   ),
                                 ],
                               ),
@@ -879,7 +728,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   const Text(
                                     'Total',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: Colors.black,
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -891,7 +740,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.orange,
+                                      color: Color(0xFFD0A030),
                                     ),
                                   ),
                                 ],
@@ -1025,22 +874,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
+            color: const Color(0xFFFFF6EC),
             borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                offset: const Offset(2, 2),
-                blurRadius: 4,
-              ),
-              BoxShadow(
-                color: Colors.white.withValues(alpha: 0.05),
-                offset: const Offset(-1, -1),
-                blurRadius: 2,
+                color: Colors.black.withValues(alpha: 0.06),
+                offset: const Offset(0, 2),
+                blurRadius: 8,
               ),
             ],
           ),
-          child: Icon(icon, size: 20, color: Colors.orange),
+          child: Icon(icon, size: 20, color: _brandGold),
         ),
         const SizedBox(width: 15),
         Expanded(
@@ -1050,7 +895,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  color: Colors.grey[400],
+                  color: Colors.grey[700],
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -1059,7 +904,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Text(
                 value,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
@@ -1075,7 +920,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     // Couleur de bordure selon le statut
     Color borderColor = Colors.transparent;
     if (item.statut == 'brouillon') {
-      borderColor = Colors.orange;
+      borderColor = _brandGold;
     } else if (item.statut == 'envoye') {
       borderColor = Colors.green.withValues(alpha: 0.5);
     }
@@ -1084,7 +929,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: const Color(0xFFFFF6EC),
         border: Border.all(
           color: borderColor,
           width: item.statut == 'brouillon' ? 1.5 : 1,
@@ -1092,14 +937,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            offset: const Offset(2, 2),
-            blurRadius: 4,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-1, -1),
-            blurRadius: 2,
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
           ),
         ],
       ),
@@ -1112,7 +952,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.orange,
+                  color: _brandGold,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text(
@@ -1141,35 +981,35 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         placeholder: (context, url) => Container(
                           width: 60,
                           height: 60,
-                          color: Colors.grey[800],
+                          color: const Color(0xFFFFF0DC),
                           child: const Center(
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.orange,
+                              color: Color(0xFFD0A030),
                             ),
                           ),
                         ),
                         errorWidget: (context, url, error) => Container(
                           width: 60,
                           height: 60,
-                          color: Colors.grey[800],
+                          color: const Color(0xFFFFF6EC),
                           alignment: Alignment.center,
-                          child: const Icon(
+                          child: Icon(
                             Icons.restaurant_menu,
                             size: 24,
-                            color: Colors.grey,
+                            color: Colors.grey[600],
                           ),
                         ),
                       )
                     : Container(
                         width: 60,
                         height: 60,
-                        color: Colors.grey[800],
+                        color: const Color(0xFFFFF6EC),
                         alignment: Alignment.center,
-                        child: const Icon(
+                        child: Icon(
                           Icons.restaurant_menu,
                           size: 24,
-                          color: Colors.grey,
+                          color: Colors.grey[600],
                         ),
                       ),
               ),
@@ -1182,7 +1022,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     Text(
                       item.produitNom,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -1190,7 +1030,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     const SizedBox(height: 4),
                     Text(
                       '${Formatters.formatCurrency(item.prix)} x ${item.quantite}',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                      style: TextStyle(color: Colors.grey[700], fontSize: 13),
                     ),
                   ],
                 ),
@@ -1201,7 +1041,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: Colors.orange,
+                  color: Color(0xFFD0A030),
                 ),
               ),
             ],
@@ -1350,7 +1190,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         child: Container(
           padding: const EdgeInsets.all(25),
           decoration: BoxDecoration(
-            color: const Color(0xFF252525),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
@@ -1582,34 +1422,31 @@ class _AddProductDialogState extends State<_AddProductDialog> {
         width: double.infinity,
         height: MediaQuery.of(context).size.height * 0.9,
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFFFFF6EC),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
-              blurRadius: 10,
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 20,
               offset: const Offset(0, 5),
             ),
           ],
         ),
         child: Column(
           children: [
-            // Header
+            // Header gradient doré
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFD0A030), Color(0xFFB07018)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    offset: const Offset(0, 2),
-                    blurRadius: 4,
-                  ),
-                ],
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
               ),
               child: Row(
                 children: [
@@ -1618,20 +1455,8 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E1E),
+                        color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-1, -1),
-                            blurRadius: 2,
-                          ),
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            offset: const Offset(2, 2),
-                            blurRadius: 4,
-                          ),
-                        ],
                       ),
                       child: const Icon(
                         Icons.close,
@@ -1651,37 +1476,33 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(width: 40), // Espace pour équilibrer
+                  const SizedBox(width: 40),
                 ],
               ),
             ),
 
             // Barre de recherche
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF252525),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      offset: const Offset(2, 2),
-                      blurRadius: 4,
-                    ),
-                    BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      offset: const Offset(-1, -1),
-                      blurRadius: 2,
+                      color: Colors.black.withValues(alpha: 0.08),
+                      offset: const Offset(0, 4),
+                      blurRadius: 10,
                     ),
                   ],
                 ),
                 child: TextField(
                   controller: _searchController,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.black87),
                   decoration: InputDecoration(
                     hintText: 'Rechercher un produit...',
-                    hintStyle: TextStyle(color: Colors.grey[500]),
+                    hintStyle: TextStyle(color: Colors.grey[400]),
                     prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
@@ -1710,11 +1531,10 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                 height: 50,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
                   itemCount: widget.categories.length + 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {
-                      // Bouton "Tous"
                       final isSelected = _selectedCategoryId == null;
                       return Padding(
                         padding: const EdgeInsets.only(right: 12),
@@ -1728,27 +1548,30 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 20,
-                              vertical: 10,
+                              vertical: 8,
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.orange
-                                  : const Color(0xFF252525),
+                                  ? const Color(0xFFD0A030)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(20),
+                              border: isSelected
+                                  ? null
+                                  : Border.all(color: Colors.black.withValues(alpha: 0.08)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  offset: const Offset(2, 2),
-                                  blurRadius: 4,
+                                  color: isSelected
+                                      ? const Color(0xFFD0A030).withValues(alpha: 0.35)
+                                      : Colors.black.withValues(alpha: 0.07),
+                                  offset: const Offset(0, 3),
+                                  blurRadius: 8,
                                 ),
                               ],
                             ),
                             child: Text(
                               'Tous',
                               style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.grey[400],
+                                color: isSelected ? Colors.white : Colors.black87,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1774,27 +1597,30 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,
-                            vertical: 10,
+                            vertical: 8,
                           ),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? Colors.orange
-                                : const Color(0xFF252525),
+                                ? const Color(0xFFD0A030)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(20),
+                            border: isSelected
+                                ? null
+                                : Border.all(color: Colors.black.withValues(alpha: 0.08)),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                offset: const Offset(2, 2),
-                                blurRadius: 4,
+                                color: isSelected
+                                    ? const Color(0xFFD0A030).withValues(alpha: 0.35)
+                                    : Colors.black.withValues(alpha: 0.07),
+                                offset: const Offset(0, 3),
+                                blurRadius: 8,
                               ),
                             ],
                           ),
                           child: Text(
                             category.nom,
                             style: TextStyle(
-                              color: isSelected
-                                  ? Colors.white
-                                  : Colors.grey[400],
+                              color: isSelected ? Colors.white : Colors.black87,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1851,18 +1677,14 @@ class _AddProductDialogState extends State<_AddProductDialog> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF252525),
+                  color: Colors.white,
                   borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      offset: const Offset(0, -2),
-                      blurRadius: 4,
-                    ),
-                  ],
+                  border: Border(
+                    top: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1872,7 +1694,7 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                         const Text(
                           'Quantité:',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Colors.black87,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1890,26 +1712,17 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E1E1E),
+                              color: const Color(0xFFFFF0DC),
                               shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-1, -1),
-                                  blurRadius: 2,
-                                ),
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  offset: const Offset(2, 2),
-                                  blurRadius: 4,
-                                ),
-                              ],
+                              border: Border.all(
+                                color: const Color(0xFFD0A030).withValues(alpha: 0.4),
+                              ),
                             ),
                             child: Icon(
                               Icons.remove,
                               color: _quantity > 1
-                                  ? Colors.orange
-                                  : Colors.grey,
+                                  ? const Color(0xFFD0A030)
+                                  : Colors.grey[300],
                               size: 20,
                             ),
                           ),
@@ -1918,7 +1731,7 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                         Text(
                           '$_quantity',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.black87,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1934,24 +1747,12 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E1E1E),
+                              color: const Color(0xFFD0A030),
                               shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  offset: const Offset(-1, -1),
-                                  blurRadius: 2,
-                                ),
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  offset: const Offset(2, 2),
-                                  blurRadius: 4,
-                                ),
-                              ],
                             ),
                             child: const Icon(
                               Icons.add,
-                              color: Colors.orange,
+                              color: Colors.white,
                               size: 20,
                             ),
                           ),
@@ -1962,14 +1763,14 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                             _selectedProduct!.prix * _quantity,
                           ),
                           style: const TextStyle(
-                            color: Colors.orange,
+                            color: Color(0xFFD0A030),
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(context, {
@@ -1982,14 +1783,14 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Colors.orange, Colors.deepOrange],
+                            colors: [Color(0xFFD0A030), Color(0xFFB07018)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(15),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.orange.withValues(alpha: 0.4),
+                              color: const Color(0xFFD0A030).withValues(alpha: 0.4),
                               offset: const Offset(0, 4),
                               blurRadius: 8,
                             ),
@@ -1997,7 +1798,7 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                         ),
                         child: const Center(
                           child: Text(
-                            'Ajouter au panier',
+                            'Ajouter à la commande',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -2020,19 +1821,18 @@ class _AddProductDialogState extends State<_AddProductDialog> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: isSelected ? const Color(0xFFFFF0DC) : Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: isSelected ? Border.all(color: Colors.orange, width: 2) : null,
+        border: isSelected
+            ? Border.all(color: const Color(0xFFD0A030), width: 2)
+            : Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            offset: const Offset(2, 2),
-            blurRadius: 4,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-1, -1),
-            blurRadius: 2,
+            color: isSelected
+                ? const Color(0xFFD0A030).withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.08),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
           ),
         ],
       ),
@@ -2060,21 +1860,21 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                         placeholder: (context, url) => Container(
                           width: 70,
                           height: 70,
-                          color: Colors.grey[800],
+                          color: const Color(0xFFFFF0DC),
                           child: const Center(
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.orange,
+                              color: Color(0xFFD0A030),
                             ),
                           ),
                         ),
                         errorWidget: (context, url, error) => Container(
                           width: 70,
                           height: 70,
-                          color: Colors.grey[800],
-                          child: Icon(
+                          color: const Color(0xFFFFF0DC),
+                          child: const Icon(
                             Icons.restaurant_menu,
-                            color: Colors.grey[400],
+                            color: Color(0xFFD0A030),
                             size: 30,
                           ),
                         ),
@@ -2082,10 +1882,10 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                     : Container(
                         width: 70,
                         height: 70,
-                        color: Colors.grey[800],
-                        child: Icon(
+                        color: const Color(0xFFFFF0DC),
+                        child: const Icon(
                           Icons.restaurant_menu,
-                          color: Colors.grey[400],
+                          color: Color(0xFFD0A030),
                           size: 30,
                         ),
                       ),
@@ -2099,7 +1899,7 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                     Text(
                       product.nom,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black87,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -2111,7 +1911,7 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                       const SizedBox(height: 4),
                       Text(
                         product.description!,
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

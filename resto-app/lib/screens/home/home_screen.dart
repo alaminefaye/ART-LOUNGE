@@ -72,9 +72,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return 'Bonjour';
+    if (hour < 17) return 'Bon après-midi';
+    return 'Bonsoir';
   }
 
   IconData _getCategoryIcon(String categoryName) {
@@ -102,380 +102,377 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
-    final userName = authService.currentUser?.name ?? 'Guest';
+    final userName = authService.currentUser?.name ?? 'Invité';
     final userPhone = authService.currentUser?.phone ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E), // Fond sombre 3D
+      backgroundColor: const Color(0xFFFFF6EC),
       body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : RefreshIndicator(
-                onRefresh: _loadData,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        top: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header fixe (gradient doré) ──────────────────────────
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFD0A030), Color(0xFFB07018)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+              ),
+              padding: EdgeInsets.fromLTRB(
+                22,
+                MediaQuery.of(context).padding.top + 18,
+                22,
+                24,
+              ),
+              child: Column(
+                children: [
+                  Row(
                     children: [
-                      // Header avec salutation et profil
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Row(
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _getGreeting(),
-                                    style: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    userName,
+                            Text(
+                              _getGreeting(),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              userName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ProfileScreen(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.25),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 24,
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.2),
+                            child: userPhone.isNotEmpty
+                                ? Text(
+                                    userPhone[0].toUpperCase(),
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 24,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  // Barre de recherche
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          offset: const Offset(0, 6),
+                          blurRadius: 14,
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      style: const TextStyle(color: Colors.black87),
+                      decoration: InputDecoration(
+                        hintText: 'Trouvez vos plats',
+                        hintStyle: TextStyle(color: Colors.grey[500]),
+                        prefixIcon:
+                            Icon(Icons.search, color: Colors.grey[500]),
+                        suffixIcon: const Icon(
+                          Icons.tune,
+                          color: Color(0xFFD0A030),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value.toLowerCase();
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Contenu scrollable ────────────────────────────────────
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                      onRefresh: _loadData,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 24),
+
+                            // Section Categories
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Catégories',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ProductsScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      'Tout →',
+                                      style: TextStyle(color: _brandGold),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            // Photo de profil 3D
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ProfileScreen(),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color(0xFF252525),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                      offset: const Offset(4, 4),
-                                      blurRadius: 8,
-                                    ),
-                                    BoxShadow(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.05,
-                                      ),
-                                      offset: const Offset(-2, -2),
-                                      blurRadius: 4,
-                                    ),
-                                  ],
-                                ),
-                                child: CircleAvatar(
-                                  radius: 25,
-                                  backgroundColor: Colors.grey[800],
-                                  child: userPhone.isNotEmpty
-                                      ? Text(
-                                          userPhone[0].toUpperCase(),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      : const Icon(
-                                          Icons.person,
-                                          color: Colors.white,
-                                        ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
 
-                      // Barre de recherche 3D
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF252525),
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.4),
-                                offset: const Offset(4, 4),
-                                blurRadius: 8,
-                              ),
-                              BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.05),
-                                offset: const Offset(-2, -2),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: TextField(
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              hintText: 'Trouvez vos plats',
-                              hintStyle: TextStyle(color: Colors.grey[500]),
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: Colors.grey[500],
-                              ),
-                              suffixIcon: Icon(
-                                Icons.tune,
-                                color: Colors.grey[500],
-                              ),
-                              filled: true,
-                              fillColor: Colors.transparent,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 15,
-                              ),
-                            ),
-                            onChanged: (value) {
-                              setState(() {
-                                _searchQuery = value.toLowerCase();
-                              });
-                            },
-                          ),
-                        ),
-                      ),
+                            const SizedBox(height: 15),
 
-                      const SizedBox(height: 30),
-
-                      // Section Categories
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Categories',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ProductsScreen(),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                'All →',
-                                style: const TextStyle(color: _brandGold),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      // Liste horizontale des catégories
-                      SizedBox(
-                        height: 50,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          itemCount: _categories.length + 1, // +1 pour "All"
-                          itemBuilder: (context, index) {
-                            if (index == 0) {
-                              // Bouton "All"
-                              final bool isSelected =
-                                  _selectedCategoryId == null;
-                              return Padding(
-                                padding: const EdgeInsets.only(
-                                  right: 12.0,
-                                  bottom: 5,
-                                ),
-                                child: GestureDetector(
-                                  onTap: () => setState(
-                                    () => _selectedCategoryId = null,
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? _brandGold
-                                          : const Color(0xFF252525),
-                                      borderRadius: BorderRadius.circular(15),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: isSelected
-                                              ? _brandGold.withValues(
-                                                  alpha: 0.3,
-                                                )
-                                              : Colors.black.withValues(
-                                                  alpha: 0.3,
-                                                ),
-                                          offset: const Offset(3, 3),
-                                          blurRadius: 6,
-                                        ),
-                                        if (isSelected)
-                                          BoxShadow(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.1,
+                            // Liste horizontale des catégories
+                            SizedBox(
+                              height: 50,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0),
+                                itemCount: _categories.length + 1,
+                                itemBuilder: (context, index) {
+                                  if (index == 0) {
+                                    final bool isSelected =
+                                        _selectedCategoryId == null;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                          right: 12.0, bottom: 5),
+                                      child: GestureDetector(
+                                        onTap: () => setState(
+                                            () => _selectedCategoryId = null),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? _brandGold
+                                                : Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            border: Border.all(
+                                              color: Colors.black
+                                                  .withValues(alpha: 0.06),
                                             ),
-                                            offset: const Offset(-1, -1),
-                                            blurRadius: 2,
-                                          ),
-                                      ],
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        'All',
-                                        style: TextStyle(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.grey[400],
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-
-                            final category = _categories[index - 1];
-                            final isSelected =
-                                _selectedCategoryId == category.id;
-
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                right: 12.0,
-                                bottom: 5,
-                              ),
-                              child: GestureDetector(
-                                onTap: () => setState(
-                                  () => _selectedCategoryId = category.id,
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? _brandGold
-                                        : const Color(0xFF252525),
-                                    borderRadius: BorderRadius.circular(15),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: isSelected
-                                            ? _brandGold.withValues(alpha: 0.3)
-                                            : Colors.black.withValues(
-                                                alpha: 0.3,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: isSelected
+                                                    ? _brandGold.withValues(
+                                                        alpha: 0.3)
+                                                    : Colors.black.withValues(
+                                                        alpha: 0.08),
+                                                offset: const Offset(0, 10),
+                                                blurRadius: 22,
                                               ),
-                                        offset: const Offset(3, 3),
-                                        blurRadius: 6,
-                                      ),
-                                      if (isSelected)
-                                        BoxShadow(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.1,
+                                            ],
                                           ),
-                                          offset: const Offset(-1, -1),
-                                          blurRadius: 2,
+                                          child: Center(
+                                            child: Text(
+                                              'Tout',
+                                              style: TextStyle(
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : Colors.grey[800],
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        _getCategoryIcon(category.nom),
-                                        size: 16,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Colors.grey[400],
                                       ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        category.nom,
-                                        style: TextStyle(
+                                    );
+                                  }
+
+                                  final category = _categories[index - 1];
+                                  final isSelected =
+                                      _selectedCategoryId == category.id;
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                        right: 12.0, bottom: 5),
+                                    child: GestureDetector(
+                                      onTap: () => setState(
+                                          () => _selectedCategoryId =
+                                              category.id),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                        decoration: BoxDecoration(
                                           color: isSelected
-                                              ? Colors.white
-                                              : Colors.grey[400],
-                                          fontWeight: FontWeight.bold,
+                                              ? _brandGold
+                                              : Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          border: Border.all(
+                                            color: Colors.black
+                                                .withValues(alpha: 0.06),
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: isSelected
+                                                  ? _brandGold.withValues(
+                                                      alpha: 0.3)
+                                                  : Colors.black.withValues(
+                                                      alpha: 0.08),
+                                              offset: const Offset(0, 10),
+                                              blurRadius: 22,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              _getCategoryIcon(category.nom),
+                                              size: 16,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : Colors.grey[700],
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              category.nom,
+                                              style: TextStyle(
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : Colors.grey[800],
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // Section New Dishes
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'New dishes',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                },
                               ),
                             ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ProductsScreen(),
+
+                            const SizedBox(height: 30),
+
+                            // Section New Dishes
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Nouveaux plats',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                );
-                              },
-                              child: Text(
-                                'All →',
-                                style: const TextStyle(color: _brandGold),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ProductsScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      'Tout →',
+                                      style: TextStyle(color: _brandGold),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
+
+                            const SizedBox(height: 4),
+
+                            // Grille de produits
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20.0),
+                              child: _buildProductsGrid(),
+                            ),
+
+                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
-
-                      const SizedBox(height: 15),
-
-                      // Grille de produits
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: _buildProductsGrid(),
-                      ),
-
-                      const SizedBox(height: 20), // Espace en bas
-                    ],
-                  ),
-                ),
-              ),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -503,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisCount: 2,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 0.70, // Ajusté pour éviter l'overflow
+        childAspectRatio: 0.70,
       ),
       itemCount: filtered.length,
       itemBuilder: (context, index) {
@@ -516,7 +513,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildProductCard(Product product) {
     return GestureDetector(
       onTap: () {
-        // Navigation vers les détails du produit
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -526,55 +522,71 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF252525),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              offset: const Offset(4, 4),
-              blurRadius: 8,
-            ),
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.05),
-              offset: const Offset(-2, -2),
-              blurRadius: 4,
+              color: Colors.black.withValues(alpha: 0.12),
+              offset: const Offset(0, 10),
+              blurRadius: 22,
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image du produit (sans bordure)
+            // Image du produit avec ombre noire
             Expanded(
               flex: 4,
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(20),
                 ),
-                child: Hero(
-                  tag: 'product_${product.id}',
-                  child: product.imageUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: product.imageUrl,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey[800],
-                            child: const Center(
-                              child: CircularProgressIndicator(),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Hero(
+                      tag: 'product_${product.id}',
+                      child: product.imageUrl.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: product.imageUrl,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              placeholder: (context, url) => Container(
+                                color: const Color(0xFFFFF0DC),
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Image.asset(
+                                'assets/app_icon.png',
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/app_icon.png',
+                              width: double.infinity,
+                              fit: BoxFit.cover,
                             ),
+                    ),
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.6),
+                            ],
+                            stops: const [0.6, 1.0],
                           ),
-                          errorWidget: (context, url, error) => Image.asset(
-                            'assets/app_icon.png',
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : Image.asset(
-                          'assets/app_icon.png',
-                          width: double.infinity,
-                          fit: BoxFit.cover,
                         ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -596,7 +608,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       product.nom,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -612,7 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             '4.8(163)',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: Colors.grey[700],
                               fontSize: 11,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -629,7 +641,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             '20 min',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: Colors.grey[700],
                               fontSize: 11,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -654,7 +666,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Bouton Ajouter - stoppe la propagation du tap
                         AbsorbPointer(
                           absorbing: false,
                           child: GestureDetector(
@@ -664,9 +675,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   }
                                 : null,
                             behavior: HitTestBehavior.opaque,
-                            onTapDown: (_) {
-                              // Capture le tapDown pour stopper la propagation
-                            },
+                            onTapDown: (_) {},
                             child: Container(
                               width: 36,
                               height: 36,
@@ -678,9 +687,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 boxShadow: product.disponible
                                     ? [
                                         BoxShadow(
-                                          color: _brandGold.withValues(
-                                            alpha: 0.4,
-                                          ),
+                                          color:
+                                              _brandGold.withValues(alpha: 0.4),
                                           blurRadius: 8,
                                           offset: const Offset(0, 4),
                                         ),

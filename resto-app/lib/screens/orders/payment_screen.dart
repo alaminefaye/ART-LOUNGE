@@ -5,6 +5,7 @@ import '../../models/payment.dart';
 import '../../services/payment_service.dart';
 import '../../services/auth_service.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/app_header.dart';
 
 class PaymentScreen extends StatefulWidget {
   final Order order;
@@ -252,97 +253,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-2, -2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Paiement - Commande #${widget.order.id}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 40), // Pour équilibrer l'espace
-                ],
-              ),
+            // Header gradient
+            AppHeader(
+              title: 'Paiement',
+              subtitle: 'Commande #${widget.order.id}',
             ),
 
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Montant à payer 3D
+                    // Montant à payer
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.orange.withValues(alpha: 0.5),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFD0A030), Color(0xFFB07018)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-2, -2),
-                            blurRadius: 4,
+                            color: const Color(0xFFD0A030).withValues(alpha: 0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
@@ -362,9 +303,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               widget.order.montantTotal,
                             ),
                             style: const TextStyle(
-                              color: Colors.orange,
+                              color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black26,
+                                  offset: Offset(0, 1),
+                                  blurRadius: 3,
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -374,11 +322,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     // Sélection du mode de paiement
                     const Padding(
-                      padding: EdgeInsets.only(left: 8, bottom: 16),
+                      padding: EdgeInsets.only(left: 4, bottom: 16),
                       child: Text(
                         'Mode de paiement',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.black87,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -412,7 +360,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     if (_selectedPaymentMethod == PaymentMethod.wave ||
                         _selectedPaymentMethod ==
                             PaymentMethod.orangeMoney) ...[
-                      _build3DTextField(
+                      _buildTextField(
                         controller: _transactionIdController,
                         label: 'Numéro de transaction',
                         hint: 'Généré automatiquement',
@@ -424,7 +372,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     if (_selectedPaymentMethod == PaymentMethod.especes &&
                         !_isClient) ...[
-                      _build3DTextField(
+                      _buildTextField(
                         controller: _amountReceivedController,
                         label: 'Montant reçu',
                         hint: 'Montant reçu du client',
@@ -450,24 +398,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             return Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF252525),
+                                color: isEnough
+                                    ? Colors.green.withValues(alpha: 0.08)
+                                    : Colors.red.withValues(alpha: 0.06),
                                 borderRadius: BorderRadius.circular(15),
                                 border: Border.all(
                                   color: isEnough ? Colors.green : Colors.red,
                                   width: 1,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    offset: const Offset(4, 4),
-                                    blurRadius: 8,
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.white.withValues(alpha: 0.05),
-                                    offset: const Offset(-2, -2),
-                                    blurRadius: 4,
-                                  ),
-                                ],
                               ),
                               child: Row(
                                 children: [
@@ -499,7 +437,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     const SizedBox(height: 40),
 
-                    // Bouton de paiement 3D
+                    // Bouton de paiement
                     GestureDetector(
                       onTap: _isProcessing || _selectedPaymentMethod == null
                           ? null
@@ -511,26 +449,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           gradient: LinearGradient(
                             colors:
                                 _isProcessing || _selectedPaymentMethod == null
-                                ? [Colors.grey[700]!, Colors.grey[800]!]
-                                : [Colors.orange, Colors.deepOrange],
+                                ? [Colors.grey[300]!, Colors.grey[400]!]
+                                : [const Color(0xFFD0A030), const Color(0xFFB07018)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(15),
                           boxShadow: [
-                            if (!(_isProcessing ||
-                                _selectedPaymentMethod == null)) ...[
+                            if (!(_isProcessing || _selectedPaymentMethod == null))
                               BoxShadow(
-                                color: Colors.orange.withValues(alpha: 0.4),
-                                offset: const Offset(4, 4),
+                                color: const Color(0xFFD0A030).withValues(alpha: 0.4),
+                                offset: const Offset(0, 4),
                                 blurRadius: 10,
                               ),
-                              BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                offset: const Offset(-2, -2),
-                                blurRadius: 5,
-                              ),
-                            ],
                           ],
                         ),
                         alignment: Alignment.center,
@@ -581,19 +512,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: isSelected ? Border.all(color: Colors.orange, width: 2) : null,
+        border: isSelected
+            ? Border.all(color: const Color(0xFFD0A030), width: 2)
+            : Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            offset: const Offset(4, 4),
-            blurRadius: 8,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-2, -2),
-            blurRadius: 4,
+            color: isSelected
+                ? const Color(0xFFD0A030).withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.08),
+            offset: const Offset(0, 6),
+            blurRadius: 16,
           ),
         ],
       ),
@@ -607,7 +537,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     _selectedPaymentMethod = method;
                     if (method != PaymentMethod.especes) {
                       _amountReceivedController.clear();
-                      // Générer un ID de transaction automatique s'il n'existe pas déjà
                       if (_transactionIdController.text.isEmpty) {
                         _transactionIdController.text =
                             _generateTransactionId();
@@ -621,32 +550,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 },
           borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Colors.orange.withValues(alpha: 0.2)
-                        : const Color(0xFF1E1E1E),
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        offset: const Offset(-1, -1),
-                        blurRadius: 2,
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        offset: const Offset(2, 2),
-                        blurRadius: 4,
-                      ),
-                    ],
+                        ? const Color(0xFFD0A030).withValues(alpha: 0.12)
+                        : const Color(0xFFFFF0DC),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
                     icon,
-                    color: isSelected ? Colors.orange : Colors.grey[500],
+                    color: isSelected
+                        ? const Color(0xFFD0A030)
+                        : Colors.grey[500],
                     size: 24,
                   ),
                 ),
@@ -659,34 +578,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         title,
                         style: TextStyle(
                           color: isDisabled
-                              ? Colors.grey[600]
-                              : (isSelected ? Colors.white : Colors.grey[300]),
+                              ? Colors.grey[400]
+                              : (isSelected
+                                  ? const Color(0xFFD0A030)
+                                  : Colors.black87),
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
                         subtitle,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
                       ),
                     ],
                   ),
                 ),
                 if (isSelected)
                   Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: Colors.orange,
+                    width: 26,
+                    height: 26,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFD0A030),
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.orange.withValues(alpha: 0.4),
-                          offset: const Offset(2, 2),
-                          blurRadius: 4,
-                        ),
-                      ],
                     ),
                     child: const Icon(
                       Icons.check,
@@ -702,7 +616,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _build3DTextField({
+  Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     required String hint,
@@ -714,18 +628,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: readOnly ? const Color(0xFF1E1E1E) : const Color(0xFF252525),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: readOnly
+              ? Colors.grey[200]!
+              : const Color(0xFFD0A030).withValues(alpha: 0.3),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-1, -1),
-            blurRadius: 2,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            offset: const Offset(2, 2),
-            blurRadius: 4,
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
           ),
         ],
       ),
@@ -735,17 +649,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
         onChanged: onChanged,
         readOnly: readOnly,
         style: TextStyle(
-          color: readOnly ? Colors.grey[400] : Colors.white,
-          fontWeight: readOnly ? FontWeight.bold : FontWeight.normal,
+          color: readOnly ? Colors.grey[500] : Colors.black87,
+          fontWeight: readOnly ? FontWeight.w500 : FontWeight.normal,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.grey[400]),
+          labelStyle: TextStyle(color: Colors.grey[600]),
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey[600]),
-          prefixIcon: Icon(icon, color: readOnly ? Colors.grey : Colors.orange),
+          hintStyle: TextStyle(color: Colors.grey[400]),
+          prefixIcon: Icon(
+            icon,
+            color: readOnly ? Colors.grey[400] : const Color(0xFFD0A030),
+          ),
           suffixText: suffixText,
-          suffixStyle: TextStyle(color: Colors.grey[400]),
+          suffixStyle: const TextStyle(color: Colors.black54),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,

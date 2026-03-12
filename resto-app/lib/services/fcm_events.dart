@@ -9,4 +9,14 @@ class FCMEvents {
   static void triggerOrderUpdate() {
     _orderUpdateController.add(true);
   }
+
+  // Stream pour "paiement validé" (orderId pour afficher popup reçu + note satisfaction)
+  static final StreamController<int> _paymentValidatedController =
+      StreamController<int>.broadcast();
+  static Stream<int> get paymentValidatedStream =>
+      _paymentValidatedController.stream;
+
+  static void triggerPaymentValidated(int orderId) {
+    _paymentValidatedController.add(orderId);
+  }
 }

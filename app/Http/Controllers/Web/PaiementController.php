@@ -10,6 +10,7 @@ use App\Enums\MoyenPaiement;
 use App\Enums\StatutPaiement;
 use App\Enums\OrderStatus;
 use App\Services\FactureService;
+use App\Services\FCMService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -17,10 +18,12 @@ use Illuminate\Support\Facades\DB;
 class PaiementController extends Controller
 {
     protected $factureService;
+    protected $fcmService;
 
-    public function __construct(FactureService $factureService)
+    public function __construct(FactureService $factureService, FCMService $fcmService)
     {
         $this->factureService = $factureService;
+        $this->fcmService = $fcmService;
     }
 
     /**
@@ -147,6 +150,16 @@ class PaiementController extends Controller
             try {
                 // Générer la facture
                 $facture = $this->factureService->genererFacture($commande, $paiement);
+
+                // Notifier le client sur l'app mobile (reçu + note de satisfaction)
+                try {
+                    $this->fcmService->notifyClientPaymentValidated($commande, $facture);
+                } catch (\Throwable $e) {
+                    \Log::warning('FCM: échec envoi notification paiement au client', [
+                        'commande_id' => $commande->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
 
                 // Utiliser redirect avec code 303 (See Other) pour forcer une nouvelle requête GET
                 return redirect()->route('caisse.facture', $facture)

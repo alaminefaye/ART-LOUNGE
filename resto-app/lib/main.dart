@@ -63,23 +63,25 @@ class RestoApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
-          brightness: Brightness.dark,
-          scaffoldBackgroundColor: const Color(0xFF1E1E1E),
-          colorScheme: const ColorScheme.dark(
+          brightness: Brightness.light,
+          scaffoldBackgroundColor: const Color(0xFFFFF6EC),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: brandGold,
+            brightness: Brightness.light,
             primary: brandGold,
             secondary: brandGoldLight,
-            surface: Color(0xFF252525),
+            surface: Colors.white,
           ),
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.transparent,
             elevation: 0,
             centerTitle: true,
             titleTextStyle: TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
-            iconTheme: IconThemeData(color: Colors.white),
+            iconTheme: IconThemeData(color: Colors.black),
           ),
         ),
         home: const AuthWrapper(),
@@ -95,22 +97,54 @@ class AuthWrapper extends StatefulWidget {
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AuthWrapperState extends State<AuthWrapper>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = true;
+  late final AnimationController _splashController;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _clocheLift;
+  late final Animation<double> _clocheTilt;
 
   @override
   void initState() {
     super.initState();
+    _splashController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _logoScale = Tween<double>(begin: 0.92, end: 1.0).animate(
+      CurvedAnimation(parent: _splashController, curve: Curves.easeInOut),
+    );
+    _clocheLift = Tween<double>(begin: 0.0, end: -10.0).animate(
+      CurvedAnimation(parent: _splashController, curve: Curves.easeInOut),
+    );
+    _clocheTilt = Tween<double>(begin: -0.06, end: 0.06).animate(
+      CurvedAnimation(parent: _splashController, curve: Curves.easeInOut),
+    );
+    _splashController.repeat(reverse: true);
     _checkAuth();
   }
 
+  @override
+  void dispose() {
+    _splashController.dispose();
+    super.dispose();
+  }
+
   Future<void> _checkAuth() async {
+    final startedAt = DateTime.now();
     final authService = Provider.of<AuthService>(context, listen: false);
     await authService.checkAuth();
 
     // Initialiser le service FCM une fois l'auth vérifiée
     if (authService.isAuthenticated) {
       await FCMService().initialize(authService);
+    }
+
+    final elapsed = DateTime.now().difference(startedAt);
+    const minSplash = Duration(seconds: 5);
+    if (elapsed < minSplash) {
+      await Future.delayed(minSplash - elapsed);
     }
 
     setState(() {
@@ -121,7 +155,56 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      final logoWidth = (MediaQuery.sizeOf(context).width * 0.72).clamp(
+        260.0,
+        420.0,
+      );
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ScaleTransition(
+                scale: _logoScale,
+                child: Image.asset('assets/logo.png', width: logoWidth),
+              ),
+              const SizedBox(height: 28),
+              AnimatedBuilder(
+                animation: _splashController,
+                builder: (context, _) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _SteamLines(
+                        t: _splashController.value,
+                        color: const Color(0xFFD0A030),
+                      ),
+                      const SizedBox(height: 6),
+                      Transform.translate(
+                        offset: Offset(0, _clocheLift.value),
+                        child: Transform.rotate(
+                          angle: _clocheTilt.value,
+                          child: const Icon(
+                            Icons.room_service,
+                            size: 54,
+                            color: Color(0xFFD0A030),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _BouncingDots(
+                        t: _splashController.value,
+                        color: const Color(0xFFD0A030),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return Consumer<AuthService>(
@@ -140,6 +223,75 @@ class _AuthWrapperState extends State<AuthWrapper> {
           return const LoginScreen();
         }
       },
+    );
+  }
+}
+
+class _BouncingDots extends StatelessWidget {
+  final double t;
+  final Color color;
+
+  const _BouncingDots({required this.t, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    double dotScale(int index) {
+      final phase = (t + index * 0.18) % 1.0;
+      final v = (1.0 - (phase - 0.5).abs() * 2.0).clamp(0.0, 1.0);
+      return 0.7 + 0.5 * Curves.easeInOut.transform(v);
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(3, (i) {
+        final s = dotScale(i);
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 5),
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          transform: Matrix4.diagonal3Values(s, s, 1.0),
+        );
+      }),
+    );
+  }
+}
+
+class _SteamLines extends StatelessWidget {
+  final double t;
+  final Color color;
+
+  const _SteamLines({required this.t, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    double alpha(int index) {
+      final phase = (t + index * 0.22) % 1.0;
+      final v = (1.0 - (phase - 0.5).abs() * 2.0).clamp(0.0, 1.0);
+      return 0.15 + 0.55 * Curves.easeInOut.transform(v);
+    }
+
+    double height(int index) {
+      final phase = (t + index * 0.18) % 1.0;
+      final v = (1.0 - (phase - 0.5).abs() * 2.0).clamp(0.0, 1.0);
+      return 10 + 12 * Curves.easeInOut.transform(v);
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(3, (i) {
+        final a = alpha(i);
+        final h = height(i);
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 6),
+          width: 5,
+          height: h,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: a),
+            borderRadius: BorderRadius.circular(10),
+          ),
+        );
+      }),
     );
   }
 }

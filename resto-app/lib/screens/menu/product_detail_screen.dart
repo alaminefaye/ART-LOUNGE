@@ -6,6 +6,7 @@ import '../../models/cart.dart';
 import '../../models/favorites.dart';
 import '../../utils/formatters.dart';
 import '../orders/cart_screen.dart';
+import '../../widgets/app_header.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -24,114 +25,39 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFF6EC),
+      body: SafeArea(top: false,
         child: Column(
           children: [
-            // Header 3D
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF252525),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-2, -2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                  ),
-                  const Text(
-                    'Détails du produit',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Consumer<Favorites>(
-                    builder: (context, favorites, _) {
-                      final isFavorite = favorites.isFavorite(widget.product);
-                      return GestureDetector(
-                        onTap: () {
-                          favorites.toggleFavorite(widget.product);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                isFavorite
-                                    ? '${widget.product.nom} retiré des favoris'
-                                    : '${widget.product.nom} ajouté aux favoris',
-                              ),
-                              duration: const Duration(seconds: 1),
-                              backgroundColor: const Color(0xFF252525),
+            // Header gradient
+            Consumer<Favorites>(
+              builder: (context, favorites, _) {
+                final isFavorite = favorites.isFavorite(widget.product);
+                return AppHeader(
+                  title: widget.product.nom,
+                  titleFontSize: 18,
+                  actions: [
+                    HeaderActionButton(
+                      icon: isFavorite ? Icons.favorite : Icons.favorite_border,
+                      onTap: () {
+                        favorites.toggleFavorite(widget.product);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isFavorite
+                                  ? '${widget.product.nom} retiré des favoris'
+                                  : '${widget.product.nom} ajouté aux favoris',
                             ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF252525),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: isFavorite
-                                    ? Colors.red.withValues(alpha: 0.2)
-                                    : Colors.black.withValues(alpha: 0.4),
-                                offset: const Offset(4, 4),
-                                blurRadius: 8,
-                              ),
-                              BoxShadow(
-                                color: isFavorite
-                                    ? Colors.red.withValues(alpha: 0.1)
-                                    : Colors.white.withValues(alpha: 0.05),
-                                offset: const Offset(-2, -2),
-                                blurRadius: 4,
-                              ),
-                            ],
+                            duration: const Duration(seconds: 1),
+                            backgroundColor: const Color(0xFFD0A030),
+                            behavior: SnackBarBehavior.floating,
                           ),
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : Colors.grey,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
             ),
 
             Expanded(
@@ -143,14 +69,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     Hero(
                       tag: 'product_${widget.product.id}',
                       child: Container(
-                        height: 300,
+                        height: 260,
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: Colors.black.withValues(alpha: 0.06),
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              blurRadius: 15,
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 22,
                               offset: const Offset(0, 10),
                             ),
                           ],
@@ -162,7 +91,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   imageUrl: widget.product.imageUrl,
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) => Container(
-                                    color: const Color(0xFF252525),
+                                    color: const Color(0xFFFFF0DC),
                                     child: const Center(
                                       child: CircularProgressIndicator(
                                         color: _brandGold,
@@ -183,23 +112,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
 
-                    // Informations du produit
+                    // Informations du produit (style home)
                     Container(
                       margin: const EdgeInsets.all(20),
-                      padding: const EdgeInsets.all(25),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: Colors.black.withValues(alpha: 0.06),
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 8,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            offset: const Offset(-2, -2),
-                            blurRadius: 4,
+                            color: Colors.black.withValues(alpha: 0.12),
+                            offset: const Offset(0, 10),
+                            blurRadius: 22,
                           ),
                         ],
                       ),
@@ -210,37 +137,37 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           Text(
                             widget.product.nom,
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
+                              color: Colors.black,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
 
                           // Prix
                           Text(
                             Formatters.formatCurrency(widget.product.prix),
                             style: const TextStyle(
                               color: _brandGold,
-                              fontSize: 24,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 14),
 
                           // Statut de disponibilité
                           Row(
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
+                                  horizontal: 12,
+                                  vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1E1E1E),
+                                  color: const Color(0xFFFFF6EC),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.1),
+                                    color: Colors.black.withValues(alpha: 0.06),
                                   ),
                                 ),
                                 child: Row(
@@ -281,33 +208,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              Icon(Icons.star, color: _brandGold, size: 20),
+                              const SizedBox(width: 12),
+                              Icon(Icons.star, color: _brandGold, size: 18),
                               const SizedBox(width: 4),
                               Text(
                                 '4.8 (163)',
                                 style: TextStyle(
-                                  color: Colors.grey[400],
-                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                  fontSize: 13,
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              const Icon(
+                              const SizedBox(width: 12),
+                              Icon(
                                 Icons.access_time,
-                                color: Colors.grey,
-                                size: 20,
+                                color: Colors.grey[700],
+                                size: 18,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 '20 min',
                                 style: TextStyle(
-                                  color: Colors.grey[400],
-                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                  fontSize: 13,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 18),
 
                           // Description
                           if (widget.product.description != null &&
@@ -318,21 +245,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 const Text(
                                   'Description',
                                   style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
+                                    color: Colors.black,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 8),
                                 Text(
                                   widget.product.description!,
                                   style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 16,
+                                    color: Colors.grey[700],
+                                    fontSize: 14,
                                     height: 1.5,
                                   ),
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 18),
                               ],
                             ),
 
@@ -340,12 +267,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           const Text(
                             'Quantité',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
+                              color: Colors.black,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 15),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
                               // Bouton diminuer
@@ -358,13 +285,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                               // Quantité
                               Container(
-                                width: 60,
+                                width: 48,
                                 alignment: Alignment.center,
                                 child: Text(
                                   '$_quantity',
                                   style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
+                                    color: Colors.black,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -382,14 +309,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               // Prix total
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
+                                  horizontal: 12,
+                                  vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1E1E1E),
-                                  borderRadius: BorderRadius.circular(15),
+                                  color: const Color(0xFFFFF6EC),
+                                  borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: _brandGold.withValues(alpha: 0.2),
+                                    color: _brandGold.withValues(alpha: 0.3),
                                   ),
                                 ),
                                 child: Text(
@@ -398,14 +325,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   ),
                                   style: const TextStyle(
                                     color: _brandGold,
-                                    fontSize: 20,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 24),
 
                           // Bouton Ajouter au panier
                           GestureDetector(
@@ -414,7 +341,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 : null,
                             child: Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                               decoration: BoxDecoration(
                                 gradient: widget.product.disponible
                                     ? const LinearGradient(
@@ -455,16 +382,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 children: [
                                   Icon(
                                     Icons.add_shopping_cart,
-                                    size: 24,
+                                    size: 20,
                                     color: widget.product.disponible
                                         ? Colors.white
                                         : Colors.grey[400],
                                   ),
-                                  const SizedBox(width: 10),
+                                  const SizedBox(width: 8),
                                   Text(
                                     'Ajouter au panier',
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: widget.product.disponible
                                           ? Colors.white
@@ -497,31 +424,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 45,
-        height: 45,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
-          color: isAdd ? _brandGold : const Color(0xFF252525),
-          borderRadius: BorderRadius.circular(12),
+          color: isAdd ? _brandGold : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
           boxShadow: isEnabled
               ? [
                   BoxShadow(
                     color: isAdd
-                        ? _brandGold.withValues(alpha: 0.4)
-                        : Colors.black.withValues(alpha: 0.4),
-                    offset: const Offset(4, 4),
-                    blurRadius: 8,
-                  ),
-                  BoxShadow(
-                    color: isAdd
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 4,
+                        ? _brandGold.withValues(alpha: 0.3)
+                        : Colors.black.withValues(alpha: 0.08),
+                    offset: const Offset(0, 4),
+                    blurRadius: 12,
                   ),
                 ]
               : null,
         ),
-        child: Icon(icon, color: Colors.white, size: 24),
+        child: Icon(
+          icon,
+          color: isAdd ? Colors.white : Colors.black87,
+          size: 20,
+        ),
       ),
     );
   }
