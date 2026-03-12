@@ -152,7 +152,7 @@
                     
                     @can('view_customers')
                     <!-- Clients & Fidélité -->
-                    <li class="menu-item {{ request()->routeIs('clients.*') || request()->routeIs('fidelity.*') ? 'active open' : '' }}">
+                    <li class="menu-item {{ request()->routeIs('clients.*') || request()->routeIs('fidelity.*') || request()->routeIs('payment-methods.*') ? 'active open' : '' }}">
                         <a href="javascript:void(0);" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons bx bx-group"></i>
                             <div>Clients & Fidélité</div>
@@ -166,6 +166,11 @@
                             <li class="menu-item {{ request()->routeIs('fidelity.*') ? 'active' : '' }}">
                                 <a href="{{ route('fidelity.edit') }}" class="menu-link">
                                     <div>Paramètres points fidélité</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ request()->routeIs('payment-methods.*') ? 'active' : '' }}">
+                                <a href="{{ route('payment-methods.edit') }}" class="menu-link">
+                                    <div>Moyens de paiement (Wave / Orange Money)</div>
                                 </a>
                             </li>
                         </ul>

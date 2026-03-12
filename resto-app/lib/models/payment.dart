@@ -4,7 +4,8 @@ enum PaymentMethod {
   especes('especes', 'Espèces', '💵'),
   wave('wave', 'Wave', '🌊'),
   orangeMoney('orange_money', 'Orange Money', '🟠'),
-  carteBancaire('carte_bancaire', 'Carte Bancaire', '💳');
+  carteBancaire('carte_bancaire', 'Carte Bancaire', '💳'),
+  pointsFidelite('points_fidelite', 'Points de fidélité', '⭐');
 
   final String value;
   final String displayName;

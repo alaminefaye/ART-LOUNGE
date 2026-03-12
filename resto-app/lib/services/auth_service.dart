@@ -36,12 +36,16 @@ class AuthService extends ChangeNotifier {
         },
       );
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final data = response.data;
+        if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
         _token = data['token'] as String?;
-        
         if (data['user'] != null) {
-          _currentUser = User.fromJson(data['user'] as Map<String, dynamic>);
+          final hasFullResponse = data['client'] != null ||
+              data['fidelity_settings'] != null ||
+              data['payment_method_settings'] != null;
+          _currentUser = hasFullResponse
+              ? User.fromAuthResponse(data)
+              : User.fromJson(data['user'] as Map<String, dynamic>);
         }
         
         // Sauvegarder le token
@@ -111,12 +115,16 @@ class AuthService extends ChangeNotifier {
         },
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data;
+        if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
         _token = data['token'] as String?;
-        
         if (data['user'] != null) {
-          _currentUser = User.fromJson(data['user'] as Map<String, dynamic>);
+          final hasFullResponse = data['client'] != null ||
+              data['fidelity_settings'] != null ||
+              data['payment_method_settings'] != null;
+          _currentUser = hasFullResponse
+              ? User.fromAuthResponse(data)
+              : User.fromJson(data['user'] as Map<String, dynamic>);
         }
         
         // Sauvegarder le token
@@ -207,10 +215,14 @@ class AuthService extends ChangeNotifier {
       try {
         final response = await _apiService.get(ApiConfig.me);
         if (response.statusCode == 200) {
-          final data = response.data;
-          // L'endpoint /me retourne 'user' directement, pas dans 'data'
-          if (data['user'] != null) {
-            _currentUser = User.fromJson(data['user'] as Map<String, dynamic>);
+          final data = response.data as Map<String, dynamic>?;
+          if (data != null && data['user'] != null) {
+            final hasFullResponse = data['client'] != null ||
+                data['fidelity_settings'] != null ||
+                data['payment_method_settings'] != null;
+            _currentUser = hasFullResponse
+                ? User.fromAuthResponse(data)
+                : User.fromJson(data['user'] as Map<String, dynamic>);
             notifyListeners();
             return true;
           }

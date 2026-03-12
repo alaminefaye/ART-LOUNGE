@@ -23,6 +23,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       TextEditingController();
   final TextEditingController _amountReceivedController =
       TextEditingController();
+  final TextEditingController _pointsToUseController = TextEditingController();
   bool _isProcessing = false;
   bool _isClient = false;
 
@@ -30,10 +31,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void initState() {
     super.initState();
     _checkUserRole();
-    _amountReceivedController.text = widget.order.montantTotal.toStringAsFixed(
-      0,
-    );
-    // Client : seule option = espèces, pré-sélectionnée
+    _amountReceivedController.text = widget.order.montantTotal.toStringAsFixed(0);
+    _pointsToUseController.text = '0';
     if (_isClient) _selectedPaymentMethod = PaymentMethod.especes;
   }
 
@@ -55,6 +54,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void dispose() {
     _transactionIdController.dispose();
     _amountReceivedController.dispose();
+    _pointsToUseController.dispose();
     super.dispose();
   }
 
@@ -72,6 +72,77 @@ class _PaymentScreenState extends State<PaymentScreen> {
     setState(() {
       _isProcessing = true;
     });
+
+    // Client : paiement en points de fidélité
+    if (_isClient && _selectedPaymentMethod == PaymentMethod.pointsFidelite) {
+      final user = Provider.of<AuthService>(context, listen: false).currentUser;
+      if (user == null || user.pointsFidelite <= 0) {
+        setState(() => _isProcessing = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Vous n\'avez pas de points de fidélité.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+      final points = int.tryParse(_pointsToUseController.text.trim()) ?? 0;
+      if (points <= 0) {
+        setState(() => _isProcessing = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Indiquez le nombre de points à utiliser.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+      if (points > user.pointsFidelite) {
+        setState(() => _isProcessing = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Vous avez ${user.pointsFidelite} points.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+      final result = await _paymentService.payWithPoints(
+        commandeId: widget.order.id,
+        pointsUtilises: points,
+      );
+      setState(() => _isProcessing = false);
+      if (!mounted) return;
+      if (result['success'] == true) {
+        final reste = result['reste_a_payer'] as double?;
+        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              reste != null && reste > 0
+                  ? 'Points utilisés. Il reste ${Formatters.formatCurrency(reste)} à régler (espèces au serveur).'
+                  : 'Paiement en points enregistré !',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Erreur'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
 
     // Client : uniquement espèces (remettre au serveur, enregistré à la caisse)
     if (_isClient && _selectedPaymentMethod == PaymentMethod.especes) {
@@ -337,15 +408,36 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                     ),
 
-                    // Options de paiement : client = espèces uniquement ; personnel = tous
-                    if (_isClient)
+                    // Options de paiement : client = espèces + points si dispo + Wave/OM si activés ; personnel = tous
+                    if (_isClient) ...[
+                      if (Provider.of<AuthService>(context).currentUser?.hasFidelity == true)
+                        _buildPaymentMethodOption(
+                          PaymentMethod.pointsFidelite,
+                          'Points de fidélité',
+                          'Utiliser vos points pour réduire ou régler la facture',
+                          Icons.stars,
+                        ),
                       _buildPaymentMethodOption(
                         PaymentMethod.especes,
                         'Espèces',
                         'Remettez le montant au serveur',
                         Icons.money,
-                      )
-                    else ...[
+                      ),
+                      if (Provider.of<AuthService>(context).currentUser?.waveEnabled == true)
+                        _buildPaymentMethodOption(
+                          PaymentMethod.wave,
+                          'Wave',
+                          'Paiement mobile via Wave',
+                          Icons.phone_android,
+                        ),
+                      if (Provider.of<AuthService>(context).currentUser?.orangeMoneyEnabled == true)
+                        _buildPaymentMethodOption(
+                          PaymentMethod.orangeMoney,
+                          'Orange Money',
+                          'Paiement mobile via Orange Money',
+                          Icons.phone_android,
+                        ),
+                    ] else ...[
                       _buildPaymentMethodOption(
                         PaymentMethod.wave,
                         'Wave',
@@ -366,20 +458,77 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                     ],
 
+                    // Champs pour paiement en points (client)
+                    if (_isClient &&
+                        _selectedPaymentMethod == PaymentMethod.pointsFidelite) ...[
+                      Builder(
+                        builder: (context) {
+                          final user = Provider.of<AuthService>(context).currentUser;
+                          if (user == null || user.pointsFidelite <= 0) return const SizedBox.shrink();
+                          final valeurFcfa = user.valeurFcfa1Point ?? 100.0;
+                          final pts = int.tryParse(_pointsToUseController.text.trim()) ?? 0;
+                          final reduction = (pts * valeurFcfa).clamp(0.0, widget.order.montantTotal);
+                          final maxPoints = (widget.order.montantTotal / valeurFcfa).ceil().clamp(0, user.pointsFidelite);
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildTextField(
+                                controller: _pointsToUseController,
+                                label: 'Points à utiliser (max $maxPoints)',
+                                hint: '0',
+                                icon: Icons.stars,
+                                keyboardType: TextInputType.number,
+                                onChanged: (_) => setState(() {}),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD0A030).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFD0A030).withValues(alpha: 0.3)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.info_outline, color: Color(0xFFD0A030), size: 20),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        'Équivalent: ${Formatters.formatCurrency(reduction)} de réduction. 1 point = ${valeurFcfa.toStringAsFixed(0)} FCFA',
+                                        style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+
                     const SizedBox(height: 30),
 
-                    // Champs conditionnels selon le mode de paiement (personnel uniquement pour Wave/OM)
-                    if (!_isClient &&
-                        (_selectedPaymentMethod == PaymentMethod.wave ||
-                            _selectedPaymentMethod ==
-                                PaymentMethod.orangeMoney)) ...[
+                    // Champs conditionnels pour Wave/OM (personnel + client)
+                    if (_selectedPaymentMethod == PaymentMethod.wave ||
+                        _selectedPaymentMethod == PaymentMethod.orangeMoney) ...[
                       _buildTextField(
                         controller: _transactionIdController,
-                        label: 'Numéro de transaction',
-                        hint: 'Généré automatiquement',
+                        label: _isClient ? 'Numéro de transaction (après paiement)' : 'Numéro de transaction',
+                        hint: _isClient ? 'Ex: 12345678' : 'Généré automatiquement',
                         icon: Icons.receipt,
-                        readOnly: true,
+                        readOnly: !_isClient,
+                        onChanged: _isClient ? (_) => setState(() {}) : null,
                       ),
+                      if (_isClient)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Après avoir payé via ${_selectedPaymentMethod == PaymentMethod.wave ? 'Wave' : 'Orange Money'}, saisissez le numéro de transaction reçu.',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                        ),
                       const SizedBox(height: 20),
                     ],
 
@@ -490,9 +639,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 ),
                               )
                             : Text(
-                                _selectedPaymentMethod == PaymentMethod.especes
-                                    ? 'Encaisser'
-                                    : 'Procéder au paiement',
+                                _isClient
+                                    ? 'Payer'
+                                    : _selectedPaymentMethod == PaymentMethod.especes
+                                        ? 'Encaisser'
+                                        : 'Procéder au paiement',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
@@ -520,8 +671,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
     IconData icon,
   ) {
     final isSelected = _selectedPaymentMethod == method;
-    // Client : seule option espèces (activée). Personnel : toutes options.
-    final isDisabled = _isClient && method != PaymentMethod.especes;
+    // Client : espèces + points de fidélité (si dispo). Personnel : toutes options.
+    final isDisabled = _isClient &&
+        method != PaymentMethod.especes &&
+        method != PaymentMethod.pointsFidelite;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

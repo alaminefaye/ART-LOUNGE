@@ -186,34 +186,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Connexion',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 32,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         'Connectez-vous pour continuer',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                        style: TextStyle(color: Colors.grey[700], fontSize: 14),
                       ),
                       const SizedBox(height: 22),
                       _buildTextFieldContainer(
                         child: TextFormField(
                           controller: _emailOrPhoneController,
                           keyboardType: TextInputType.text,
-                          style: const TextStyle(color: Colors.black87),
+                          style: const TextStyle(color: Colors.black87, fontSize: 14),
                           decoration: InputDecoration(
                             labelText: 'Email ou Téléphone',
-                            labelStyle: TextStyle(color: Colors.grey[700]),
+                            labelStyle: TextStyle(color: Colors.grey[700], fontSize: 13),
                             hintText: 'exemple@email.com ou 0705316506',
                             hintStyle: TextStyle(
                               color: Colors.grey[500],
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                             prefixIcon: const Icon(
                               Icons.person,
                               color: _brandGoldDark,
+                              size: 20,
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(22),
@@ -222,8 +223,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             filled: true,
                             fillColor: Colors.transparent,
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 16,
+                              horizontal: 18,
+                              vertical: 14,
                             ),
                           ),
                           validator: (value) {
@@ -250,13 +251,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          style: const TextStyle(color: Colors.black87),
+                          style: const TextStyle(color: Colors.black87, fontSize: 14),
                           decoration: InputDecoration(
                             labelText: 'Mot de passe',
-                            labelStyle: TextStyle(color: Colors.grey[700]),
+                            labelStyle: TextStyle(color: Colors.grey[700], fontSize: 13),
                             prefixIcon: const Icon(
                               Icons.lock,
                               color: _brandGoldDark,
+                              size: 20,
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -264,6 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ? Icons.visibility
                                     : Icons.visibility_off,
                                 color: Colors.grey[600],
+                                size: 20,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -278,8 +281,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             filled: true,
                             fillColor: Colors.transparent,
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 16,
+                              horizontal: 18,
+                              vertical: 14,
                             ),
                           ),
                           validator: (value) {
@@ -295,7 +298,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onTap: _isLoading ? null : _login,
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: _isLoading
@@ -333,9 +336,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     'Se connecter',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.0,
+                                      letterSpacing: 0.8,
                                     ),
                                   ),
                           ),
@@ -349,7 +352,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             'Vous n\'avez pas de compte ? ',
                             style: TextStyle(
                               color: Colors.grey[700],
-                              fontSize: 16,
+                              fontSize: 14,
                             ),
                           ),
                           TextButton(
@@ -366,7 +369,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               style: TextStyle(
                                 color: _brandGoldDark,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 14,
                               ),
                             ),
                           ),

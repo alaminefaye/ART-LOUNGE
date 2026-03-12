@@ -46,11 +46,10 @@ class PaymentService {
     }
   }
 
-  // Initier un paiement (Wave, Orange Money)
-  Future<Map<String, dynamic>> initiatePayment({
+  // Payer avec les points de fidélité (client)
+  Future<Map<String, dynamic>> payWithPoints({
     required int commandeId,
-    required PaymentMethod moyenPaiement,
-    String? transactionId,
+    required int pointsUtilises,
     String? notes,
   }) async {
     try {
@@ -58,11 +57,75 @@ class PaymentService {
         ApiConfig.payments,
         data: {
           'commande_id': commandeId,
-          'moyen_paiement': moyenPaiement.value,
-          if (transactionId != null && transactionId.isNotEmpty) 'transaction_id': transactionId,
+          'moyen_paiement': PaymentMethod.pointsFidelite.value,
+          'points_utilises': pointsUtilises,
           if (notes != null && notes.isNotEmpty) 'notes': notes,
         },
       );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data as Map<String, dynamic>?;
+        final message = data?['message'] as String? ?? 'Paiement en points enregistré.';
+        final dataContent = data?['data'];
+        double? resteAPayer;
+        if (data?['reste_a_payer'] != null) {
+          final r = data!['reste_a_payer'];
+          if (r is num) resteAPayer = r.toDouble();
+        }
+        if (dataContent is Map) {
+          try {
+            final payment = Payment.fromJson(dataContent as Map<String, dynamic>);
+            return {
+              'success': true,
+              'message': message,
+              'data': payment,
+              if (resteAPayer != null) 'reste_a_payer': resteAPayer,
+            };
+          } catch (_) {}
+        }
+        return {
+          'success': true,
+          'message': message,
+          if (resteAPayer != null) 'reste_a_payer': resteAPayer,
+        };
+      }
+      return {
+        'success': false,
+        'message': (response.data is Map && response.data['message'] != null)
+            ? response.data['message'] as String
+            : 'Erreur lors du paiement en points',
+      };
+    } on DioException catch (e) {
+      String message = 'Erreur lors du paiement en points';
+      if (e.response != null) {
+        final d = e.response?.data;
+        if (d is Map && d['message'] != null) message = d['message'] as String;
+      }
+      return {'success': false, 'message': message};
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur: ${e.toString()}'};
+    }
+  }
+
+  // Initier un paiement (Wave, Orange Money)
+  Future<Map<String, dynamic>> initiatePayment({
+    required int commandeId,
+    required PaymentMethod moyenPaiement,
+    String? transactionId,
+    String? notes,
+    int? pointsUtilises,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'commande_id': commandeId,
+        'moyen_paiement': moyenPaiement.value,
+        if (transactionId != null && transactionId.isNotEmpty) 'transaction_id': transactionId,
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      };
+      if (pointsUtilises != null && pointsUtilises > 0) {
+        body['points_utilises'] = pointsUtilises;
+      }
+      final response = await _apiService.post(ApiConfig.payments, data: body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;

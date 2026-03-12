@@ -92,5 +92,7 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('can:manage_loyalty');
         Route::get('fidelity', [\App\Http\Controllers\Web\FidelitySettingController::class, 'edit'])->name('fidelity.edit');
         Route::put('fidelity', [\App\Http\Controllers\Web\FidelitySettingController::class, 'update'])->name('fidelity.update');
+        Route::get('payment-methods', [\App\Http\Controllers\Web\PaymentMethodSettingController::class, 'edit'])->name('payment-methods.edit');
+        Route::put('payment-methods', [\App\Http\Controllers\Web\PaymentMethodSettingController::class, 'update'])->name('payment-methods.update');
     });
 });

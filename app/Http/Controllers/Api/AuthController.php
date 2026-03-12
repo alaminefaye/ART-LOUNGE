@@ -123,6 +123,9 @@ class AuthController extends Controller
             $permissions = $user->getAllPermissions()->pluck('name')->toArray();
             $token = $user->createToken('auth_token', $permissions)->plainTextToken;
 
+            $fidelitySettings = \App\Models\FidelitySetting::get();
+            $paymentMethods = \App\Models\PaymentMethodSetting::get();
+
             return response()->json([
                 'message' => 'Inscription réussie',
                 'user' => [
@@ -140,6 +143,14 @@ class AuthController extends Controller
                     'telephone' => $client->telephone,
                     'email' => $client->email,
                     'points_fidelite' => (int) $client->points_fidelite,
+                ],
+                'fidelity_settings' => [
+                    'actif' => $fidelitySettings->actif,
+                    'valeur_fcfa_1_point' => (float) $fidelitySettings->valeur_fcfa_1_point,
+                ],
+                'payment_method_settings' => [
+                    'wave_enabled' => $paymentMethods->wave_enabled,
+                    'orange_money_enabled' => $paymentMethods->orange_money_enabled,
                 ],
                 'token' => $token,
                 'token_type' => 'Bearer',
@@ -231,6 +242,9 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token', $permissions)->plainTextToken;
 
         $client = $user->client;
+        $fidelitySettings = \App\Models\FidelitySetting::get();
+        $paymentMethods = \App\Models\PaymentMethodSetting::get();
+
         return response()->json([
             'message' => 'Connexion réussie',
             'user' => [
@@ -247,6 +261,14 @@ class AuthController extends Controller
                 'prenom' => $client->prenom,
                 'points_fidelite' => (int) $client->points_fidelite,
             ] : null,
+            'fidelity_settings' => [
+                'actif' => $fidelitySettings->actif,
+                'valeur_fcfa_1_point' => (float) $fidelitySettings->valeur_fcfa_1_point,
+            ],
+            'payment_method_settings' => [
+                'wave_enabled' => $paymentMethods->wave_enabled,
+                'orange_money_enabled' => $paymentMethods->orange_money_enabled,
+            ],
             'token' => $token,
             'token_type' => 'Bearer',
         ]);
@@ -315,6 +337,7 @@ class AuthController extends Controller
 
         $client = $user->client;
         $fidelitySettings = \App\Models\FidelitySetting::get();
+        $paymentMethods = \App\Models\PaymentMethodSetting::get();
 
         return response()->json([
             'user' => [
@@ -349,6 +372,10 @@ class AuthController extends Controller
             'fidelity_settings' => [
                 'actif' => $fidelitySettings->actif,
                 'valeur_fcfa_1_point' => (float) $fidelitySettings->valeur_fcfa_1_point,
+            ],
+            'payment_method_settings' => [
+                'wave_enabled' => $paymentMethods->wave_enabled,
+                'orange_money_enabled' => $paymentMethods->orange_money_enabled,
             ],
         ]);
     }

@@ -141,13 +141,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         controller: controller,
         keyboardType: keyboardType,
         obscureText: obscureText,
-        style: const TextStyle(color: Colors.black87),
+        style: const TextStyle(color: Colors.black87, fontSize: 14),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.grey[700]),
+          labelStyle: TextStyle(color: Colors.grey[700], fontSize: 13),
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 12),
-          prefixIcon: Icon(icon, color: _brandGoldDark),
+          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 11),
+          prefixIcon: Icon(icon, color: _brandGoldDark, size: 20),
           suffixIcon: suffixIcon,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(22),
@@ -156,8 +156,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           filled: true,
           fillColor: Colors.transparent,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 16,
+            horizontal: 18,
+            vertical: 14,
           ),
         ),
         validator: validator,
@@ -234,16 +234,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         'Créer un compte',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         'Inscrivez-vous pour continuer',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
                       ),
                       const SizedBox(height: 26),
                       _buildTextField(
@@ -364,7 +364,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onTap: _isLoading ? null : _register,
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: _isLoading
@@ -389,8 +389,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: Center(
                             child: _isLoading
                                 ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
+                                    height: 22,
+                                    width: 22,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
@@ -402,9 +402,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     'S\'inscrire',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.0,
+                                      letterSpacing: 0.8,
                                     ),
                                   ),
                           ),
@@ -416,7 +416,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           Text(
                             'Vous avez déjà un compte ? ',
-                            style: TextStyle(color: Colors.grey[700]),
+                            style: TextStyle(color: Colors.grey[700], fontSize: 14),
                           ),
                           TextButton(
                             onPressed: () {
@@ -432,7 +432,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               style: TextStyle(
                                 color: _brandGoldDark,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 14,
                               ),
                             ),
                           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import 'orders_history_screen.dart';
 import '../../widgets/app_header.dart';
@@ -196,6 +197,29 @@ class ProfileScreen extends StatelessWidget {
 
                     const SizedBox(height: 40),
 
+                    // Section Points de fidélité
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'POINTS DE FIDÉLITÉ',
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          _buildPointsCard(user),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
                     // Section Informations
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -336,6 +360,80 @@ class ProfileScreen extends StatelessWidget {
           );
         }
       },
+    );
+  }
+
+  Widget _buildPointsCard(User user) {
+    final points = user.pointsFidelite;
+    final valeurFcfa = user.valeurFcfa1Point;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFD0A030).withValues(alpha: 0.15),
+            const Color(0xFFB08010).withValues(alpha: 0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFD0A030).withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            offset: const Offset(0, 6),
+            blurRadius: 16,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD0A030).withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.stars, color: Color(0xFFD0A030), size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Votre solde',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$points point${points != 1 ? 's' : ''}',
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (valeurFcfa != null && valeurFcfa > 0) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '1 point = ${valeurFcfa.toStringAsFixed(0)} FCFA de réduction',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
