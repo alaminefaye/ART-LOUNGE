@@ -60,6 +60,15 @@
                         </a>
                     </li>
                     
+                    @can('view_dashboard')
+                    <li class="menu-item {{ request()->routeIs('rapport.*') ? 'active' : '' }}">
+                        <a href="{{ route('rapport.index') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
+                            <div>Rapport</div>
+                        </a>
+                    </li>
+                    @endcan
+                    
                     <!-- Tables -->
                     <li class="menu-item {{ request()->routeIs('tables.*') ? 'active' : '' }}">
                         <a href="{{ route('tables.index') }}" class="menu-link">

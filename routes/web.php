@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\MenuController;
 use App\Http\Controllers\Web\CommandeController;
 use App\Http\Controllers\Web\PaiementController;
 use App\Http\Controllers\Web\AvisController;
+use App\Http\Controllers\ReportController;
 
 // Authentication Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -69,9 +70,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('caisse/facture/{facture}/telecharger', [PaiementController::class, 'telechargerFacture'])->name('caisse.facture.telecharger');
     Route::get('caisse/historique', [PaiementController::class, 'historique'])->name('caisse.historique');
 
-    // Avis / Notes
+    // Avis / Notes & Rapports (stats)
     Route::middleware(['can:view_dashboard'])->group(function () {
         Route::get('avis', [AvisController::class, 'index'])->name('avis.index');
+        Route::get('rapport', [ReportController::class, 'index'])->name('rapport.index');
     });
     
     // Rôles & Permissions
