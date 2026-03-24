@@ -9,6 +9,8 @@ import '../../utils/formatters.dart';
 import '../menu/menu_screen.dart';
 import 'order_detail_screen.dart';
 import '../../widgets/app_header.dart';
+import '../auth/login_screen.dart';
+import '../auth/register_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   final bool showBackButton;
@@ -24,14 +26,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
   List<Order> _orders = [];
   bool _isLoading = true;
   StreamSubscription? _orderUpdateSubscription;
+  bool? _wasAuthenticated;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadOrders();
-
-    // Écouter les mises à jour des commandes
-    _orderUpdateSubscription = FCMEvents.orderUpdateStream.listen((_) {
+  void _attachOrderUpdateStream() {
+    _orderUpdateSubscription ??= FCMEvents.orderUpdateStream.listen((_) {
       if (mounted) {
         _loadOrders();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -54,6 +52,40 @@ class _OrdersScreenState extends State<OrdersScreen> {
         );
       }
     });
+  }
+
+  void _syncOrdersForAuth(AuthService auth) {
+    final isAuth = auth.isAuthenticated;
+    final wasAuth = _wasAuthenticated;
+    _wasAuthenticated = isAuth;
+
+    if (wasAuth == true && !isAuth) {
+      _orderUpdateSubscription?.cancel();
+      _orderUpdateSubscription = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _orders = [];
+          _isLoading = false;
+        });
+      });
+      return;
+    }
+
+    if (isAuth && wasAuth != true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final a = Provider.of<AuthService>(context, listen: false);
+        if (!a.isAuthenticated) return;
+        _loadOrders();
+        _attachOrderUpdateStream();
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -91,7 +123,121 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context, listen: false);
+    final authService = context.watch<AuthService>();
+    _syncOrdersForAuth(authService);
+
+    if (!authService.isAuthenticated) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFFFF6EC),
+        body: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              AppHeader(
+                title: 'Mes Commandes',
+                showBackButton: widget.showBackButton,
+                onBack: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => const MenuScreen(),
+                      ),
+                    );
+                  }
+                },
+              ),
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 64,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Connectez-vous pour voir vos commandes',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey[800],
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Créez un compte ou connectez-vous pour suivre vos commandes.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const LoginScreen(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFD0A030),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Text(
+                              'Se connecter',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Créer un compte',
+                            style: TextStyle(
+                              color: Color(0xFFC08A1C),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final user = authService.currentUser;
     final isStaff =
         user != null &&

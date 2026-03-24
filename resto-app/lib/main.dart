@@ -6,7 +6,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'services/auth_service.dart';
 import 'models/cart.dart';
 import 'models/favorites.dart';
-import 'screens/auth/login_screen.dart';
 import 'screens/menu/menu_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'firebase_options.dart';
@@ -222,9 +221,9 @@ class _AuthWrapperState extends State<AuthWrapper>
             return const DashboardScreen();
           }
           return const MenuScreen();
-        } else {
-          return const LoginScreen();
         }
+        // Invité : accès direct au menu / accueil (pas d’obligation de connexion)
+        return const MenuScreen();
       },
     );
   }

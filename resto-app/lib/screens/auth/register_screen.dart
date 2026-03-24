@@ -7,7 +7,10 @@ import '../menu/menu_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  /// Si `true`, ferme l’écran avec `true` après inscription (flux panier / retour).
+  final bool popOnSuccess;
+
+  const RegisterScreen({super.key, this.popOnSuccess = false});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -83,11 +86,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         await Future.delayed(const Duration(milliseconds: 500));
 
         if (mounted) {
-          // Naviguer vers l'écran principal en remplaçant toute la pile de navigation
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const MenuScreen()),
-            (route) => false, // Supprimer toutes les routes précédentes
-          );
+          if (widget.popOnSuccess) {
+            Navigator.of(context).pop(true);
+          } else {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const MenuScreen()),
+              (route) => false,
+            );
+          }
         }
       }
     } else {

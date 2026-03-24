@@ -41,6 +41,8 @@ class _MenuScreenState extends State<MenuScreen> {
   late int _currentIndex;
   final OrderService _orderService = OrderService();
   StreamSubscription? _paymentValidatedSubscription;
+  /// Pour ramener l’onglet sur l’accueil après déconnexion (évite rester sur Profil invité).
+  bool _hadLoggedInUser = false;
 
   @override
   void initState() {
@@ -204,6 +206,18 @@ class _MenuScreenState extends State<MenuScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthService>();
+    if (auth.isAuthenticated) {
+      _hadLoggedInUser = true;
+    } else if (_hadLoggedInUser) {
+      _hadLoggedInUser = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _currentIndex = 0);
+        }
+      });
+    }
+
     return Consumer<Favorites>(
       builder: (context, favorites, _) {
         return Scaffold(

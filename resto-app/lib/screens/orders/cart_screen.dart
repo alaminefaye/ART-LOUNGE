@@ -9,6 +9,7 @@ import '../../utils/formatters.dart';
 import '../tables/qr_scan_screen.dart';
 import '../menu/menu_screen.dart';
 import '../../widgets/app_header.dart';
+import '../../utils/auth_gate.dart';
 
 class CartScreen extends StatelessWidget {
   final int? tableId;
@@ -532,6 +533,9 @@ class CartScreen extends StatelessWidget {
   ) async {
     final targetTableId = cart.tableId ?? tableId;
     if (targetTableId == null) return;
+
+    final ok = await requireAuth(context);
+    if (!ok || !context.mounted) return;
 
     showDialog(
       context: context,

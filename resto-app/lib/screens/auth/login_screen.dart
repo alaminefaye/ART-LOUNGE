@@ -7,7 +7,11 @@ import '../menu/menu_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  /// Si `true`, ferme l’écran avec `true` après connexion (ex. retour au panier).
+  /// Sinon, remplace la pile par le menu principal (comportement classique).
+  final bool popOnSuccess;
+
+  const LoginScreen({super.key, this.popOnSuccess = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -70,11 +74,14 @@ class _LoginScreenState extends State<LoginScreen> {
         await Future.delayed(const Duration(milliseconds: 500));
 
         if (mounted) {
-          // Naviguer vers l'écran principal en remplaçant toute la pile de navigation
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const MenuScreen()),
-            (route) => false, // Supprimer toutes les routes précédentes
-          );
+          if (widget.popOnSuccess) {
+            Navigator.of(context).pop(true);
+          } else {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const MenuScreen()),
+              (route) => false,
+            );
+          }
         }
       }
     } else {
@@ -358,13 +365,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {
-                              Navigator.push(
+                            onPressed: () async {
+                              final registered = await Navigator.push<bool>(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const RegisterScreen(),
+                                  builder: (_) => RegisterScreen(
+                                    popOnSuccess: widget.popOnSuccess,
+                                  ),
                                 ),
                               );
+                              if (!context.mounted) return;
+                              if (registered == true && widget.popOnSuccess) {
+                                Navigator.of(context).pop(true);
+                              }
                             },
                             child: const Text(
                               'S\'inscrire',

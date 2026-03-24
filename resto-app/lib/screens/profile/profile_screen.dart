@@ -4,6 +4,8 @@ import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import 'orders_history_screen.dart';
 import '../../widgets/app_header.dart';
+import '../auth/login_screen.dart';
+import '../auth/register_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -20,19 +22,100 @@ class ProfileScreen extends StatelessWidget {
           if (user == null) {
             return Scaffold(
               backgroundColor: const Color(0xFFFFF6EC),
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                title: const Text(
-                  'Mon Profil',
-                  style: TextStyle(color: Colors.black),
-                ),
-                iconTheme: const IconThemeData(color: Colors.black87),
-              ),
-              body: const Center(
-                child: Text(
-                  'Utilisateur non connecté',
-                  style: TextStyle(color: Colors.black87),
+              body: SafeArea(
+                top: false,
+                child: Column(
+                  children: [
+                    const AppHeader(
+                      title: 'Mon Profil',
+                      titleFontSize: 18,
+                      showBackButton: false,
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              size: 64,
+                              color: Colors.grey[600],
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Connectez-vous',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.grey[800],
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Accédez à votre profil, historique et avantages.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const LoginScreen(),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _brandGold,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Se connecter',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const RegisterScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                'Créer un compte',
+                                style: TextStyle(
+                                  color: _brandGoldDark,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -306,6 +389,12 @@ class ProfileScreen extends StatelessWidget {
                             color: Colors.red,
                             onTap: () async {
                               await authService.logout();
+                              if (!context.mounted) return;
+                              // Ferme les écrans empilés (profil depuis le dashboard, login, etc.)
+                              // pour éviter Retour → ancienne route (ex. connexion).
+                              Navigator.of(context).popUntil(
+                                (route) => route.isFirst,
+                              );
                             },
                           ),
                         ],
