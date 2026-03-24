@@ -7,14 +7,14 @@ use App\Models\Product;
 use Illuminate\Database\Seeder;
 
 /**
- * Menu Dolce Vita Palace — tous les produits et tarifs (FCFA).
- * Pizzas à double tarif : deux lignes produit (formats distincts).
+ * MENU DOLCE VITA PALACE — seuls ces produits (le reste est retiré si possible).
+ * Pizzas à double tarif : deux lignes (prix distincts).
  */
 class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        $produits = [
+        $menuOfficiel = [
             // ——— Entrées froides ———
             ['categorie' => 'Entrées froides', 'nom' => 'Salade de gésiers', 'description' => 'Entrée froide — Menu Dolce Vita Palace', 'prix' => 4000],
             ['categorie' => 'Entrées froides', 'nom' => 'Salade Dolce Vita', 'description' => 'Entrée froide — Menu Dolce Vita Palace', 'prix' => 5000],
@@ -125,8 +125,9 @@ class ProductSeeder extends Seeder
             ['categorie' => 'Desserts', 'nom' => 'Fondant au chocolat', 'description' => 'Menu Dolce Vita Palace', 'prix' => 3000],
         ];
 
-        $created = 0;
-        foreach ($produits as $produitData) {
+        $allowedProductIds = [];
+
+        foreach ($menuOfficiel as $produitData) {
             $categorie = Category::where('nom', $produitData['categorie'])->first();
 
             if (! $categorie) {
@@ -135,7 +136,7 @@ class ProductSeeder extends Seeder
                 continue;
             }
 
-            Product::updateOrCreate(
+            $p = Product::updateOrCreate(
                 [
                     'nom' => $produitData['nom'],
                     'categorie_id' => $categorie->id,
@@ -147,9 +148,34 @@ class ProductSeeder extends Seeder
                     'actif' => true,
                 ]
             );
-            $created++;
+            $allowedProductIds[] = $p->id;
         }
 
-        $this->command->info('✓ '.$created.' produits Dolce Vita Palace (sur '.count($produits).' entrées menu)');
+        // Retirer tout produit qui n’est pas dans ce menu (si aucune commande ne le référence)
+        $removed = Product::query()
+            ->whereNotIn('id', $allowedProductIds)
+            ->whereDoesntHave('commandes')
+            ->delete();
+
+        $blocked = Product::query()
+            ->whereNotIn('id', $allowedProductIds)
+            ->whereHas('commandes')
+            ->count();
+
+        if ($blocked > 0) {
+            $this->command->warn(
+                "{$blocked} ancien(s) produit(s) hors menu conservé(s) (déjà présent(s) sur des commandes — suppression manuelle ou base de test)."
+            );
+        }
+
+        // Catégories hors menu sans aucun produit
+        $names = DolceVitaMenu::categoryNames();
+        $deletedCats = Category::whereNotIn('nom', $names)
+            ->whereDoesntHave('produits')
+            ->delete();
+
+        $this->command->info('✓ '.count($allowedProductIds).' produits Menu Dolce Vita Palace ('.count($menuOfficiel).' lignes menu)'.
+            ($removed ? " — {$removed} ancien(s) produit(s) supprimé(s)" : '').
+            ($deletedCats ? " — {$deletedCats} catégorie(s) vide(s) supprimée(s)" : ''));
     }
 }
