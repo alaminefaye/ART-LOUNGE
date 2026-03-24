@@ -13,9 +13,24 @@ class MenuController extends Controller
 {
     // ========== CATEGORIES ==========
     
-    public function categoriesIndex()
+    public function categoriesIndex(Request $request)
     {
-        $categories = Category::withCount('produits')->get();
+        $query = Category::withCount('produits')->orderBy('ordre')->orderBy('nom');
+
+        if ($request->filled('search')) {
+            $term = $request->string('search')->trim();
+            $query->where('nom', 'like', '%'.$term.'%');
+        }
+        if ($request->filled('statut')) {
+            if ($request->input('statut') === 'actif') {
+                $query->where('actif', true);
+            } elseif ($request->input('statut') === 'inactif') {
+                $query->where('actif', false);
+            }
+        }
+
+        $categories = $query->paginate(10)->withQueryString();
+
         return view('menu.categories.index', compact('categories'));
     }
     
@@ -70,10 +85,39 @@ class MenuController extends Controller
     
     // ========== PRODUCTS ==========
     
-    public function productsIndex()
+    public function productsIndex(Request $request)
     {
-        $products = Product::with('categorie')->get();
-        $categories = Category::all();
+        $query = Product::with('categorie')->orderBy('nom');
+
+        if ($request->filled('search')) {
+            $term = $request->string('search')->trim();
+            $query->where('nom', 'like', '%'.$term.'%');
+        }
+
+        if ($request->filled('categorie')) {
+            $nomCategorie = $request->string('categorie');
+            $query->whereHas('categorie', function ($q) use ($nomCategorie) {
+                $q->where('nom', $nomCategorie);
+            });
+        }
+
+        if ($request->filled('statut')) {
+            switch ($request->input('statut')) {
+                case 'disponible':
+                    $query->where('actif', true)->where('disponible', true);
+                    break;
+                case 'rupture':
+                    $query->where('actif', true)->where('disponible', false);
+                    break;
+                case 'inactif':
+                    $query->where('actif', false);
+                    break;
+            }
+        }
+
+        $products = $query->paginate(10)->withQueryString();
+        $categories = Category::where('actif', true)->orderBy('ordre')->get();
+
         return view('menu.products.index', compact('products', 'categories'));
     }
     

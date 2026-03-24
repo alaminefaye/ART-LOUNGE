@@ -14,12 +14,30 @@ use Illuminate\Support\Facades\DB;
 
 class CommandeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $commandes = Commande::with(['table', 'user', 'produits'])
-                            ->orderBy('created_at', 'desc')
-                            ->get();
-        return view('commandes.index', compact('commandes'));
+        $query = Commande::with(['table', 'user', 'produits']);
+
+        if ($request->filled('search')) {
+            $raw = ltrim($request->string('search')->trim(), '#');
+            if ($raw !== '' && ctype_digit($raw)) {
+                $query->where('id', (int) $raw);
+            }
+        }
+        if ($request->filled('table')) {
+            $numero = $request->string('table')->trim();
+            $query->whereHas('table', function ($q) use ($numero) {
+                $q->where('numero', $numero);
+            });
+        }
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->input('statut'));
+        }
+
+        $commandes = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        $tables = Table::orderBy('numero')->get();
+
+        return view('commandes.index', compact('commandes', 'tables'));
     }
 
     public function create()

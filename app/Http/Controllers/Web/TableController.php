@@ -19,16 +19,30 @@ class TableController extends Controller
         $this->qrCodeService = $qrCodeService;
     }
     
-    public function index()
+    public function index(Request $request)
     {
-        $tables = Table::all();
         $stats = [
-            'total' => $tables->count(),
-            'libres' => $tables->where('statut', TableStatus::Libre)->count(),
-            'occupees' => $tables->where('statut', TableStatus::Occupee)->count(),
-            'reservees' => $tables->where('statut', TableStatus::Reservee)->count(),
+            'total' => Table::count(),
+            'libres' => Table::where('statut', TableStatus::Libre)->count(),
+            'occupees' => Table::where('statut', TableStatus::Occupee)->count(),
+            'reservees' => Table::where('statut', TableStatus::Reservee)->count(),
         ];
-        
+
+        $query = Table::query()->orderBy('numero');
+
+        if ($request->filled('search')) {
+            $term = $request->string('search')->trim();
+            $query->where('numero', 'like', '%'.$term.'%');
+        }
+        if ($request->filled('type')) {
+            $query->where('type', $request->input('type'));
+        }
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->input('statut'));
+        }
+
+        $tables = $query->paginate(10)->withQueryString();
+
         return view('tables.index', compact('tables', 'stats'));
     }
     

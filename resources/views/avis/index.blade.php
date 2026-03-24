@@ -93,7 +93,13 @@
                 </table>
             </div>
 
-            <div class="mt-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
+                <div class="text-muted small">
+                    @if($avis->total() > 0)
+                        Affichage de <strong>{{ $avis->firstItem() }}</strong> à <strong>{{ $avis->lastItem() }}</strong>
+                        sur <strong>{{ $avis->total() }}</strong> avis
+                    @endif
+                </div>
                 {{ $avis->links() }}
             </div>
         </div>

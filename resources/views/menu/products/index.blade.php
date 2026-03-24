@@ -7,45 +7,54 @@
         <a href="{{ route('menu.products.create') }}" class="btn btn-primary"><i class="bx bx-plus"></i> Nouveau Produit</a>
     </div>
     <div class="card-body">
-        <!-- 🔍 SECTION RECHERCHE & FILTRES -->
-        <div class="row mb-4">
-            <div class="col-md-5 mb-3">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bx bx-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par nom...">
+        <form method="get" action="{{ route('menu.products.index') }}" class="mb-4">
+            <div class="row align-items-end">
+                <div class="col-md-5 mb-3">
+                    <label class="form-label small text-muted mb-1">Recherche</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bx bx-search"></i></span>
+                        <input type="text" name="search" class="form-control" placeholder="Rechercher par nom..." value="{{ request('search') }}">
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label small text-muted mb-1">Catégorie</label>
+                    <select name="categorie" class="form-select">
+                        <option value="">📁 Toutes catégories</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->nom }}" @selected(request('categorie') === $cat->nom)>{{ $cat->nom }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2 mb-3">
+                    <label class="form-label small text-muted mb-1">Statut</label>
+                    <select name="statut" class="form-select">
+                        <option value="">📊 Tous</option>
+                        <option value="disponible" @selected(request('statut') === 'disponible')>✅ Disponible</option>
+                        <option value="rupture" @selected(request('statut') === 'rupture')>⚠️ Rupture</option>
+                        <option value="inactif" @selected(request('statut') === 'inactif')>❌ Inactif</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 mb-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bx bx-filter-alt"></i> Filtrer
+                    </button>
+                    <a href="{{ route('menu.products.index') }}" class="btn btn-outline-secondary" title="Réinitialiser les filtres">
+                        <i class="bx bx-reset"></i>
+                    </a>
                 </div>
             </div>
-            
-            <div class="col-md-3 mb-3">
-                <select id="filterCategorie" class="form-select">
-                    <option value="">📁 Toutes catégories</option>
-                    @foreach(\App\Models\Category::where('actif', true)->orderBy('ordre')->get() as $cat)
-                        <option value="{{ $cat->nom }}">{{ $cat->nom }}</option>
-                    @endforeach
-                </select>
+        </form>
+
+        @if(request()->hasAny(['search', 'categorie', 'statut']))
+            <div class="alert alert-info mb-3">
+                <i class="bx bx-info-circle"></i>
+                {{ $products->total() }} produit(s) correspondant aux filtres
             </div>
-            
-            <div class="col-md-2 mb-3">
-                <select id="filterStatut" class="form-select">
-                    <option value="">📊 Tous</option>
-                    <option value="disponible">✅ Disponible</option>
-                    <option value="rupture">⚠️ Rupture</option>
-                    <option value="inactif">❌ Inactif</option>
-                </select>
-            </div>
-            
-            <div class="col-md-2 mb-3">
-                <button id="resetFilters" class="btn btn-outline-secondary w-100">
-                    <i class="bx bx-reset"></i> Réinitialiser
-                </button>
-            </div>
-        </div>
-        
-        <!-- Résultats de recherche -->
-        <div id="searchResults" class="alert alert-info d-none mb-3">
-            <i class="bx bx-info-circle"></i> <span id="resultCount">0</span> produit(s) trouvé(s)
-        </div>
-        
+        @endif
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
@@ -58,13 +67,13 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="productsTableBody">
+                <tbody>
                     @forelse($products as $product)
                     <tr>
                         <td>
                             @if($product->image)
-                                <img src="{{ $product->image_url }}" 
-                                     alt="{{ $product->nom }}" 
+                                <img src="{{ $product->image_url }}"
+                                     alt="{{ $product->nom }}"
                                      style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;"
                                      onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div style="width: 50px; height: 50px; background: #e9ecef; border-radius: 8px; display: none; align-items: center; justify-content: center;">
@@ -97,71 +106,25 @@
                         </td>
                     </tr>
                     @empty
-                    <tr class="no-results">
+                    <tr>
                         <td colspan="6" class="text-center text-muted">Aucun produit trouvé</td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
+            <div class="text-muted small">
+                @if($products->total() > 0)
+                    Affichage de <strong>{{ $products->firstItem() }}</strong> à <strong>{{ $products->lastItem() }}</strong>
+                    sur <strong>{{ $products->total() }}</strong> produit(s)
+                @else
+                    Aucun produit à afficher
+                @endif
+            </div>
+            {{ $products->links() }}
+        </div>
     </div>
 </div>
 @endsection
-
-@push('page-js')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const filterCategorie = document.getElementById('filterCategorie');
-    const filterStatut = document.getElementById('filterStatut');
-    const resetBtn = document.getElementById('resetFilters');
-    const tableBody = document.getElementById('productsTableBody');
-    const searchResults = document.getElementById('searchResults');
-    const resultCount = document.getElementById('resultCount');
-    const allRows = tableBody.querySelectorAll('tr:not(.no-results)');
-    
-    function filterProducts() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const categorieFilter = filterCategorie.value.toLowerCase();
-        const statutFilter = filterStatut.value.toLowerCase();
-        let visibleCount = 0;
-        
-        allRows.forEach(row => {
-            const nom = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            const categorie = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-            const statut = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-            
-            const matchSearch = nom.includes(searchTerm);
-            const matchCategorie = !categorieFilter || categorie.includes(categorieFilter);
-            const matchStatut = !statutFilter || statut.includes(statutFilter);
-            
-            if (matchSearch && matchCategorie && matchStatut) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        
-        if (searchTerm || categorieFilter || statutFilter) {
-            searchResults.classList.remove('d-none');
-            resultCount.textContent = visibleCount;
-        } else {
-            searchResults.classList.add('d-none');
-        }
-    }
-    
-    searchInput.addEventListener('keyup', filterProducts);
-    filterCategorie.addEventListener('change', filterProducts);
-    filterStatut.addEventListener('change', filterProducts);
-    
-    resetBtn.addEventListener('click', function() {
-        searchInput.value = '';
-        filterCategorie.value = '';
-        filterStatut.value = '';
-        searchResults.classList.add('d-none');
-        allRows.forEach(row => row.style.display = '');
-    });
-});
-</script>
-@endpush

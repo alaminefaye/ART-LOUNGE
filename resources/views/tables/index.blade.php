@@ -43,46 +43,47 @@
                 </a>
             </div>
             <div class="card-body">
-                <!-- 🔍 SECTION RECHERCHE & FILTRES -->
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bx bx-search"></i></span>
-                            <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par numéro...">
+                <form method="get" action="{{ route('tables.index') }}" class="mb-4">
+                    <div class="row align-items-end">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label small text-muted mb-1">Recherche</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bx bx-search"></i></span>
+                                <input type="text" name="search" class="form-control" placeholder="Rechercher par numéro..." value="{{ request('search') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label small text-muted mb-1">Type</label>
+                            <select name="type" class="form-select">
+                                <option value="">🏷️ Tous les types</option>
+                                <option value="simple" @selected(request('type') === 'simple')>Simple</option>
+                                <option value="vip" @selected(request('type') === 'vip')>VIP</option>
+                                <option value="espace_jeux" @selected(request('type') === 'espace_jeux')>Espace Jeux</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label small text-muted mb-1">Statut</label>
+                            <select name="statut" class="form-select">
+                                <option value="">📊 Tous les statuts</option>
+                                <option value="libre" @selected(request('statut') === 'libre')>🟢 Libre</option>
+                                <option value="occupee" @selected(request('statut') === 'occupee')>🔴 Occupée</option>
+                                <option value="reservee" @selected(request('statut') === 'reservee')>🟡 Réservée</option>
+                                <option value="en_paiement" @selected(request('statut') === 'en_paiement')>🔵 En paiement</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1"><i class="bx bx-filter-alt"></i> Filtrer</button>
+                            <a href="{{ route('tables.index') }}" class="btn btn-outline-secondary" title="Réinitialiser"><i class="bx bx-reset"></i></a>
                         </div>
                     </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <select id="filterType" class="form-select">
-                            <option value="">🏷️ Tous les types</option>
-                            <option value="simple">Simple</option>
-                            <option value="vip">VIP</option>
-                            <option value="espace_jeux">Espace Jeux</option>
-                        </select>
+                </form>
+
+                @if(request()->hasAny(['search', 'type', 'statut']))
+                    <div class="alert alert-info mb-3">
+                        <i class="bx bx-info-circle"></i> {{ $tables->total() }} table(s) correspondant aux filtres
                     </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <select id="filterStatut" class="form-select">
-                            <option value="">📊 Tous les statuts</option>
-                            <option value="libre">🟢 Libre</option>
-                            <option value="occupee">🔴 Occupée</option>
-                            <option value="reservee">🟡 Réservée</option>
-                            <option value="en_paiement">🔵 En paiement</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-2 mb-3">
-                        <button id="resetFilters" class="btn btn-outline-secondary w-100">
-                            <i class="bx bx-reset"></i> Réinitialiser
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Résultats de recherche -->
-                <div id="searchResults" class="alert alert-info d-none mb-3">
-                    <i class="bx bx-info-circle"></i> <span id="resultCount">0</span> table(s) trouvée(s)
-                </div>
-                
+                @endif
+
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
@@ -95,7 +96,7 @@
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="tablesTableBody">
+                        <tbody>
                             @forelse($tables as $table)
                                 <tr>
                                     <td><strong class="text-primary">{{ $table->numero }}</strong></td>
@@ -159,7 +160,7 @@
                             @empty
                                 <tr>
                                     <td colspan="6" class="text-center text-muted py-4">
-                                        Aucune table trouvée. 
+                                        Aucune table trouvée.
                                         <a href="{{ route('tables.create') }}">Créez-en une</a>
                                     </td>
                                 </tr>
@@ -167,77 +168,20 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
+                    <div class="text-muted small">
+                        @if($tables->total() > 0)
+                            Affichage de <strong>{{ $tables->firstItem() }}</strong> à <strong>{{ $tables->lastItem() }}</strong>
+                            sur <strong>{{ $tables->total() }}</strong> table(s)
+                        @else
+                            Aucune table à afficher
+                        @endif
+                    </div>
+                    {{ $tables->links() }}
+                </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
-
-@push('page-js')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const filterType = document.getElementById('filterType');
-    const filterStatut = document.getElementById('filterStatut');
-    const resetBtn = document.getElementById('resetFilters');
-    const tableBody = document.getElementById('tablesTableBody');
-    const searchResults = document.getElementById('searchResults');
-    const resultCount = document.getElementById('resultCount');
-    const allRows = tableBody.querySelectorAll('tr');
-    
-    // Fonction de filtrage
-    function filterTables() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const typeFilter = filterType.value.toLowerCase();
-        const statutFilter = filterStatut.value.toLowerCase();
-        let visibleCount = 0;
-        
-        allRows.forEach(row => {
-            // Ignorer la ligne "Aucune table"
-            if (row.querySelector('td[colspan]')) {
-                row.style.display = 'none';
-                return;
-            }
-            
-            const numero = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-            const type = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            const statut = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-            
-            const matchSearch = numero.includes(searchTerm);
-            const matchType = !typeFilter || type.includes(typeFilter);
-            const matchStatut = !statutFilter || statut.includes(statutFilter);
-            
-            if (matchSearch && matchType && matchStatut) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        
-        // Afficher le nombre de résultats
-        if (searchTerm || typeFilter || statutFilter) {
-            searchResults.classList.remove('d-none');
-            resultCount.textContent = visibleCount;
-        } else {
-            searchResults.classList.add('d-none');
-        }
-    }
-    
-    // Écouteurs d'événements
-    searchInput.addEventListener('keyup', filterTables);
-    filterType.addEventListener('change', filterTables);
-    filterStatut.addEventListener('change', filterTables);
-    
-    // Réinitialiser les filtres
-    resetBtn.addEventListener('click', function() {
-        searchInput.value = '';
-        filterType.value = '';
-        filterStatut.value = '';
-        searchResults.classList.add('d-none');
-        allRows.forEach(row => row.style.display = '');
-    });
-});
-</script>
-@endpush
-

@@ -17,7 +17,7 @@ class ReservationController extends Controller
         $reservations = Reservation::with(['table', 'user'])
                             ->orderBy('date_reservation', 'desc')
                             ->orderBy('heure_debut', 'desc')
-                            ->paginate(15);
+                            ->paginate(10);
         return view('reservations.index', compact('reservations'));
     }
 

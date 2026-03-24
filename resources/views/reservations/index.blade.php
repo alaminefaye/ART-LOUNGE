@@ -128,7 +128,13 @@
             </table>
         </div>
         
-        <div class="mt-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
+            <div class="text-muted small">
+                @if($reservations->total() > 0)
+                    Affichage de <strong>{{ $reservations->firstItem() }}</strong> à <strong>{{ $reservations->lastItem() }}</strong>
+                    sur <strong>{{ $reservations->total() }}</strong> réservation(s)
+                @endif
+            </div>
             {{ $reservations->links() }}
         </div>
     </div>

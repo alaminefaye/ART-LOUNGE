@@ -7,47 +7,48 @@
         <a href="{{ route('commandes.create') }}" class="btn btn-primary"><i class="bx bx-plus"></i> Nouvelle Commande</a>
     </div>
     <div class="card-body">
-        <!-- 🔍 SECTION RECHERCHE & FILTRES -->
-        <div class="row mb-4">
-            <div class="col-md-3 mb-3">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bx bx-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par #ID...">
+        <form method="get" action="{{ route('commandes.index') }}" class="mb-4">
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label small text-muted mb-1">ID commande</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bx bx-search"></i></span>
+                        <input type="text" name="search" class="form-control" placeholder="#ID..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label small text-muted mb-1">Table</label>
+                    <select name="table" class="form-select">
+                        <option value="">🪑 Toutes les tables</option>
+                        @foreach($tables as $tbl)
+                            <option value="{{ $tbl->numero }}" @selected(request('table') === $tbl->numero)>Table {{ $tbl->numero }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label small text-muted mb-1">Statut</label>
+                    <select name="statut" class="form-select">
+                        <option value="">📊 Tous statuts</option>
+                        <option value="attente" @selected(request('statut') === 'attente')>⏳ En attente</option>
+                        <option value="preparation" @selected(request('statut') === 'preparation')>🔄 En préparation</option>
+                        <option value="servie" @selected(request('statut') === 'servie')>🍽️ Servie</option>
+                        <option value="terminee" @selected(request('statut') === 'terminee')>✅ Terminée</option>
+                        <option value="annulee" @selected(request('statut') === 'annulee')>❌ Annulée</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1"><i class="bx bx-filter-alt"></i> Filtrer</button>
+                    <a href="{{ route('commandes.index') }}" class="btn btn-outline-secondary" title="Réinitialiser"><i class="bx bx-reset"></i></a>
                 </div>
             </div>
-            
-            <div class="col-md-3 mb-3">
-                <select id="filterTable" class="form-select">
-                    <option value="">🪑 Toutes les tables</option>
-                    @foreach(\App\Models\Table::orderBy('numero')->get() as $tbl)
-                        <option value="{{ $tbl->numero }}">Table {{ $tbl->numero }}</option>
-                    @endforeach
-                </select>
+        </form>
+
+        @if(request()->hasAny(['search', 'table', 'statut']))
+            <div class="alert alert-info mb-3">
+                <i class="bx bx-info-circle"></i> {{ $commandes->total() }} commande(s) correspondant aux filtres
             </div>
-            
-            <div class="col-md-3 mb-3">
-                <select id="filterStatut" class="form-select">
-                    <option value="">📊 Tous statuts</option>
-                    <option value="attente">⏳ En attente</option>
-                    <option value="preparation">🔄 En préparation</option>
-                    <option value="servie">🍽️ Servie</option>
-                    <option value="terminee">✅ Terminée</option>
-                    <option value="annulee">❌ Annulée</option>
-                </select>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <button id="resetFilters" class="btn btn-outline-secondary w-100">
-                    <i class="bx bx-reset"></i> Réinitialiser
-                </button>
-            </div>
-        </div>
-        
-        <!-- Résultats de recherche -->
-        <div id="searchResults" class="alert alert-info d-none mb-3">
-            <i class="bx bx-info-circle"></i> <span id="resultCount">0</span> commande(s) trouvée(s)
-        </div>
-        
+        @endif
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
@@ -62,7 +63,7 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="commandesTableBody">
+                <tbody>
                     @forelse($commandes as $commande)
                     <tr>
                         <td><strong>#{{ $commande->id }}</strong></td>
@@ -98,72 +99,25 @@
                         </td>
                     </tr>
                     @empty
-                    <tr class="no-results">
+                    <tr>
                         <td colspan="8" class="text-center text-muted">Aucune commande trouvée</td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
+            <div class="text-muted small">
+                @if($commandes->total() > 0)
+                    Affichage de <strong>{{ $commandes->firstItem() }}</strong> à <strong>{{ $commandes->lastItem() }}</strong>
+                    sur <strong>{{ $commandes->total() }}</strong> commande(s)
+                @else
+                    Aucune commande à afficher
+                @endif
+            </div>
+            {{ $commandes->links() }}
+        </div>
     </div>
 </div>
 @endsection
-
-@push('page-js')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const filterTable = document.getElementById('filterTable');
-    const filterStatut = document.getElementById('filterStatut');
-    const resetBtn = document.getElementById('resetFilters');
-    const tableBody = document.getElementById('commandesTableBody');
-    const searchResults = document.getElementById('searchResults');
-    const resultCount = document.getElementById('resultCount');
-    const allRows = tableBody.querySelectorAll('tr:not(.no-results)');
-    
-    function filterCommandes() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const tableFilter = filterTable.value.toLowerCase();
-        const statutFilter = filterStatut.value.toLowerCase();
-        let visibleCount = 0;
-        
-        allRows.forEach(row => {
-            const id = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-            const table = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            const statut = row.querySelector('td:nth-child(6)').textContent.toLowerCase();
-            
-            const matchSearch = id.includes(searchTerm);
-            const matchTable = !tableFilter || table.includes(tableFilter);
-            const matchStatut = !statutFilter || statut.includes(statutFilter);
-            
-            if (matchSearch && matchTable && matchStatut) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        
-        if (searchTerm || tableFilter || statutFilter) {
-            searchResults.classList.remove('d-none');
-            resultCount.textContent = visibleCount;
-        } else {
-            searchResults.classList.add('d-none');
-        }
-    }
-    
-    searchInput.addEventListener('keyup', filterCommandes);
-    filterTable.addEventListener('change', filterCommandes);
-    filterStatut.addEventListener('change', filterCommandes);
-    
-    resetBtn.addEventListener('click', function() {
-        searchInput.value = '';
-        filterTable.value = '';
-        filterStatut.value = '';
-        searchResults.classList.add('d-none');
-        allRows.forEach(row => row.style.display = '');
-    });
-});
-</script>
-@endpush
-

@@ -113,7 +113,13 @@
             </table>
         </div>
         
-        <div class="mt-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
+            <div class="text-muted small">
+                @if($paiements->total() > 0)
+                    Affichage de <strong>{{ $paiements->firstItem() }}</strong> à <strong>{{ $paiements->lastItem() }}</strong>
+                    sur <strong>{{ $paiements->total() }}</strong> paiement(s)
+                @endif
+            </div>
             {{ $paiements->links() }}
         </div>
     </div>

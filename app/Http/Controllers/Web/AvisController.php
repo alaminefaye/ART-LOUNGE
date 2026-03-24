@@ -16,7 +16,7 @@ class AvisController extends Controller
             $query->where('note', (int) $request->query('note'));
         }
 
-        $avis = $query->paginate(20)->withQueryString();
+        $avis = $query->paginate(10)->withQueryString();
 
         $statsQuery = Avis::query();
         $moyenne = (float) $statsQuery->avg('note');

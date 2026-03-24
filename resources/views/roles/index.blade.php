@@ -10,7 +10,7 @@
     </div>
     <div class="card-body">
         <div class="row">
-            @foreach($roles as $role)
+            @forelse($roles as $role)
             <div class="col-md-6 col-lg-4 mb-3">
                 <div class="card border-start border-{{ $role->name === 'admin' ? 'danger' : ($role->name === 'manager' ? 'warning' : 'secondary') }} border-3">
                     <div class="card-body">
@@ -42,7 +42,19 @@
                     </div>
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div class="col-12 text-center text-muted py-4">Aucun rôle</div>
+            @endforelse
+        </div>
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
+            <div class="text-muted small">
+                @if($roles->total() > 0)
+                    Affichage de <strong>{{ $roles->firstItem() }}</strong> à <strong>{{ $roles->lastItem() }}</strong>
+                    sur <strong>{{ $roles->total() }}</strong> rôle(s)
+                @endif
+            </div>
+            {{ $roles->links() }}
         </div>
     </div>
 </div>

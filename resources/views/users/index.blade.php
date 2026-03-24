@@ -53,7 +53,13 @@
             </tbody>
         </table>
         
-        <div class="mt-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
+            <div class="text-muted small">
+                @if($users->total() > 0)
+                    Affichage de <strong>{{ $users->firstItem() }}</strong> à <strong>{{ $users->lastItem() }}</strong>
+                    sur <strong>{{ $users->total() }}</strong> utilisateur(s)
+                @endif
+            </div>
             {{ $users->links() }}
         </div>
     </div>

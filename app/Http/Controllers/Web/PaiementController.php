@@ -36,12 +36,17 @@ class PaiementController extends Controller
      */
     public function caisse()
     {
-        $commandesEnAttente = Commande::with(['table', 'user', 'produits'])
-            ->whereIn('statut', [OrderStatus::Servie, OrderStatus::Preparation, OrderStatus::Attente])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $baseQuery = Commande::with(['table', 'user', 'produits'])
+            ->whereIn('statut', [OrderStatus::Servie, OrderStatus::Preparation, OrderStatus::Attente]);
 
-        return view('caisse.index', compact('commandesEnAttente'));
+        $statsCount = (clone $baseQuery)->count();
+        $statsMontant = (clone $baseQuery)->sum('montant_total');
+
+        $commandesEnAttente = (clone $baseQuery)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('caisse.index', compact('commandesEnAttente', 'statsCount', 'statsMontant'));
     }
 
     /**
@@ -262,7 +267,7 @@ class PaiementController extends Controller
     {
         $paiements = Paiement::with(['commande.table', 'user', 'facture'])
                             ->orderBy('created_at', 'desc')
-                            ->paginate(20);
+                            ->paginate(10);
 
         return view('caisse.historique', compact('paiements'));
     }
