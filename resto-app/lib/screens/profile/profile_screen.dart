@@ -382,7 +382,24 @@ class ProfileScreen extends StatelessWidget {
                               );
                             },
                           ),
-                          const SizedBox(height: 15),
+                          if (user.hasRole('client') &&
+                              !user.hasRole('admin') &&
+                              !user.hasRole('manager') &&
+                              !user.hasRole('serveur') &&
+                              !user.hasRole('caissier')) ...[
+                            _buildActionCard(
+                              icon: Icons.delete_forever_outlined,
+                              title: 'Supprimer mon compte',
+                              color: Colors.redAccent,
+                              onTap: () {
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (_) => const _DeleteAccountDialog(),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 15),
+                          ],
                           _buildActionCard(
                             icon: Icons.logout,
                             title: 'Déconnexion',
@@ -655,6 +672,149 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Dialogue de suppression de compte (mot de passe + texte légal / stats).
+class _DeleteAccountDialog extends StatefulWidget {
+  const _DeleteAccountDialog();
+
+  @override
+  State<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
+}
+
+class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
+  final _pwd = TextEditingController();
+  bool _obscure = true;
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _pwd.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = Provider.of<AuthService>(context, listen: false);
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Colors.orange[800], size: 28),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text(
+              'Supprimer mon compte',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Cette action est définitive : vous ne pourrez plus vous connecter avec ce compte.',
+              style: TextStyle(height: 1.35),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Vos commandes passées et les montants associés restent conservés de façon anonyme dans notre système (statistiques et obligations comptables). Vos données personnelles sur ce profil seront effacées ou anonymisées.',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[800],
+                height: 1.35,
+              ),
+            ),
+            const SizedBox(height: 18),
+            TextField(
+              controller: _pwd,
+              obscureText: _obscure,
+              enabled: !_loading,
+              decoration: InputDecoration(
+                labelText: 'Mot de passe actuel',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscure ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _loading ? null : () => Navigator.of(context).pop(),
+          child: const Text('Annuler'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: _loading
+              ? null
+              : () async {
+                  if (_pwd.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Saisissez votre mot de passe pour confirmer.'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                    return;
+                  }
+                  setState(() => _loading = true);
+                  final r = await auth.deleteAccount(_pwd.text);
+                  if (!context.mounted) return;
+                  setState(() => _loading = false);
+                  if (r['success'] == true) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          r['message'] as String? ?? 'Compte supprimé.',
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    if (!context.mounted) return;
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  } else {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          r['message'] as String? ?? 'Erreur',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+          child: _loading
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Supprimer définitivement'),
+        ),
+      ],
     );
   }
 }

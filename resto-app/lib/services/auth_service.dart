@@ -213,6 +213,71 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  /// Suppression définitive du compte client (mot de passe requis côté API).
+  Future<Map<String, dynamic>> deleteAccount(String password) async {
+    final hasNetwork = await _hasConnectivity();
+    if (!hasNetwork) {
+      return {
+        'success': false,
+        'message':
+            'Pas de connexion internet. Vérifiez votre connexion et réessayez.',
+      };
+    }
+    try {
+      final response = await _apiService.post(
+        ApiConfig.deleteAccount,
+        data: {'password': password},
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final msg = data is Map && data['message'] != null
+            ? data['message'] as String
+            : 'Compte supprimé.';
+        _token = null;
+        _currentUser = null;
+        await _clearToken();
+        _apiService.setToken(null);
+        notifyListeners();
+        return {'success': true, 'message': msg};
+      }
+      return {
+        'success': false,
+        'message': 'La suppression a échoué (${response.statusCode}).',
+      };
+    } on DioException catch (e) {
+      String message = 'Erreur lors de la suppression du compte';
+      if (e.response != null) {
+        final data = e.response?.data;
+        if (data is Map) {
+          if (data['message'] != null) {
+            message = data['message'] as String;
+          } else if (data['errors'] is Map) {
+            final errors = data['errors'] as Map;
+            final pwd = errors['password'];
+            if (pwd is List && pwd.isNotEmpty) {
+              message = pwd.first as String;
+            }
+          }
+        }
+        if (e.response?.statusCode == 422) {
+          message = message.isNotEmpty
+              ? message
+              : 'Mot de passe incorrect.';
+        } else if (e.response?.statusCode == 403) {
+          message = message.isNotEmpty
+              ? message
+              : 'Cette action n\'est pas autorisée pour votre compte.';
+        }
+      }
+      return {'success': false, 'message': message};
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur inattendue: ${e.toString()}',
+      };
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     try {

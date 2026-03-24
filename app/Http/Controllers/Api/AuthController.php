@@ -381,6 +381,75 @@ class AuthController extends Controller
     }
 
     /**
+     * Suppression de compte client (RGPD).
+     * Les commandes et montants sont conservés pour les statistiques ; le profil client est anonymisé.
+     * Le compte utilisateur est supprimé ; les commandes restent liées au client anonymisé (client_id inchangé).
+     */
+    public function deleteAccount(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        $user = $request->user();
+
+        $staffRoles = ['admin', 'manager', 'serveur', 'caissier'];
+        foreach ($staffRoles as $role) {
+            if ($user->hasRole($role)) {
+                return response()->json([
+                    'message' => 'La suppression de compte n\'est pas disponible pour les comptes personnel.',
+                ], 403);
+            }
+        }
+
+        if (! $user->hasRole('client')) {
+            return response()->json([
+                'message' => 'Seuls les comptes clients peuvent être supprimés depuis l\'application.',
+            ], 403);
+        }
+
+        if (! Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Mot de passe incorrect.',
+                'errors' => ['password' => ['Mot de passe incorrect.']],
+            ], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($user) {
+                $user->tokens()->delete();
+
+                $client = $user->client;
+                if ($client) {
+                    $anonPhone = 'deleted_'.$client->id.'_'.time();
+                    $client->update([
+                        'user_id' => null,
+                        'nom' => 'Compte',
+                        'prenom' => 'supprimé',
+                        'email' => null,
+                        'telephone' => $anonPhone,
+                        'points_fidelite' => 0,
+                        'actif' => false,
+                    ]);
+                }
+
+                $user->syncRoles([]);
+                $user->delete();
+            });
+
+            return response()->json([
+                'message' => 'Votre compte a été supprimé. Vos commandes passées restent conservées de façon anonyme pour nos statistiques.',
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('deleteAccount: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
+            return response()->json([
+                'message' => 'Impossible de supprimer le compte pour le moment. Réessayez plus tard.',
+            ], 500);
+        }
+    }
+
+    /**
      * Rafraîchir le token
      * 
      * @param Request $request
