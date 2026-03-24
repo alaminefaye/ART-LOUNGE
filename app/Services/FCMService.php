@@ -35,9 +35,25 @@ class FCMService
 
         $notification = Notification::create($title, $body);
 
+        // Canal + son alignés sur l’app : res/raw/notification_sound.mp3 (Android)
+        // et notification_sound.mp3 dans le bundle iOS.
         $message = CloudMessage::new()
             ->withNotification($notification)
-            ->withData($data);
+            ->withData($data)
+            ->withAndroidConfig([
+                'priority' => 'high',
+                'notification' => [
+                    'channel_id' => 'dolcevita_order_channel',
+                    'sound' => 'notification_sound',
+                ],
+            ])
+            ->withApnsConfig([
+                'payload' => [
+                    'aps' => [
+                        'sound' => 'notification_sound.mp3',
+                    ],
+                ],
+            ]);
 
         $report = $this->messaging->sendMulticast($message, $tokens);
 
@@ -68,7 +84,21 @@ class FCMService
 
         $message = CloudMessage::withTarget('topic', $topic)
             ->withNotification($notification)
-            ->withData($data);
+            ->withData($data)
+            ->withAndroidConfig([
+                'priority' => 'high',
+                'notification' => [
+                    'channel_id' => 'dolcevita_order_channel',
+                    'sound' => 'notification_sound',
+                ],
+            ])
+            ->withApnsConfig([
+                'payload' => [
+                    'aps' => [
+                        'sound' => 'notification_sound.mp3',
+                    ],
+                ],
+            ]);
 
         try {
             $this->messaging->send($message);

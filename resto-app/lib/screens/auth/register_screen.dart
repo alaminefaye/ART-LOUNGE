@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import '../../services/fcm_service.dart';
 import '../menu/menu_screen.dart';
 import 'login_screen.dart';
 
@@ -65,6 +67,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (result['success'] == true) {
       if (mounted) {
+        if (!kIsWeb) {
+          await FCMService().initialize(authService);
+        }
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Inscription réussie !'),

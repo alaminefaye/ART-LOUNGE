@@ -26,6 +26,10 @@ class FCMService {
   bool _isInitialized = false;
 
   Future<void> initialize(AuthService authService) async {
+    if (kIsWeb) {
+      return;
+    }
+
     _authService = authService;
 
     if (_isInitialized) {
@@ -34,16 +38,18 @@ class FCMService {
       return;
     }
 
-    // 1. Demander la permission
+    // 1. Demander la permission (iOS : authorized ou provisional)
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
-      provisional: false,
+      provisional: true,
     );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint('Utilisateur a accepté les notifications');
+    final ok = settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
+    if (ok) {
+      debugPrint('Utilisateur a accepté les notifications (${settings.authorizationStatus})');
     } else {
       debugPrint('Utilisateur a refusé ou n\'a pas accepté les notifications');
       return;
@@ -51,13 +57,14 @@ class FCMService {
 
     // 2. Configuration pour Android (High Importance Channel)
     if (!kIsWeb) {
-      // Pas de son personnalisé pour éviter invalid_sound si la ressource manque
-      channel = const AndroidNotificationChannel(
+      // Son : android/app/src/main/res/raw/notification_sound.mp3 → nom sans extension
+      channel = AndroidNotificationChannel(
         'dolcevita_order_channel', // id
         'Commandes Dolce Vita', // title
         description: 'Notifications de nouvelles commandes et mises à jour',
         importance: Importance.max,
         playSound: true,
+        sound: const RawResourceAndroidNotificationSound('notification_sound'),
       );
 
       flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -136,15 +143,18 @@ class FCMService {
                 channelDescription: channel.description,
                 icon: '@mipmap/ic_launcher',
                 playSound: true,
+                sound: const RawResourceAndroidNotificationSound(
+                  'notification_sound',
+                ),
                 importance: Importance.max,
                 priority: Priority.high,
               ),
+              // ios/Runner/notification_sound.mp3 (ressource du bundle Xcode)
               iOS: const DarwinNotificationDetails(
                 presentAlert: true,
                 presentBadge: true,
                 presentSound: true,
-                sound:
-                    'notification_sound.mp3', // Le fichier doit être dans le bundle
+                sound: 'notification_sound.mp3',
               ),
             ),
           );
@@ -255,10 +265,10 @@ class FCMService {
     debugPrint('-----------------------');
   }
 
-  // Appelé manuellement après le login
+  /// Après connexion / inscription : même flux que le démarrage avec session
+  /// (permissions, canaux Android, écouteurs FCM, envoi du token au serveur).
   Future<void> updateTokenAfterLogin(AuthService authService) async {
-    debugPrint('🔄 Mise à jour du token après connexion...');
-    _authService = authService;
-    await _saveTokenToDatabase();
+    debugPrint('🔄 Initialisation FCM après connexion...');
+    await initialize(authService);
   }
 }

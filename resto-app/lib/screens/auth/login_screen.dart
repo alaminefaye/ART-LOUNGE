@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
@@ -51,8 +52,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result['success'] == true) {
       if (mounted) {
-        // Mettre à jour le token FCM après connexion
-        await FCMService().updateTokenAfterLogin(authService);
+        if (!kIsWeb) {
+          await FCMService().initialize(authService);
+        }
 
         if (!mounted) return;
 
