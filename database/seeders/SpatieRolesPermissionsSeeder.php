@@ -21,7 +21,7 @@ class SpatieRolesPermissionsSeeder extends Seeder
             'menu' => ['manage_menu', 'view_menu', 'toggle_product_availability'],
             'orders' => ['create_orders', 'view_orders', 'update_orders', 'update_order_status', 'cancel_orders'],
             'stock' => ['manage_stock', 'view_stock', 'manage_suppliers', 'manage_recipes', 'perform_inventory'],
-            'cashier' => ['manage_cashier', 'view_cashier', 'process_payments', 'generate_invoices'],
+            'cashier' => ['manage_cashier', 'view_cashier', 'process_payments', 'generate_invoices', 'manage_sessions'],
             'reservations' => ['manage_reservations', 'view_reservations', 'confirm_reservations'],
             'customers' => ['manage_customers', 'view_customers', 'manage_loyalty', 'manage_promotions', 'view_avis', 'manage_avis', 'manage_fidelity', 'view_fidelity'],
             'reports' => ['view_reports', 'export_reports', 'view_dashboard', 'view_statistics'],
@@ -48,14 +48,14 @@ class SpatieRolesPermissionsSeeder extends Seeder
             'manage_stock', 'view_stock', 'manage_reservations', 'view_roles', 'view_users',
             'view_reservations', 'manage_customers', 'view_customers', 'manage_promotions',
             'view_reports', 'export_reports', 'manage_settings', 'view_settings', 'view_avis',
-            'manage_loyalty', 'view_fidelity', 'manage_fidelity'
+            'manage_loyalty', 'view_fidelity', 'manage_fidelity', 'manage_sessions'
         ]);
 
         $caissier = Role::firstOrCreate(['name' => 'caissier', 'guard_name' => 'web']);
         $caissier->syncPermissions([
             'view_dashboard', 'view_tables', 'view_menu', 'create_orders', 'view_orders', 'update_orders',
             'manage_cashier', 'view_cashier', 'process_payments', 'generate_invoices',
-            'view_customers', 'view_reports', 'update_order_status'
+            'view_customers', 'view_reports', 'update_order_status', 'manage_sessions'
         ]);
 
         $serveur = Role::firstOrCreate(['name' => 'serveur', 'guard_name' => 'web']);
