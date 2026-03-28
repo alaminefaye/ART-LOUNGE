@@ -23,12 +23,29 @@ class CommandeController extends Controller
     }
     public function index(Request $request)
     {
-        $query = Commande::with(['table', 'user', 'produits']);
+        $query = Commande::with(['table', 'user', 'produits', 'client']);
 
         if ($request->filled('search')) {
-            $raw = ltrim($request->string('search')->trim(), '#');
-            if ($raw !== '' && ctype_digit($raw)) {
-                $query->where('id', (int) $raw);
+            $term = $request->string('search')->trim();
+            if ($term !== '') {
+                $like = '%'.addcslashes($term, '%_\\').'%';
+                $query->where(function ($q) use ($term, $like) {
+                    $digits = ltrim($term, '#');
+                    if ($digits !== '' && ctype_digit($digits)) {
+                        $q->where('id', (int) $digits);
+                    }
+                    $q->orWhereHas('table', function ($t) use ($like) {
+                        $t->where('numero', 'like', $like);
+                    });
+                    $q->orWhereHas('user', function ($u) use ($like) {
+                        $u->where('name', 'like', $like);
+                    });
+                    $q->orWhereHas('client', function ($c) use ($like) {
+                        $c->where('nom', 'like', $like)
+                            ->orWhere('prenom', 'like', $like)
+                            ->orWhere('telephone', 'like', $like);
+                    });
+                });
             }
         }
         if ($request->filled('table')) {

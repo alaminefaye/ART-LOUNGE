@@ -18,6 +18,7 @@ use App\Services\FidelityService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PaiementController extends Controller
 {
@@ -197,9 +198,17 @@ class PaiementController extends Controller
                         return back()->with('error', 'Le montant reçu est insuffisant.')->withInput();
                     }
                     $monnaieRendue = $montantRecu - $resteAPayer;
+                    $transactionId = null;
                 } else {
-                    if (empty($validated['reference_transaction'])) {
-                        return back()->with('error', 'Référence de transaction requise.')->withInput();
+                    $transactionId = trim((string) ($validated['reference_transaction'] ?? ''));
+                    if ($transactionId === '') {
+                        $prefix = match ($moyenPaiement) {
+                            MoyenPaiement::Wave => 'WAVE',
+                            MoyenPaiement::OrangeMoney => 'OM',
+                            MoyenPaiement::CarteBancaire => 'CB',
+                            default => 'POS',
+                        };
+                        $transactionId = $prefix.'-'.$commande->id.'-'.now()->format('YmdHis').'-'.Str::lower(Str::random(6));
                     }
                 }
                 $paiementPourFacture = Paiement::create([
@@ -212,7 +221,7 @@ class PaiementController extends Controller
                     'montant_recu' => $montantRecu,
                     'monnaie_rendue' => $monnaieRendue,
                     'statut' => StatutPaiement::Valide,
-                    'transaction_id' => $validated['reference_transaction'] ?? null,
+                    'transaction_id' => $transactionId,
                     'notes' => $validated['notes'] ?? null,
                 ]);
             }

@@ -11,14 +11,14 @@
     <div class="card-body">
         <form method="get" action="{{ route('commandes.index') }}" class="mb-4">
             <div class="row align-items-end">
-                <div class="col-md-3 mb-3">
-                    <label class="form-label small text-muted mb-1">ID commande</label>
+                <div class="col-lg-5 col-md-6 mb-3">
+                    <label class="form-label small text-muted mb-1">Recherche</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bx bx-search"></i></span>
-                        <input type="text" name="search" class="form-control" placeholder="#ID..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="form-control" placeholder="N° commande, table, serveur, client…" value="{{ request('search') }}" autocomplete="off">
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-lg-3 col-md-3 mb-3">
                     <label class="form-label small text-muted mb-1">Table</label>
                     <select name="table" class="form-select">
                         <option value="">🪑 Toutes les tables</option>
@@ -27,7 +27,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-lg-2 col-md-3 mb-3">
                     <label class="form-label small text-muted mb-1">Statut</label>
                     <select name="statut" class="form-select">
                         <option value="">📊 Tous statuts</option>
@@ -38,9 +38,9 @@
                         <option value="annulee" @selected(request('statut') === 'annulee')>❌ Annulée</option>
                     </select>
                 </div>
-                <div class="col-md-3 mb-3 d-flex gap-2">
+                <div class="col-lg-2 col-md-12 mb-3 d-flex gap-2">
                     <button type="submit" class="btn btn-primary flex-grow-1"><i class="bx bx-filter-alt"></i> Filtrer</button>
-                    <a href="{{ route('commandes.index') }}" class="btn btn-outline-secondary" title="Réinitialiser"><i class="bx bx-reset"></i></a>
+                    <a href="{{ route('commandes.index') }}" class="btn btn-outline-secondary" title="Réinitialiser les filtres"><i class="bx bx-reset"></i></a>
                 </div>
             </div>
         </form>

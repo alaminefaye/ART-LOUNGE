@@ -88,11 +88,11 @@
                     
                     <div id="referenceFields" style="display: none;">
                         <div class="mb-3">
-                            <label class="form-label"><strong>Référence de Transaction *</strong></label>
+                            <label class="form-label"><strong>Référence de transaction (optionnel)</strong></label>
                             <input type="text" name="reference_transaction" class="form-control" 
                                    value="{{ old('reference_transaction') }}" 
-                                   placeholder="Ex: WV123456789 ou OM987654321">
-                            <small class="text-muted">Numéro de référence de la transaction mobile money/carte</small>
+                                   placeholder="Ex: réf. Wave / Orange Money si vous l’avez">
+                            <small class="text-muted">Si vous laissez vide, une référence est générée automatiquement à l’enregistrement.</small>
                         </div>
                     </div>
                     
