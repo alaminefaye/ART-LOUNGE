@@ -8,21 +8,20 @@
             size: 80mm auto;
             margin: 0;
         }
+        * {
+            box-sizing: border-box;
+        }
         html {
             margin: 0;
             padding: 0;
         }
         body {
-            font-family: 'Courier', monospace; /* Police plus "ticket de caisse" */
-            font-size: 12px;
-            box-sizing: border-box;
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 10px;
             width: 100%;
-            max-width: 100%;
             margin: 0;
-            margin-left: 0;
-            margin-right: 0;
-            padding: 5mm 3mm 5mm 2mm;
-            line-height: 1.2;
+            padding: 3mm 1.5mm 4mm 1.5mm;
+            line-height: 1.25;
             color: #000;
             text-align: left;
         }
@@ -30,22 +29,66 @@
         .text-right { text-align: right; }
         .bold { font-weight: bold; }
         .logo {
-            max-width: 50mm;
-            margin-bottom: 5mm;
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 3mm;
         }
         .divider {
             border-top: 1px dashed #000;
-            margin: 3mm 0;
+            margin: 2mm 0;
         }
-        .header { margin-bottom: 5mm; }
-        .resto-name { font-size: 18px; margin-bottom: 2mm; }
-        .item-row { display: flex; justify-content: space-between; margin-bottom: 1mm; }
-        .item-name { flex: 2; }
-        .item-qty { flex: 0.5; text-align: center; }
-        .item-total { flex: 1.5; text-align: right; }
-        .totals { margin-top: 5mm; }
-        .total-row { display: flex; justify-content: space-between; font-size: 14px; }
-        .footer { margin-top: 8mm; font-size: 10px; }
+        .resto-name { font-size: 14px; margin-bottom: 1mm; }
+
+        /* Tableaux : DomPDF gère mal flex ; largeurs % stables sur 80mm */
+        table.ticket-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 9px;
+        }
+        table.ticket-table th,
+        table.ticket-table td {
+            padding: 0.5mm 0;
+            vertical-align: top;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        table.ticket-table .col-article {
+            width: 46%;
+            text-align: left;
+            padding-right: 1mm;
+        }
+        table.ticket-table .col-qte {
+            width: 14%;
+            text-align: center;
+            white-space: nowrap;
+        }
+        table.ticket-table .col-total {
+            width: 40%;
+            text-align: right;
+            padding-left: 1mm;
+            white-space: nowrap;
+        }
+        table.totals-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 10px;
+            margin-top: 2mm;
+        }
+        table.totals-table td {
+            padding: 0.5mm 0;
+            vertical-align: top;
+        }
+        table.totals-table .label {
+            width: 42%;
+        }
+        table.totals-table .amount {
+            width: 58%;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .footer { margin-top: 5mm; font-size: 8px; }
     </style>
 </head>
 <body>
@@ -60,57 +103,58 @@
 
     <div class="divider"></div>
 
-    <div class="text-center bold" style="font-size: 14px;">TICKET DE CAISSE</div>
+    <div class="text-center bold" style="font-size: 11px;">TICKET DE CAISSE</div>
     <div class="text-center">N° {{ $facture->numero_facture }}</div>
     <div class="text-center">{{ $facture->created_at->format('d/m/Y H:i') }}</div>
 
     @if(isset($table))
-    <div class="text-center bold" style="margin-top: 2mm;">TABLE: {{ $table->numero }}</div>
+    <div class="text-center bold" style="margin-top: 1.5mm;">TABLE: {{ $table->numero }}</div>
     @endif
 
     <div class="divider"></div>
 
-    <div class="bold">
-        <div style="display: flex;">
-            <div style="flex: 2;">ARTICLE</div>
-            <div style="flex: 0.5; text-align: center;">QTÉ</div>
-            <div style="flex: 1.5; text-align: right;">TOTAL</div>
-        </div>
-    </div>
-    
+    <table class="ticket-table" cellspacing="0" cellpadding="0">
+        <thead>
+            <tr class="bold">
+                <th class="col-article">ARTICLE</th>
+                <th class="col-qte">QTÉ</th>
+                <th class="col-total">TOTAL</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($products as $product)
+            <tr>
+                <td class="col-article">{{ $product->nom }}</td>
+                <td class="col-qte">x{{ $product->pivot->quantite }}</td>
+                <td class="col-total">{{ number_format((float) ($product->pivot->quantite * $product->pivot->prix_unitaire), 0, ',', ' ') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+
     <div class="divider"></div>
 
-    @foreach($products as $product)
-    <div class="item-row">
-        <div class="item-name">{{ $product->nom }}</div>
-        <div class="item-qty">x{{ $product->pivot->quantite }}</div>
-        <div class="item-total">{{ number_format($product->pivot->quantite * $product->pivot->prix_unitaire, 0, ',', ' ') }}</div>
-    </div>
-    @endforeach
+    <table class="totals-table bold" cellspacing="0" cellpadding="0">
+        <tr>
+            <td class="label">TOTAL</td>
+            <td class="amount">{{ number_format((float) $facture->montant_total, 0, ',', ' ') }} FCFA</td>
+        </tr>
+    </table>
 
-    <div class="divider"></div>
-
-    <div class="totals">
-        <div class="total-row bold">
-            <div>TOTAL</div>
-            <div>{{ number_format($facture->montant_total, 0, ',', ' ') }} FCFA</div>
-        </div>
-        
-        @if(isset($paiement))
-        <div style="margin-top: 2mm;">
-            <div>Payé par: {{ $paiement->moyen_paiement->displayName() }}</div>
-            @if($paiement->moyen_paiement->value === 'especes')
-                <div>Reçu: {{ number_format($paiement->montant_recu, 0, ',', ' ') }}</div>
-                <div>Rendu: {{ number_format($paiement->monnaie_rendue, 0, ',', ' ') }}</div>
-            @endif
-        </div>
+    @if(isset($paiement))
+    <div style="margin-top: 2mm; font-size: 9px;">
+        <div>Payé par: {{ $paiement->moyen_paiement->displayName() }}</div>
+        @if($paiement->moyen_paiement->value === 'especes')
+            <div>Reçu: {{ number_format((float) $paiement->montant_recu, 0, ',', ' ') }}</div>
+            <div>Rendu: {{ number_format((float) $paiement->monnaie_rendue, 0, ',', ' ') }}</div>
         @endif
     </div>
+    @endif
 
     <div class="footer text-center">
         <div class="bold">MERCI DE VOTRE VISITE !</div>
         <div>À bientôt !</div>
-        <div style="margin-top: 2mm;">{{ now()->format('d/m/Y H:i:s') }}</div>
+        <div style="margin-top: 1.5mm;">{{ now()->format('d/m/Y H:i:s') }}</div>
     </div>
 </body>
 </html>
