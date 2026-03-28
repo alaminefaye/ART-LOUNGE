@@ -46,7 +46,7 @@
             
             <div class="mb-3">
                 <label class="form-label">Table *</label>
-                <select name="table_id" class="form-select" required>
+                <select name="table_id" class="form-select select2-table" required>
                     <option value="">Sélectionner une table</option>
                     @foreach($tables as $table)
                         <option value="{{ $table->id }}" {{ old('table_id') == $table->id ? 'selected' : '' }}>
@@ -128,19 +128,33 @@
         </form>
     </div>
 </div>
+@endsection
 
+@push('page-js')
 <script>
 let produitIndex = {{ old('produits') ? count(old('produits')) : 1 }};
 
-$(document).ready(function() {
+const select2SearchDefaults = {
+    width: '100%',
+    allowClear: true,
+    minimumResultsForSearch: 0,
+    language: {
+        noResults: function () { return 'Aucun résultat'; },
+        searching: function () { return 'Recherche…'; }
+    }
+};
+
+$(document).ready(function () {
     initSelect2();
 });
 
 function initSelect2() {
-    $('.select2-product').select2({
-        placeholder: "Sélectionner un produit",
-        allowClear: true
-    });
+    $('.select2-table').select2(Object.assign({}, select2SearchDefaults, {
+        placeholder: 'Sélectionner une table'
+    }));
+    $('.select2-product').select2(Object.assign({}, select2SearchDefaults, {
+        placeholder: 'Sélectionner un produit'
+    }));
 }
 
 function addProduit() {
@@ -169,24 +183,24 @@ function addProduit() {
         </div>
     `;
     container.appendChild(newRow);
-    
-    // Initialiser Select2 sur la nouvelle ligne
-    $(newRow).find('.select2-product').select2({
-        placeholder: "Sélectionner un produit",
-        allowClear: true
-    });
-    
+
+    $(newRow).find('.select2-product').select2(Object.assign({}, select2SearchDefaults, {
+        placeholder: 'Sélectionner un produit'
+    }));
+
     produitIndex++;
 }
 
 function removeProduit(button) {
     const container = document.getElementById('produitsContainer');
     if (container.children.length > 1) {
-        button.closest('.produit-row').remove();
+        const $row = $(button).closest('.produit-row');
+        $row.find('.select2-product').select2('destroy');
+        $row.remove();
     } else {
         alert('Vous devez avoir au moins un produit dans la commande.');
     }
 }
 </script>
-@endsection
+@endpush
 
