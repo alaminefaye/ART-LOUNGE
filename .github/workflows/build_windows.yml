@@ -15,7 +15,6 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.10.4' # Version spécifiée dans pubspec.yaml
           channel: 'stable'
 
       - name: Get Dependencies
