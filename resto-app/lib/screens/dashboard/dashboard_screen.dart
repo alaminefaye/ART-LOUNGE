@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../services/auth_service.dart';
 import '../../services/order_service.dart';
+import '../../services/printer_service.dart';
 import '../../services/fcm_events.dart';
 import '../../models/order.dart';
 import '../../utils/formatters.dart';
@@ -1045,7 +1046,51 @@ class RecentOrderTile extends StatefulWidget {
 
 class _RecentOrderTileState extends State<RecentOrderTile> {
   bool _isLoading = false;
+  bool _printKitchenLoading = false;
   final OrderService _orderService = OrderService();
+  final PrinterService _printerService = PrinterService();
+
+  Future<void> _printKitchenTicket() async {
+    if (_printKitchenLoading) return;
+    setState(() {
+      _printKitchenLoading = true;
+    });
+    try {
+      final order = await _orderService.getOrder(widget.order.id);
+      if (!mounted) return;
+      if (order == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible de charger la commande pour l’impression'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      await _printerService.printKitchenOrder(order);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bon cuisine envoyé à l’imprimante'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Impression cuisine impossible : $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _printKitchenLoading = false;
+        });
+      }
+    }
+  }
 
   Future<void> _markOrderAsServed() async {
     if (_isLoading) return;
@@ -1097,6 +1142,11 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser =
+        Provider.of<AuthService>(context, listen: false).currentUser;
+    final showKitchenPrint =
+        currentUser != null && !currentUser.hasRole('client');
+
     final bool isPrep = widget.order.statut == OrderStatus.preparation;
     final bool isWaiting = widget.order.statut == OrderStatus.attente;
 
@@ -1294,9 +1344,29 @@ class _RecentOrderTileState extends State<RecentOrderTile> {
 
                 const SizedBox(width: 8),
 
-                // Servi Button — actif seulement s'il reste des produits non servis
+                // Impression cuisine (staff) + Servi
                 Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (showKitchenPrint)
+                      IconButton(
+                        tooltip: 'Imprimer cuisine',
+                        onPressed: _printKitchenLoading ? null : _printKitchenTicket,
+                        icon: _printKitchenLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFFD0A030),
+                                ),
+                              )
+                            : const Icon(
+                                Icons.restaurant_menu,
+                                color: Color(0xFFD0A030),
+                                size: 26,
+                              ),
+                      ),
                     Builder(
                       builder: (context) {
                         final nonServis = (widget.order.produits ?? [])

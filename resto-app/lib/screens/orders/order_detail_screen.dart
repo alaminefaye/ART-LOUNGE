@@ -16,6 +16,7 @@ import 'payment_screen.dart';
 import 'invoice_screen.dart';
 import '../../widgets/app_header.dart';
 import '../home/home_screen.dart';
+import '../../services/printer_service.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final int orderId;
@@ -36,6 +37,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   StreamSubscription? _orderUpdateSubscription;
   bool _reviewPopupShown = false;
   final TextEditingController _reviewController = TextEditingController();
+  final PrinterService _printerService = PrinterService();
   static const Color _brandGold = Color(0xFFD0A030);
 
   @override
@@ -76,6 +78,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     _reviewController.dispose();
     _orderUpdateSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _printKitchenTicket() async {
+    final order = _order;
+    if (order == null) return;
+    try {
+      await _printerService.printKitchenOrder(order);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bon cuisine envoyé à l’imprimante'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Impression cuisine impossible : $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _loadOrder() async {
@@ -387,6 +412,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser =
+        Provider.of<AuthService>(context, listen: false).currentUser;
+    final showKitchenPrint = _order != null &&
+        currentUser != null &&
+        !currentUser.hasRole('client');
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFF6EC),
       body: SafeArea(top: false,
@@ -396,6 +427,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             AppHeader(
               title: 'Commande #${widget.orderId}',
               actions: [
+                if (showKitchenPrint)
+                  HeaderActionButton(
+                    icon: Icons.restaurant_menu,
+                    onTap: _printKitchenTicket,
+                  ),
                 if (_order != null && _order!.statut == OrderStatus.terminee)
                   HeaderActionButton(
                     icon: Icons.receipt_long,

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import '../config/app_brand.dart';
 import '../models/invoice.dart';
+import '../models/order.dart';
 import '../models/payment.dart';
 import '../utils/formatters.dart';
 
@@ -19,21 +20,107 @@ class PrinterService {
     return await bluetooth.isConnected ?? false;
   }
 
-  Future<void> printReceipt(Invoice invoice) async {
-    bool? isConnected = await bluetooth.isConnected;
-    if (isConnected != true) {
-      // Pour les terminaux Android POS, l'imprimante est souvent déjà couplée
-      List<BluetoothDevice> devices = await bluetooth.getBondedDevices();
-      BluetoothDevice? printer = devices.firstWhere(
-        (d) =>
-            d.name?.toLowerCase().contains('printer') == true ||
-            d.name?.toLowerCase().contains('pos') == true ||
-            d.name?.toLowerCase().contains('a7n') == true,
-        orElse: () => devices.isNotEmpty ? devices.first : throw Exception('Aucune imprimante trouvée'),
+  /// Connexion à la première imprimante Bluetooth compatible (POS / printer).
+  Future<void> _ensurePrinterConnected() async {
+    final isConnected = await bluetooth.isConnected;
+    if (isConnected == true) return;
+
+    final devices = await bluetooth.getBondedDevices();
+    final printer = devices.firstWhere(
+      (d) =>
+          d.name?.toLowerCase().contains('printer') == true ||
+          d.name?.toLowerCase().contains('pos') == true ||
+          d.name?.toLowerCase().contains('a7n') == true,
+      orElse: () => devices.isNotEmpty
+          ? devices.first
+          : throw Exception('Aucune imprimante trouvée'),
+    );
+    await bluetooth.connect(printer);
+  }
+
+  /// Ticket simplifié pour la cuisine : table, commande, articles et quantités.
+  Future<void> printKitchenOrder(Order order) async {
+    await _ensurePrinterConnected();
+
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm80, profile);
+    var bytes = <int>[];
+
+    bytes += generator.feed(1);
+    bytes += generator.text(
+      'COMMANDE CUISINE',
+      styles: const PosStyles(
+        align: PosAlign.center,
+        bold: true,
+        height: PosTextSize.size2,
+        width: PosTextSize.size2,
+      ),
+    );
+    bytes += generator.text(
+      Formatters.sanitizeThermalText(AppBrand.displayName),
+      styles: const PosStyles(align: PosAlign.center, bold: true),
+    );
+    bytes += generator.hr();
+
+    if (order.table != null) {
+      bytes += generator.text(
+        'Table: ${order.table!.numero}',
+        styles: const PosStyles(bold: true, height: PosTextSize.size2),
       );
-      
-      await bluetooth.connect(printer);
     }
+    bytes += generator.text(
+      'Commande #${order.id}',
+      styles: const PosStyles(bold: true),
+    );
+    bytes += generator.text(
+      Formatters.sanitizeThermalText(
+        Formatters.formatDateTime(order.createdAt),
+      ),
+      styles: const PosStyles(align: PosAlign.center),
+    );
+    bytes += generator.text(
+      Formatters.sanitizeThermalText(order.statut.displayName),
+      styles: const PosStyles(align: PosAlign.center),
+    );
+    bytes += generator.hr();
+
+    bytes += generator.text(
+      'ARTICLES',
+      styles: const PosStyles(bold: true),
+    );
+    bytes += generator.feed(1);
+
+    final produits = order.produits;
+    if (produits != null && produits.isNotEmpty) {
+      for (final item in produits) {
+        final line =
+            '${item.quantite} x ${Formatters.sanitizeThermalText(item.produitNom)}';
+        bytes += generator.text(
+          line,
+          styles: const PosStyles(bold: true, height: PosTextSize.size1),
+        );
+        bytes += generator.feed(1);
+      }
+    } else {
+      bytes += generator.text(
+        '(Aucun article)',
+        styles: const PosStyles(align: PosAlign.center),
+      );
+    }
+
+    bytes += generator.feed(2);
+    bytes += generator.text(
+      '--- FIN ---',
+      styles: const PosStyles(align: PosAlign.center),
+    );
+    bytes += generator.feed(3);
+    bytes += generator.cut();
+
+    await bluetooth.writeBytes(Uint8List.fromList(bytes));
+  }
+
+  Future<void> printReceipt(Invoice invoice) async {
+    await _ensurePrinterConnected();
 
     // Configuration du profil (80mm)
     final profile = await CapabilityProfile.load();

@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Enums\OrderStatus;
+use App\Enums\TableStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Commande;
 use App\Models\Product;
 use App\Models\Table;
-use App\Enums\OrderStatus;
-use App\Enums\TableStatus;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use App\Services\FactureService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class CommandeController extends Controller
 {
@@ -21,6 +21,7 @@ class CommandeController extends Controller
     {
         $this->factureService = $factureService;
     }
+
     public function index(Request $request)
     {
         $query = Commande::with(['table', 'user', 'produits', 'client']);
@@ -68,11 +69,11 @@ class CommandeController extends Controller
     {
         $tables = Table::where('statut', TableStatus::Libre)->get();
         $produits = Product::where('actif', true)
-                          ->where('disponible', true)
-                          ->with('categorie')
-                          ->get();
+            ->where('disponible', true)
+            ->with('categorie')
+            ->get();
         $categories = $produits->pluck('categorie')->unique('id');
-        
+
         return view('commandes.create', compact('tables', 'produits', 'categories'));
     }
 
@@ -87,7 +88,7 @@ class CommandeController extends Controller
             'produits.*.notes' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($validated, $request) {
+        return DB::transaction(function () use ($validated) {
             $table = Table::findOrFail($validated['table_id']);
 
             // Occupy the table
@@ -104,26 +105,27 @@ class CommandeController extends Controller
                 'statut' => OrderStatus::Attente,
             ]);
 
-            $produitsToAttach = [];
+            // Un produit peut apparaître sur plusieurs lignes (quantités / notes différentes) :
+            // ne pas indexer par produit_id, sinon les doublons s'écrasent.
             foreach ($validated['produits'] as $item) {
                 $product = Product::findOrFail($item['id']);
-                $produitsToAttach[$product->id] = [
+                $commande->produits()->attach($product->id, [
                     'quantite' => $item['quantite'],
                     'prix_unitaire' => $product->prix,
                     'notes' => $item['notes'] ?? null,
-                ];
+                ]);
             }
-            $commande->produits()->attach($produitsToAttach);
             $commande->calculerMontantTotal();
 
             return redirect()->route('commandes.show', $commande)
-                            ->with('success', 'Commande créée avec succès !');
+                ->with('success', 'Commande créée avec succès !');
         });
     }
 
     public function show(Commande $commande)
     {
         $commande->load(['table', 'user', 'produits.categorie']);
+
         return view('commandes.show', compact('commande'));
     }
 
@@ -131,16 +133,16 @@ class CommandeController extends Controller
     {
         if ($commande->statut === OrderStatus::Terminee || $commande->statut === OrderStatus::Annulee) {
             return redirect()->route('commandes.show', $commande)
-                            ->with('error', 'Cette commande ne peut plus être modifiée.');
+                ->with('error', 'Cette commande ne peut plus être modifiée.');
         }
 
         $commande->load(['table', 'produits']);
         $produits = Product::where('actif', true)
-                          ->where('disponible', true)
-                          ->with('categorie')
-                          ->get();
+            ->where('disponible', true)
+            ->with('categorie')
+            ->get();
         $categories = $produits->pluck('categorie')->unique('id');
-        
+
         return view('commandes.edit', compact('commande', 'produits', 'categories'));
     }
 
@@ -148,7 +150,7 @@ class CommandeController extends Controller
     {
         if ($commande->statut === OrderStatus::Terminee || $commande->statut === OrderStatus::Annulee) {
             return redirect()->route('commandes.show', $commande)
-                            ->with('error', 'Cette commande ne peut plus être modifiée.');
+                ->with('error', 'Cette commande ne peut plus être modifiée.');
         }
 
         $validated = $request->validate([
@@ -164,20 +166,21 @@ class CommandeController extends Controller
                 'notes' => $validated['notes'],
             ]);
 
-            $produitsToSync = [];
+            // sync() ne permet qu'une entrée par produit_id ; plusieurs lignes identiques
+            // nécessitent plusieurs lignes dans commande_produit (detach puis attach).
+            $commande->produits()->detach();
             foreach ($validated['produits'] as $item) {
                 $product = Product::findOrFail($item['id']);
-                $produitsToSync[$product->id] = [
+                $commande->produits()->attach($product->id, [
                     'quantite' => $item['quantite'],
                     'prix_unitaire' => $product->prix,
                     'notes' => $item['notes'] ?? null,
-                ];
+                ]);
             }
-            $commande->produits()->sync($produitsToSync);
             $commande->calculerMontantTotal();
 
             return redirect()->route('commandes.show', $commande)
-                            ->with('success', 'Commande modifiée avec succès !');
+                ->with('success', 'Commande modifiée avec succès !');
         });
     }
 
@@ -209,7 +212,7 @@ class CommandeController extends Controller
                 ->where('id', '!=', $commande->id)
                 ->whereNotIn('statut', [OrderStatus::Terminee, OrderStatus::Annulee])
                 ->count();
-            
+
             if ($otherActiveOrders === 0) {
                 $commande->table->liberer();
             }
@@ -219,13 +222,13 @@ class CommandeController extends Controller
         $commande->save();
 
         return redirect()->route('commandes.index')
-                        ->with('success', 'Commande annulée avec succès !');
+            ->with('success', 'Commande annulée avec succès !');
     }
 
     public function printReceipt(Commande $commande)
     {
         $pdf = $this->factureService->genererPDFThermal($commande);
-        
+
         return $pdf->stream("recu-commande-80mm-{$commande->id}.pdf");
     }
 }
