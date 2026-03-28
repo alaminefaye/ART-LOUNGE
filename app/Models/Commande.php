@@ -197,9 +197,11 @@ class Commande extends Model
      */
     public function getFraisSalle(): float
     {
-        if ($this->table && $this->table->type === \App\Enums\TableType::EspaceJeux) {
+        // Cannot use $this->table here: it resolves to Model::$table (DB table name string), not the table() relation.
+        $tableModel = $this->getRelationValue('table');
+        if ($tableModel && $tableModel->type === \App\Enums\TableType::EspaceJeux) {
             $dureeHeures = $this->getDureeOccupationHeures();
-            return $dureeHeures * (float) $this->table->prix_par_heure;
+            return $dureeHeures * (float) $tableModel->prix_par_heure;
         }
         return 0;
     }
