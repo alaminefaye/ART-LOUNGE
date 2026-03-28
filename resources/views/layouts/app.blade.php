@@ -132,6 +132,16 @@
                         </a>
                     </li>
                     
+                    <!-- Sessions de Caisse (Bilan du jour) -->
+                    @can('manage_sessions')
+                    <li class="menu-item {{ request()->routeIs('caisse.sessions.*') ? 'active' : '' }}">
+                        <a href="{{ route('caisse.sessions.index') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-time-five"></i>
+                            <div>Bilan du jour (Sessions)</div>
+                        </a>
+                    </li>
+                    @endcan
+                    
                     <!-- Paiements (Historique) -->
                     <li class="menu-item {{ request()->routeIs('caisse.historique') ? 'active' : '' }}">
                         <a href="{{ route('caisse.historique') }}" class="menu-link">
