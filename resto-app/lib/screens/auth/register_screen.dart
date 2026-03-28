@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/fcm_service.dart';
 import '../menu/menu_screen.dart';
+import '../dashboard/dashboard_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -89,8 +90,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
           if (widget.popOnSuccess) {
             Navigator.of(context).pop(true);
           } else {
+            // Redirection basée sur le rôle (même logique que dans main.dart)
+            final user = authService.currentUser;
+            final bool isStaff = user != null &&
+                (user.hasRole('admin') ||
+                    user.hasRole('manager') ||
+                    user.hasRole('serveur') ||
+                    user.hasRole('caissier'));
+
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const MenuScreen()),
+              MaterialPageRoute(
+                builder: (_) => isStaff
+                    ? const DashboardScreen()
+                    : const MenuScreen(),
+              ),
               (route) => false,
             );
           }
