@@ -440,6 +440,15 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     'Date',
                     Formatters.formatDateTime(commande.createdAt),
                   ),
+                  if (commande.client != null &&
+                      commande.client!.nomComplet.isNotEmpty) ...[
+                    _buildDivider(),
+                    _buildInfoRow(
+                      Icons.person_outline,
+                      'Client',
+                      commande.client!.nomComplet,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -575,6 +584,15 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       Icons.receipt,
                       'Référence transaction',
                       paiement.transactionId!,
+                    ),
+                  ],
+                  if (paiement.caissierName != null &&
+                      paiement.caissierName!.trim().isNotEmpty) ...[
+                    _buildDivider(),
+                    _buildInfoRow(
+                      Icons.badge_outlined,
+                      'Caissier',
+                      paiement.caissierName!,
                     ),
                   ],
                 ],

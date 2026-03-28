@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../config/app_brand.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import 'orders_history_screen.dart';
@@ -380,7 +381,7 @@ class ProfileScreen extends StatelessWidget {
                             onTap: () {
                               showAboutDialog(
                                 context: context,
-                                applicationName: 'Resto App',
+                                applicationName: AppBrand.displayName,
                                 applicationVersion: '1.0.0',
                                 applicationIcon: const Icon(
                                   Icons.restaurant_menu,

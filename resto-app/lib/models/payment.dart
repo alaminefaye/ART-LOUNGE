@@ -66,6 +66,8 @@ class Payment {
   final String? notes;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  /// Utilisateur (caissier) qui a enregistré le paiement — si fourni par l’API.
+  final String? caissierName;
 
   Payment({
     required this.id,
@@ -80,6 +82,7 @@ class Payment {
     this.notes,
     required this.createdAt,
     this.updatedAt,
+    this.caissierName,
   });
 
   factory Payment.fromJson(Map<String, dynamic> json) {
@@ -100,6 +103,9 @@ class Payment {
       return 0;
     }
 
+    final caissierRaw = json['caissier_name'] ?? json['caissier_nom'];
+    final caissierStr = caissierRaw is String ? caissierRaw.trim() : null;
+
     return Payment(
       id: parseInt(json['id']),
       commandeId: parseInt(json['commande_id']),
@@ -117,6 +123,7 @@ class Payment {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'] as String)
           : null,
+      caissierName: (caissierStr != null && caissierStr.isNotEmpty) ? caissierStr : null,
     );
   }
 

@@ -20,6 +20,7 @@ import '../../models/table.dart' as models;
 import '../../models/cart.dart';
 import '../home/home_screen.dart';
 import '../caisse/session_management_screen.dart';
+import 'staff_order_history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -669,6 +670,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Icons.qr_code_scanner,
                         const Color(0xFFD0A030),
                         () => _scanTable(context),
+                      ),
+                      _buildDashboardCard(
+                        context,
+                        'Historique commandes',
+                        Icons.history,
+                        Colors.brown,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const StaffOrderHistoryScreen(),
+                          ),
+                        ).then((_) => _loadDashboardData()),
                       ),
                     ],
 

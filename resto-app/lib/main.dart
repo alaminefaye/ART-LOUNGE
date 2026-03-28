@@ -13,6 +13,7 @@ import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'services/fcm_service.dart';
 import 'utils/navigator_key.dart';
+import 'config/app_brand.dart';
 
 // Handler pour les messages en background (doit être en dehors de toute classe)
 @pragma('vm:entry-point')
@@ -61,7 +62,7 @@ class RestoApp extends StatelessWidget {
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
-        title: 'Resto App',
+        title: AppBrand.displayName,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,

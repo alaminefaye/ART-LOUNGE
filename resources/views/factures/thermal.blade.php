@@ -143,10 +143,20 @@
 
     @if(isset($paiement))
     <div style="margin-top: 2mm; font-size: 9px;">
-        <div>Payé par: {{ $paiement->moyen_paiement->displayName() }}</div>
+        <div>Payé par : {{ $paiement->moyen_paiement->displayName() }}</div>
         @if($paiement->moyen_paiement->value === 'especes')
-            <div>Reçu: {{ number_format((float) $paiement->montant_recu, 0, ',', ' ') }}</div>
-            <div>Rendu: {{ number_format((float) $paiement->monnaie_rendue, 0, ',', ' ') }}</div>
+            @if($paiement->montant_recu !== null)
+                <div><strong>Montant reçu :</strong> {{ number_format((float) $paiement->montant_recu, 0, ',', ' ') }} FCFA</div>
+            @endif
+            @php
+                $aRendre = $paiement->monnaie_rendue;
+                if ($aRendre === null && $paiement->montant_recu !== null) {
+                    $aRendre = max(0, (float) $paiement->montant_recu - (float) $paiement->montant);
+                }
+            @endphp
+            @if($aRendre !== null)
+                <div><strong>Montant à rendre :</strong> {{ number_format((float) $aRendre, 0, ',', ' ') }} FCFA</div>
+            @endif
         @endif
     </div>
     @endif

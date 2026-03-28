@@ -3,7 +3,9 @@ import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import '../config/app_brand.dart';
 import '../models/invoice.dart';
+import '../models/payment.dart';
 import '../utils/formatters.dart';
 
 class PrinterService {
@@ -53,7 +55,8 @@ class PrinterService {
     bytes += generator.feed(1);
 
     // En-tête
-    bytes += generator.text('RESTO',
+    bytes += generator.text(
+        Formatters.sanitizeThermalText(AppBrand.displayName),
         styles: const PosStyles(
           align: PosAlign.center,
           height: PosTextSize.size2,
@@ -64,9 +67,10 @@ class PrinterService {
     
     bytes += generator.text('RECU DE PAIEMENT',
         styles: const PosStyles(align: PosAlign.center, bold: true));
-    bytes += generator.text(invoice.numeroFacture,
+    bytes += generator.text(Formatters.sanitizeThermalText(invoice.numeroFacture),
         styles: const PosStyles(align: PosAlign.center));
-    bytes += generator.text(Formatters.formatDateTime(invoice.createdAt),
+    bytes += generator.text(
+        Formatters.sanitizeThermalText(Formatters.formatDateTime(invoice.createdAt)),
         styles: const PosStyles(align: PosAlign.center));
     bytes += generator.hr();
 
@@ -80,6 +84,15 @@ class PrinterService {
     }
     bytes += generator.hr();
 
+    final clientNom = invoice.commande?.client?.nomComplet;
+    if (clientNom != null && clientNom.trim().isNotEmpty) {
+      bytes += generator.text(
+        Formatters.sanitizeThermalText('Client: $clientNom'),
+        styles: const PosStyles(align: PosAlign.center, bold: true),
+      );
+      bytes += generator.feed(1);
+    }
+
     // Articles
     bytes += generator.row([
       PosColumn(text: 'Art.', width: 6, styles: const PosStyles(bold: true)),
@@ -90,9 +103,13 @@ class PrinterService {
     if (invoice.commande?.produits != null) {
       for (var item in invoice.commande!.produits!) {
         bytes += generator.row([
-          PosColumn(text: item.produitNom, width: 6),
+          PosColumn(
+              text: Formatters.sanitizeThermalText(item.produitNom), width: 6),
           PosColumn(text: '${item.quantite}', width: 2, styles: const PosStyles(align: PosAlign.center)),
-          PosColumn(text: Formatters.formatCurrency(item.total), width: 4, styles: const PosStyles(align: PosAlign.right)),
+          PosColumn(
+              text: Formatters.formatCurrencyThermal(item.total),
+              width: 4,
+              styles: const PosStyles(align: PosAlign.right)),
         ]);
       }
     }
@@ -102,22 +119,54 @@ class PrinterService {
     bytes += generator.row([
       PosColumn(text: 'TOTAL', width: 6, styles: const PosStyles(bold: true, height: PosTextSize.size1, width: PosTextSize.size1)),
       PosColumn(
-          text: Formatters.formatCurrency(invoice.montantTotal),
+          text: Formatters.formatCurrencyThermal(invoice.montantTotal),
           width: 6,
           styles: const PosStyles(align: PosAlign.right, bold: true, height: PosTextSize.size1, width: PosTextSize.size1)),
     ]);
 
     if (invoice.paiement != null) {
-      bytes += generator.text('Payé par: ${invoice.paiement!.moyenPaiement.displayName}',
-          styles: const PosStyles(align: PosAlign.right));
-      if (invoice.paiement!.monnaieRendue != null && invoice.paiement!.monnaieRendue! > 0) {
-        bytes += generator.text('Monnaie rendue: ${Formatters.formatCurrency(invoice.paiement!.monnaieRendue!)}',
-            styles: const PosStyles(align: PosAlign.right));
+      final p = invoice.paiement!;
+      bytes += generator.text(
+        Formatters.sanitizeThermalText(
+            'Paye par: ${p.moyenPaiement.displayName}'),
+        styles: const PosStyles(align: PosAlign.right),
+      );
+      if (p.moyenPaiement == PaymentMethod.especes) {
+        final recu = p.montantRecu;
+        var aRendre = p.monnaieRendue;
+        if (aRendre == null && recu != null) {
+          aRendre = (recu - p.montant);
+          if (aRendre < 0) aRendre = 0;
+        }
+        if (recu != null) {
+          bytes += generator.text(
+            Formatters.sanitizeThermalText(
+              'Montant recu: ${Formatters.formatCurrencyThermal(recu)}',
+            ),
+            styles: const PosStyles(align: PosAlign.right),
+          );
+        }
+        if (aRendre != null) {
+          bytes += generator.text(
+            Formatters.sanitizeThermalText(
+              'A rendre: ${Formatters.formatCurrencyThermal(aRendre)}',
+            ),
+            styles: const PosStyles(align: PosAlign.right),
+          );
+        }
       }
     }
 
     bytes += generator.feed(1);
     bytes += generator.hr();
+    final caissier = invoice.paiement?.caissierName;
+    if (caissier != null && caissier.trim().isNotEmpty) {
+      bytes += generator.text(
+        Formatters.sanitizeThermalText('Caissier: $caissier'),
+        styles: const PosStyles(align: PosAlign.center),
+      );
+      bytes += generator.feed(1);
+    }
     bytes += generator.text('MERCI DE VOTRE VISITE', styles: const PosStyles(align: PosAlign.center, bold: true));
     bytes += generator.text('A bientot !', styles: const PosStyles(align: PosAlign.center));
     bytes += generator.feed(3);

@@ -153,6 +153,48 @@ class OrderService {
     }
   }
 
+  /// Historique complet (personnel) : toutes dates / statuts, recherche et tri côté API.
+  Future<List<Order>> getStaffOrderHistory({
+    String search = '',
+    bool newestFirst = true,
+  }) async {
+    try {
+      final response = await _apiService.get(
+        ApiConfig.orders,
+        queryParameters: <String, dynamic>{
+          'filter': 'staff_all',
+          'sort': newestFirst ? 'desc' : 'asc',
+          if (search.trim().isNotEmpty) 'search': search.trim(),
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        List ordersData;
+        if (data is List) {
+          ordersData = data;
+        } else if (data is Map && data['data'] != null) {
+          ordersData = data['data'] as List;
+        } else {
+          return [];
+        }
+        final List<Order> orders = [];
+        for (var json in ordersData) {
+          try {
+            if (json is Map<String, dynamic>) {
+              orders.add(Order.fromJson(json));
+            }
+          } catch (_) {}
+        }
+        return orders;
+      }
+      return [];
+    } on DioException {
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
   // Récupérer les commandes terminées (Historique)
   Future<List<Order>> getHistoryOrders() async {
     try {

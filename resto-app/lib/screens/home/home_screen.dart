@@ -7,6 +7,7 @@ import '../../models/cart.dart';
 import '../../services/menu_service.dart';
 import '../../services/auth_service.dart';
 import '../../utils/formatters.dart';
+import '../../config/app_brand.dart';
 import '../menu/products_screen.dart';
 import '../menu/product_detail_screen.dart';
 import '../profile/profile_screen.dart';
@@ -160,6 +161,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.85),
                                 fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              AppBrand.displayName,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.95),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.4,
                               ),
                             ),
                             const SizedBox(height: 4),

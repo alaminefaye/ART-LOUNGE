@@ -7,6 +7,7 @@ use App\Models\Commande;
 use App\Models\Product;
 use App\Models\Table;
 use App\Models\User;
+use App\Enums\MoyenPaiement;
 use App\Enums\OrderStatus;
 use App\Enums\StatutPaiement;
 use Illuminate\Http\Request;
@@ -32,7 +33,7 @@ class CommandeController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = $request->user();
-        $query = Commande::with(['table', 'user', 'produits']);
+        $query = Commande::with(['table', 'user', 'produits', 'client']);
 
         // Si l'utilisateur est un client, filtrer par ses commandes uniquement
         if ($user->hasRole('client')) {
@@ -47,6 +48,10 @@ class CommandeController extends Controller
         // Filtre spécial pour "Historique" (history) : commandes terminées uniquement
         elseif ($request->has('filter') && $request->filter === 'history') {
             $query->where('statut', OrderStatus::Terminee);
+        }
+        // Toutes les commandes (dates / statuts) — tableau de bord personnel / historique complet
+        elseif ($request->has('filter') && $request->filter === 'staff_all') {
+            // Pas de filtre date ni statut ici (le personnel voit tout le périmètre autorisé)
         }
         // Comportement par défaut (pour compatibilité)
         else {
@@ -75,7 +80,33 @@ class CommandeController extends Controller
             }
         }
 
-        $commandes = $query->orderBy('created_at', 'desc')->get();
+        // Recherche : n° commande, table, téléphone ou nom du client fidélité
+        if ($request->filled('search')) {
+            $term = trim((string) $request->search);
+            if ($term !== '') {
+                $query->where(function ($q) use ($term) {
+                    $digits = preg_replace('/\D/', '', $term);
+                    if ($digits !== '' && ctype_digit($digits)) {
+                        $q->where('id', (int) $digits);
+                    }
+                    $q->orWhereHas('table', function ($t) use ($term) {
+                        $t->where('numero', 'like', '%' . $term . '%');
+                    });
+                    $q->orWhereHas('client', function ($c) use ($term) {
+                        $like = '%' . $term . '%';
+                        $c->where('telephone', 'like', $like)
+                            ->orWhere('nom', 'like', $like)
+                            ->orWhere('prenom', 'like', $like);
+                    });
+                });
+            }
+        }
+
+        $sortDir = strtolower((string) $request->get('sort', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $query->orderBy('created_at', $sortDir);
+
+        $limit = min(max((int) $request->get('limit', 500), 1), 1000);
+        $commandes = $query->limit($limit)->get();
 
         return response()->json([
             'success' => true,
@@ -267,7 +298,7 @@ class CommandeController extends Controller
      */
     public function getFacture($id)
     {
-        $commande = Commande::with(['table', 'user', 'produits'])->find($id);
+        $commande = Commande::with(['table', 'user', 'produits', 'client'])->find($id);
 
         if (!$commande) {
             return response()->json([
@@ -278,6 +309,7 @@ class CommandeController extends Controller
 
         // Récupérer le paiement validé de la commande
         $paiementValide = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)->latest()->first();
+        $paiementValide?->loadMissing('user');
 
         if (!$paiementValide || !$paiementValide->facture) {
             return response()->json([
@@ -287,6 +319,18 @@ class CommandeController extends Controller
         }
 
         $facture = $paiementValide->facture->load(['commande.table', 'commande.produits', 'paiement']);
+
+        $pv = $paiementValide;
+        $montantRecuApi = null;
+        $monnaieRendueApi = null;
+        if ($pv->moyen_paiement === MoyenPaiement::Especes) {
+            $montantRecuApi = $pv->montant_recu !== null ? (float) $pv->montant_recu : null;
+            $mr = $pv->monnaie_rendue;
+            if ($mr === null && $montantRecuApi !== null) {
+                $mr = max(0.0, $montantRecuApi - (float) $pv->montant);
+            }
+            $monnaieRendueApi = $mr !== null ? (float) $mr : null;
+        }
 
         return response()->json([
             'success' => true,
@@ -302,13 +346,15 @@ class CommandeController extends Controller
                 'commande' => $this->formatCommande($commande),
                 'paiement' => [
                     'id' => (int) $paiementValide->id,
+                    'user_id' => $paiementValide->user_id ? (int) $paiementValide->user_id : null,
                     'montant' => (float) $paiementValide->montant,
                     'moyen_paiement' => $paiementValide->moyen_paiement->value,
                     'statut' => $paiementValide->statut->value,
                     'transaction_id' => $paiementValide->transaction_id,
-                    'montant_recu' => $paiementValide->montant_recu ? (float) $paiementValide->montant_recu : null,
-                    'monnaie_rendue' => $paiementValide->monnaie_rendue ? (float) $paiementValide->monnaie_rendue : null,
+                    'montant_recu' => $montantRecuApi,
+                    'monnaie_rendue' => $monnaieRendueApi,
                     'created_at' => $paiementValide->created_at->toIso8601String(),
+                    'caissier_name' => $paiementValide->user?->name,
                 ],
             ],
         ]);
@@ -680,6 +726,11 @@ class CommandeController extends Controller
             'user' => $user ? [
                 'id' => $user->id,
                 'name' => $user->name,
+            ] : null,
+            'client' => $commande->client ? [
+                'id' => $commande->client->id,
+                'nom_complet' => $commande->client->nom_complet,
+                'telephone' => $commande->client->telephone,
             ] : null,
             'statut' => $statutValue,
             'statut_display' => $commande->statut_display,

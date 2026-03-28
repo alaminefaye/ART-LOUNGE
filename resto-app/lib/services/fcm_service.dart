@@ -60,7 +60,7 @@ class FCMService {
       // Son : android/app/src/main/res/raw/notification_sound.mp3 → nom sans extension
       channel = AndroidNotificationChannel(
         'dolcevita_order_channel', // id
-        'Commandes Dolce Vita', // title
+        'Commandes Dolce Vita Palace', // title
         description: 'Notifications de nouvelles commandes et mises à jour',
         importance: Importance.max,
         playSound: true,

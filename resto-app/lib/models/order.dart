@@ -41,6 +41,27 @@ enum OrderStatus {
   }
 }
 
+/// Client fidélité rattaché à la commande (optionnel).
+class OrderClient {
+  final int id;
+  final String nomComplet;
+  final String? telephone;
+
+  OrderClient({
+    required this.id,
+    required this.nomComplet,
+    this.telephone,
+  });
+
+  factory OrderClient.fromJson(Map<String, dynamic> json) {
+    return OrderClient(
+      id: json['id'] is int ? json['id'] as int : int.tryParse('${json['id']}') ?? 0,
+      nomComplet: (json['nom_complet'] as String?)?.trim() ?? '',
+      telephone: (json['telephone'] as String?)?.trim(),
+    );
+  }
+}
+
 class OrderItem {
   final int produitId;
   final String produitNom;
@@ -78,6 +99,7 @@ class Order {
   final DateTime? updatedAt;
   final List<OrderItem>? produits;
   final models.Table? table;
+  final OrderClient? client;
 
   Order({
     required this.id,
@@ -89,6 +111,7 @@ class Order {
     this.updatedAt,
     this.produits,
     this.table,
+    this.client,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -209,6 +232,18 @@ class Order {
         return defaultValue;
       }
 
+      OrderClient? client;
+      if (json['client'] != null && json['client'] is Map) {
+        try {
+          final c = OrderClient.fromJson(json['client'] as Map<String, dynamic>);
+          final hasPhone = c.telephone != null && c.telephone!.isNotEmpty;
+          client =
+              c.nomComplet.isNotEmpty || hasPhone ? c : null;
+        } catch (_) {
+          client = null;
+        }
+      }
+
       return Order(
         id: parseInt(json['id'], 0),
         tableId: parseInt(json['table_id'], 0),
@@ -223,6 +258,7 @@ class Order {
             : null,
         produits: produits,
         table: table,
+        client: client,
       );
     } catch (e) {
       debugPrint('Erreur parsing Order: $e');
@@ -240,6 +276,12 @@ class Order {
       'statut': statut.name,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      if (client != null)
+        'client': {
+          'id': client!.id,
+          'nom_complet': client!.nomComplet,
+          if (client!.telephone != null) 'telephone': client!.telephone,
+        },
     };
   }
 }
