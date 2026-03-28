@@ -67,31 +67,31 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 bg-dark text-white mb-4">
+            <div class="card shadow-sm border-0 mb-4 overflow-hidden" style="border-left: 5px solid #696cff !important;">
                 <div class="card-body p-4">
-                    <h5 class="text-white-50 small text-uppercase font-weight-bold mb-4">Récapitulatif Global</h5>
+                    <h5 class="text-primary small text-uppercase font-weight-bold mb-4">Récapitulatif Global</h5>
                     
                     <div class="mb-4">
-                        <label class="text-white-50 small mb-1">Fond de caisse initiale</label>
-                        <div class="h4">{{ number_format($session->solde_ouverture, 0, ',', ' ') }} FCFA</div>
+                        <label class="text-muted small mb-1">Fond de caisse initiale</label>
+                        <div class="h4 text-dark font-weight-bold">{{ number_format($session->solde_ouverture, 0, ',', ' ') }} FCFA</div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="text-white-50 small mb-1">Total Encaissé (Ventes)</label>
-                        <div class="h4">+ {{ number_format($details['total_ventes'], 0, ',', ' ') }} FCFA</div>
+                        <label class="text-muted small mb-1">Total Encaissé (Ventes)</label>
+                        <div class="h4 text-success font-weight-bold">+ {{ number_format($details['total_ventes'], 0, ',', ' ') }} FCFA</div>
                     </div>
 
-                    <hr class="border-secondary my-4">
+                    <hr class="my-4">
 
-                    <div class="mb-4">
-                        <label class="text-warning font-weight-bold small mb-1">TOTAL ATTENDU EN CAISSE</label>
-                        <div class="h2 text-warning mb-0">{{ number_format($session->solde_ouverture + $details['total_ventes'], 0, ',', ' ') }} FCFA</div>
-                        <small class="text-white-50">Somme à vérifier lors de la clôture.</small>
+                    <div class="mb-2">
+                        <label class="text-dark font-weight-bold small mb-1">TOTAL ATTENDU EN CAISSE</label>
+                        <div class="h2 text-primary mb-0 font-weight-bold">{{ number_format($session->solde_ouverture + $details['total_ventes'], 0, ',', ' ') }} FCFA</div>
+                        <p class="text-muted small mt-1">Somme à vérifier lors de la clôture.</p>
                     </div>
 
-                    <div class="d-grid gap-2 mt-5">
+                    <div class="d-grid gap-2 mt-4">
                         <button type="button" class="btn btn-primary" onclick="window.print()">
-                            <i class="fas fa-print me-2"></i> Imprimer le bilan
+                            <i class="bx bx-printer me-2"></i> Imprimer le bilan
                         </button>
                     </div>
                 </div>
