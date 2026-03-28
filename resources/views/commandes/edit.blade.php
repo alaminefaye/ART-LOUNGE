@@ -1,5 +1,32 @@
 @extends('layouts.app')
 @section('title', 'Modifier Commande')
+
+@push('vendor-css')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .select2-container--default .select2-selection--single {
+            height: 38px;
+            border: 1px solid #d9dee3;
+            border-radius: 0.375rem;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 38px;
+            padding-left: 12px;
+            color: #697a8d;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+        }
+        .select2-container {
+            width: 100% !important;
+        }
+    </style>
+@endpush
+
+@push('vendor-js')
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+@endpush
+
 @section('content')
 <div class="card">
     <div class="card-header"><h5>✏️ Modifier Commande #{{ $commande->id }}</h5></div>
@@ -47,7 +74,7 @@
                 @foreach($existingProduits as $index => $item)
                 <div class="row mb-2 produit-row">
                     <div class="col-md-5">
-                        <select name="produits[{{ $index }}][id]" class="form-select" required>
+                        <select name="produits[{{ $index }}][id]" class="form-select select2-product" required>
                             <option value="">Sélectionner un produit</option>
                             @foreach($produits as $produit)
                                 <option value="{{ $produit->id }}" {{ $item['id'] == $produit->id ? 'selected' : '' }}>
@@ -86,13 +113,24 @@
 <script>
 let produitIndex = {{ count($existingProduits) }};
 
+$(document).ready(function() {
+    initSelect2();
+});
+
+function initSelect2() {
+    $('.select2-product').select2({
+        placeholder: "Sélectionner un produit",
+        allowClear: true
+    });
+}
+
 function addProduit() {
     const container = document.getElementById('produitsContainer');
     const newRow = document.createElement('div');
     newRow.className = 'row mb-2 produit-row';
     newRow.innerHTML = `
         <div class="col-md-5">
-            <select name="produits[${produitIndex}][id]" class="form-select" required>
+            <select name="produits[${produitIndex}][id]" class="form-select select2-product" required>
                 <option value="">Sélectionner un produit</option>
                 @foreach($produits as $produit)
                     <option value="{{ $produit->id }}">
@@ -112,6 +150,13 @@ function addProduit() {
         </div>
     `;
     container.appendChild(newRow);
+    
+    // Initialiser Select2 sur la nouvelle ligne
+    $(newRow).find('.select2-product').select2({
+        placeholder: "Sélectionner un produit",
+        allowClear: true
+    });
+    
     produitIndex++;
 }
 
