@@ -36,43 +36,44 @@ class DatabaseSeeder extends Seeder
             ]
         );
         
-        // Attribuer le rôle admin s'il ne l'a pas déjà
         if (!$admin->hasRole('admin')) {
             $admin->assignRole('admin');
         }
-        
-        // Créer des utilisateurs de test pour chaque rôle
-        $manager = User::firstOrCreate(
-            ['email' => 'manager@resto.com'],
+
+        // Liste des nouveaux caissiers
+        $caissiers = [
             [
-                'name' => 'Manager User',
-                'password' => bcrypt('password'),
-            ]
-        );
-        if (!$manager->hasRole('manager')) {
-            $manager->assignRole('manager');
-        }
-        
-        $caissier = User::firstOrCreate(
-            ['email' => 'caissier@resto.com'],
+                'email' => 'bassolefatoumata@dolcevita.com',
+                'name' => 'Bassole Fatoumata'
+            ],
             [
-                'name' => 'Caissier User',
-                'password' => bcrypt('password'),
-            ]
-        );
-        if (!$caissier->hasRole('caissier')) {
-            $caissier->assignRole('caissier');
-        }
-        
-        $serveur = User::firstOrCreate(
-            ['email' => 'serveur@resto.com'],
+                'email' => 'ahmed@dolcevita.com',
+                'name' => 'Ahmed'
+            ],
             [
-                'name' => 'Serveur User',
-                'password' => bcrypt('password'),
-            ]
-        );
-        if (!$serveur->hasRole('serveur')) {
-            $serveur->assignRole('serveur');
+                'email' => 'bambagracemariam@dolcevita.com',
+                'name' => 'Bamba Grace Mariam'
+            ],
+        ];
+
+        $allowedEmails = array_merge(['admin@admin.com'], array_column($caissiers, 'email'));
+
+        // Supprimer les utilisateurs qui ne sont pas dans la liste autorisée
+        User::whereNotIn('email', $allowedEmails)->delete();
+
+        // Créer les nouveaux caissiers
+        foreach ($caissiers as $caissierData) {
+            $caissier = User::updateOrCreate(
+                ['email' => $caissierData['email']],
+                [
+                    'name' => $caissierData['name'],
+                    'password' => bcrypt('password'),
+                ]
+            );
+            
+            if (!$caissier->hasRole('caissier')) {
+                $caissier->assignRole('caissier');
+            }
         }
     }
 }

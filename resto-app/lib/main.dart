@@ -135,23 +135,36 @@ class _AuthWrapperState extends State<AuthWrapper>
 
   Future<void> _checkAuth() async {
     final startedAt = DateTime.now();
-    final authService = Provider.of<AuthService>(context, listen: false);
-    await authService.checkAuth();
+    try {
+      debugPrint('Startup: Checking Auth...');
+      final authService = Provider.of<AuthService>(context, listen: false);
+      await authService.checkAuth();
+      debugPrint('Startup: Auth Checked. Authenticated: ${authService.isAuthenticated}');
 
-    // Initialiser le service FCM une fois l'auth vérifiée (mobile uniquement)
-    if (authService.isAuthenticated && !kIsWeb) {
-      await FCMService().initialize(authService);
+      // Initialiser le service FCM uniquement sur mobile (Android/iOS)
+      if (authService.isAuthenticated && 
+         !kIsWeb && 
+         (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)) {
+        debugPrint('Startup: Initializing FCM...');
+        await FCMService().initialize(authService);
+        debugPrint('Startup: FCM Initialized');
+      }
+    } catch (e) {
+      debugPrint('Startup Error: $e');
+    } finally {
+      final elapsed = DateTime.now().difference(startedAt);
+      const minSplash = Duration(seconds: 5);
+      if (elapsed < minSplash) {
+        await Future.delayed(minSplash - elapsed);
+      }
+      
+      if (mounted) {
+        debugPrint('Startup: Dismissing Splash Screen');
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-
-    final elapsed = DateTime.now().difference(startedAt);
-    const minSplash = Duration(seconds: 5);
-    if (elapsed < minSplash) {
-      await Future.delayed(minSplash - elapsed);
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   @override
