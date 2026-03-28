@@ -5,12 +5,13 @@
     <title>Ticket #{{ $facture->numero_facture }}</title>
     <style>
         /*
-         * Ticket 80 mm (DomPDF) : éviter tout débordement à droite — ne pas utiliser width:100%
-         * sur body avec padding sans largeur max explicite en mm ; marges page légères.
+         * Ticket 80 mm — DomPDF + impression navigateur :
+         * Le corps doit occuper 100 % de la zone @page (pas de max-width + margin:auto,
+         * sinon le rendu PDF / aperçu Chrome peut rétrécir tout le bloc en « bande » à gauche).
          */
         @page {
             size: 80mm auto;
-            margin: 1.5mm 2mm;
+            margin: 2mm 2.5mm;
         }
         * {
             box-sizing: border-box;
@@ -18,17 +19,22 @@
         html {
             margin: 0;
             padding: 0;
+            width: 100%;
         }
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 9px;
             width: 100%;
-            max-width: 76mm;
-            margin: 0 auto;
-            padding: 2mm 0 3mm 0;
-            line-height: 1.3;
+            max-width: none;
+            margin: 0;
+            padding: 0;
+            line-height: 1.35;
             color: #000;
             text-align: left;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
         }
         .text-center { text-align: center; }
         .text-right { text-align: right; }

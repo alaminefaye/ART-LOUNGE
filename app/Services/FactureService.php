@@ -230,7 +230,10 @@ class FactureService
         $mmToPt = static fn (float $mm): float => $mm * 72 / 25.4;
 
         return Pdf::loadView('factures.thermal', $data)
-            ->setPaper([0, 0, $mmToPt(80), $mmToPt(297)], 'portrait');
+            ->setPaper([0, 0, $mmToPt(80), $mmToPt(297)], 'portrait')
+            ->setOption('dpi', 96)
+            ->setOption('defaultFont', 'DejaVu Sans')
+            ->setOption('isHtml5ParserEnabled', true);
     }
 }
 
