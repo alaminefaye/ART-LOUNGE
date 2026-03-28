@@ -207,8 +207,8 @@ class CommandeController extends Controller
 
     public function printReceipt(Commande $commande)
     {
-        $pdf = $this->factureService->genererPDFApercu($commande);
+        $pdf = $this->factureService->genererPDFThermal($commande);
         
-        return $pdf->stream("recu-commande-{$commande->id}.pdf");
+        return $pdf->stream("recu-commande-80mm-{$commande->id}.pdf");
     }
 }

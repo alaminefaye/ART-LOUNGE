@@ -116,9 +116,10 @@ class PrinterService {
       }
     }
 
-    bytes += generator.feed(2);
-    bytes += generator.text('Merci pour votre visite !',
-        styles: const PosStyles(align: PosAlign.center));
+    bytes += generator.feed(1);
+    bytes += generator.hr();
+    bytes += generator.text('MERCI DE VOTRE VISITE', styles: const PosStyles(align: PosAlign.center, bold: true));
+    bytes += generator.text('A bientot !', styles: const PosStyles(align: PosAlign.center));
     bytes += generator.feed(3);
     bytes += generator.cut();
 
