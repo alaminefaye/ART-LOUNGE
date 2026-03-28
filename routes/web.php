@@ -127,6 +127,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/ouvrir', [CaisseSessionController::class, 'ouvrir'])->name('ouvrir');
             Route::get('/bilan', [CaisseSessionController::class, 'bilan'])->name('bilan');
             Route::post('/fermer', [CaisseSessionController::class, 'fermer'])->name('fermer');
+            Route::get('/{session}/rapport', [CaisseSessionController::class, 'rapport'])->name('rapport');
         });
     });
 

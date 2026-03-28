@@ -58,9 +58,41 @@ class CaisseSessionController extends Controller
             ->where('statut', 'ouverte')
             ->firstOrFail();
 
+        $details = $this->totauxPaiementsSession($session);
+
+        return view('caisse.sessions.bilan', compact('session', 'details'));
+    }
+
+    /**
+     * Rapport imprimable d'une session clôturée (historique).
+     */
+    public function rapport(CaisseSession $session)
+    {
+        if ($session->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($session->statut !== 'fermee') {
+            return redirect()
+                ->route('caisse.sessions.index')
+                ->with('error', 'Le rapport n\'est disponible que pour les sessions clôturées.');
+        }
+
+        $session->load('user');
+        $details = $this->totauxPaiementsSession($session);
+        $ecart = (float) $session->solde_fermeture_reel - (float) $session->total_attendu;
+
+        return view('caisse.sessions.rapport', compact('session', 'details', 'ecart'));
+    }
+
+    /**
+     * @return array{total_especes: float|int, total_wave: float|int, total_orange_money: float|int, total_carte: float|int, total_points: float|int, total_ventes: float|int}
+     */
+    private function totauxPaiementsSession(CaisseSession $session): array
+    {
         $paiements = $session->paiements()->where('statut', 'valide')->get();
-        
-        $details = [
+
+        return [
             'total_especes' => $paiements->where('moyen_paiement.value', 'especes')->sum('montant'),
             'total_wave' => $paiements->where('moyen_paiement.value', 'wave')->sum('montant'),
             'total_orange_money' => $paiements->where('moyen_paiement.value', 'orange_money')->sum('montant'),
@@ -68,8 +100,6 @@ class CaisseSessionController extends Controller
             'total_points' => $paiements->where('moyen_paiement.value', 'points_fidelite')->sum('montant'),
             'total_ventes' => $paiements->sum('montant'),
         ];
-
-        return view('caisse.sessions.bilan', compact('session', 'details'));
     }
 
     public function fermer(Request $request)

@@ -1,5 +1,13 @@
 @extends('layouts.app')
 
+@push('page-css')
+<style>
+    @media print {
+        .no-print { display: none !important; }
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid py-4">
     <div class="row">
@@ -89,8 +97,9 @@
 
         <div class="col-12">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3 border-0">
+                <div class="card-header bg-white py-3 border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <h5 class="mb-0">Historique des sessions</h5>
+                    <small class="text-muted">10 sessions par page</small>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -101,7 +110,8 @@
                                 <th class="border-0 text-center">Attendu (Total)</th>
                                 <th class="border-0 text-center">Réel (Compté)</th>
                                 <th class="border-0 text-center">Écart</th>
-                                <th class="pe-4 border-0 text-end">Statut</th>
+                                <th class="border-0 text-center">Statut</th>
+                                <th class="pe-4 border-0 text-end no-print" style="width: 1rem;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -128,20 +138,35 @@
                                             <span class="text-danger">{{ number_format($ecart, 0, ',', ' ') }}</span>
                                         @endif
                                     </td>
-                                    <td class="pe-4 text-end">
+                                    <td class="text-center">
                                         <span class="badge bg-light text-dark border px-2 py-1">Fermée</span>
+                                    </td>
+                                    <td class="pe-4 text-end no-print">
+                                        <a href="{{ route('caisse.sessions.rapport', $sess) }}" class="btn btn-sm btn-outline-primary" target="_blank" title="Imprimer le rapport">
+                                            <i class="fas fa-print"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">Aunuce session clôturée pour le moment.</td>
+                                    <td colspan="7" class="text-center py-5 text-muted">Aucune session clôturée pour le moment.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
                 <div class="card-footer bg-white border-0 py-3">
-                    {{ $historique->links() }}
+                    @if($historique->hasPages())
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <small class="text-muted mb-0">
+                                Affichage de <strong>{{ $historique->firstItem() }}</strong> à <strong>{{ $historique->lastItem() }}</strong>
+                                sur <strong>{{ $historique->total() }}</strong> session(s)
+                            </small>
+                            {{ $historique->withQueryString()->links() }}
+                        </div>
+                    @elseif($historique->total() > 0)
+                        <small class="text-muted">{{ $historique->total() }} session(s)</small>
+                    @endif
                 </div>
             </div>
         </div>
