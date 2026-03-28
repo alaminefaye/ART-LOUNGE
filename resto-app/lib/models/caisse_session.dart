@@ -22,15 +22,22 @@ class CaisseSession {
   });
 
   factory CaisseSession.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
     return CaisseSession(
-      id: json['id'],
-      userId: json['user_id'],
-      soldeOuverture: (json['solde_ouverture'] as num).toDouble(),
+      id: json['id'] is String ? int.parse(json['id']) : json['id'],
+      userId: json['user_id'] is String ? int.parse(json['user_id']) : json['user_id'],
+      soldeOuverture: parseDouble(json['solde_ouverture']),
       soldeFermetureReel: json['solde_fermeture_reel'] != null
-          ? (json['solde_fermeture_reel'] as num).toDouble()
+          ? parseDouble(json['solde_fermeture_reel'])
           : null,
       totalAttendu: json['total_attendu'] != null
-          ? (json['total_attendu'] as num).toDouble()
+          ? parseDouble(json['total_attendu'])
           : null,
       statut: json['statut'],
       openedAt: DateTime.parse(json['opened_at']),

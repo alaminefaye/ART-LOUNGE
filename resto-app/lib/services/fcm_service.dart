@@ -26,7 +26,7 @@ class FCMService {
   bool _isInitialized = false;
 
   Future<void> initialize(AuthService authService) async {
-    if (kIsWeb) {
+    if (kIsWeb || (defaultTargetPlatform != TargetPlatform.android && defaultTargetPlatform != TargetPlatform.iOS)) {
       return;
     }
 

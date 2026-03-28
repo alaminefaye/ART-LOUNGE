@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../models/table.dart' as models;
 import '../../services/table_service.dart';
@@ -202,6 +203,10 @@ class _QrScanScreenState extends State<QrScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = !kIsWeb && 
+        defaultTargetPlatform != TargetPlatform.android && 
+        defaultTargetPlatform != TargetPlatform.iOS;
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFF6EC),
       body: SafeArea(
@@ -212,19 +217,57 @@ class _QrScanScreenState extends State<QrScanScreen> {
             AppHeader(
               title: 'Scanner QR Code',
               actions: [
-                HeaderActionButton(
-                  icon: Icons.flash_on,
-                  onTap: () => _controller.toggleTorch(),
-                ),
+                if (!isDesktop)
+                  HeaderActionButton(
+                    icon: Icons.flash_on,
+                    onTap: () => _controller.toggleTorch(),
+                  ),
               ],
             ),
             Expanded(
               child: Stack(
                 children: [
-                  MobileScanner(
-                    controller: _controller,
-                    onDetect: _handleBarcode,
-                  ),
+                  if (isDesktop)
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(32),
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.desktop_windows, size: 64, color: Color(0xFFD0A030)),
+                            SizedBox(height: 24),
+                            Text(
+                              'Le scanner QR n\'est pas disponible sur Windows.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              'Veuillez utiliser l\'application mobile pour scanner les tables ou saisir le numéro de table manuellement si l\'option est disponible.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    MobileScanner(
+                      controller: _controller,
+                      onDetect: _handleBarcode,
+                    ),
                   if (_isProcessing)
                     Container(
                       color: Colors.black.withValues(alpha: 0.5),

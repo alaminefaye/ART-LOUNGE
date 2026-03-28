@@ -208,9 +208,16 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
   }
 
   Widget _buildActiveView() {
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
     final double soldeOuverture = _currentSession?.soldeOuverture ?? 0.0;
-    final double totalVentes = (_bilan?['total_ventes'] as num?)?.toDouble() ?? 0.0;
-    final double totalAttendu = (_bilan?['total_attendu_caisse'] as num?)?.toDouble() ?? 0.0;
+    final double totalVentes = parseDouble(_bilan?['total_ventes']);
+    final double totalAttendu = parseDouble(_bilan?['total_attendu_caisse']);
     final List repartition = _bilan?['repartition'] ?? [];
 
     return Column(
