@@ -8,14 +8,23 @@
             size: 80mm auto;
             margin: 0;
         }
+        html {
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: 'Courier', monospace; /* Police plus "ticket de caisse" */
             font-size: 12px;
-            width: 72mm; /* Laisse un peu de marge pour le 80mm */
-            margin: 0 auto;
-            padding: 5mm 2mm;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            margin-left: 0;
+            margin-right: 0;
+            padding: 5mm 3mm 5mm 2mm;
             line-height: 1.2;
             color: #000;
+            text-align: left;
         }
         .text-center { text-align: center; }
         .text-right { text-align: right; }

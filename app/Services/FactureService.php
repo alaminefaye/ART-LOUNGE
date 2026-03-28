@@ -203,7 +203,11 @@ class FactureService
             ],
         ];
 
-        return Pdf::loadView('factures.thermal', $data);
+        // Page 80 mm de large (points PostScript) : ticket aligné à gauche, pas centré sur du A4
+        $mmToPt = static fn (float $mm): float => $mm * 72 / 25.4;
+
+        return Pdf::loadView('factures.thermal', $data)
+            ->setPaper([0, 0, $mmToPt(80), $mmToPt(297)], 'portrait');
     }
 }
 
