@@ -2,8 +2,6 @@
 
 @section('title', 'Dashboard')
 
-<div class="row mb-4">
-    <div class="col-12 d-flex justify-content-between align-items-center">
         <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Accueil /</span> Dashboard</h4>
         <div class="d-flex gap-2">
             <button onclick="window.location.reload()" class="btn btn-primary">
