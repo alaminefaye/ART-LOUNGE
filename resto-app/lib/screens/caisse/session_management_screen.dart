@@ -66,6 +66,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Session ouverte avec succès')),
       );
+      // Rafraîchir les données pour passer à la vue active et désactiver le loading
+      await _loadData();
     } else {
       setState(() => _isLoading = false);
       if (!mounted) return;
@@ -100,6 +102,16 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Session clôturée avec succès')),
       );
+      
+      // Rafraîchir les données localement
+      await _loadData();
+
+      // Redirection automatique vers le dashboard après 2 secondes
+      if (mounted) {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) Navigator.pop(context);
+        });
+      }
     } else {
       setState(() => _isLoading = false);
       if (!mounted) return;
