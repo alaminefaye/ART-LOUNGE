@@ -20,7 +20,10 @@ class TablesScreen extends StatefulWidget {
 class _TablesScreenState extends State<TablesScreen> {
   final TableService _tableService = TableService();
   final OrderService _orderService = OrderService();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   List<models.Table> _tables = [];
+  List<models.Table> _filteredTables = [];
   List<Order> _currentOrders = [];
   bool _isLoading = true;
 
@@ -41,6 +44,7 @@ class _TablesScreenState extends State<TablesScreen> {
         setState(() {
           _tables = results[0] as List<models.Table>;
           _currentOrders = results[1] as List<Order>;
+          _filterTables();
           _isLoading = false;
         });
       }
@@ -58,6 +62,31 @@ class _TablesScreenState extends State<TablesScreen> {
         );
       }
     }
+  }
+
+  void _filterTables() {
+    if (_searchQuery.isEmpty) {
+      _filteredTables = _tables;
+    } else {
+      final query = _searchQuery.toLowerCase();
+      _filteredTables = _tables.where((table) {
+        return table.numero.toLowerCase().contains(query);
+      }).toList();
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    if (!mounted) return;
+    setState(() {
+      _searchQuery = value;
+      _filterTables();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -82,27 +111,68 @@ class _TablesScreenState extends State<TablesScreen> {
               ],
             ),
 
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF252525),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher une table...',
+                    hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                    prefixIcon: const Icon(Icons.search, color: Colors.orange, size: 20),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, color: Colors.grey, size: 18),
+                            onPressed: () {
+                              _searchController.clear();
+                              _onSearchChanged('');
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ),
+
             // Contenu
             Expanded(
               child: _isLoading
                   ? const Center(
                       child: CircularProgressIndicator(color: Colors.orange),
                     )
-                  : _tables.isEmpty
+                  : _filteredTables.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.table_restaurant,
+                            Icons.search_off_rounded,
                             size: 64,
-                            color: Colors.grey[600],
+                            color: Colors.grey[700],
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Aucune table configurée',
+                            _searchQuery.isEmpty
+                                ? 'Aucune table configurée'
+                                : 'Aucun résultat pour "$_searchQuery"',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: Colors.grey[500],
                               fontSize: 16,
                             ),
                           ),
@@ -117,14 +187,14 @@ class _TablesScreenState extends State<TablesScreen> {
                         padding: const EdgeInsets.all(12),
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 4,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 0.82,
-                            ),
-                        itemCount: _tables.length,
+                          crossAxisCount: 4,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                          childAspectRatio: 0.82,
+                        ),
+                        itemCount: _filteredTables.length,
                         itemBuilder: (context, index) {
-                          final table = _tables[index];
+                          final table = _filteredTables[index];
                           return _buildTableCard(table);
                         },
                       ),
@@ -157,8 +227,7 @@ class _TablesScreenState extends State<TablesScreen> {
         child: InkWell(
           onTap: () => _handleTableSelection(table),
           borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(8),
+          child: Padding(padding: const EdgeInsets.all(8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

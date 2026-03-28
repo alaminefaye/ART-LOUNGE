@@ -7,6 +7,11 @@
             <div class="card-header d-flex justify-content-between">
                 <h5 class="mb-0">📋 Commande #{{ $commande->id }}</h5>
                 <div>
+                    @if($commande->statut->value !== 'annulee')
+                        <a href="{{ route('commandes.print-receipt', $commande) }}" class="btn btn-sm btn-info" target="_blank">
+                            <i class="bx bx-printer"></i> Imprimer
+                        </a>
+                    @endif
                     @if($commande->statut->value !== 'terminee' && $commande->statut->value !== 'annulee')
                         @can('update_orders')
                         <a href="{{ route('commandes.edit', $commande) }}" class="btn btn-sm btn-warning">

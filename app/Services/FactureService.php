@@ -43,6 +43,14 @@ class FactureService
         // Charger la facture avec toutes ses relations
         $facture->load(['commande.table', 'commande.produits', 'commande.user', 'paiement']);
 
+        // Préparer le logo
+        $logoPath = public_path('assets/img/logo.png');
+        $logoBase64 = null;
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        }
+
         // Préparer les données pour le PDF
         $data = [
             'facture' => $facture,
@@ -50,6 +58,7 @@ class FactureService
             'table' => $facture->commande->table,
             'products' => $facture->commande->produits, // Alias pour la vue
             'paiement' => $facture->paiement,
+            'logo_base64' => $logoBase64,
             'restaurant' => [
                 'nom' => config('app.name', 'Restaurant'),
                 'adresse' => 'Dakar, Sénégal', // À configurer
@@ -102,6 +111,54 @@ class FactureService
         $facture->save();
 
         return $facture;
+    }
+
+    /**
+     * Génère un flux PDF pour une commande ou une facture (Aperçu/Impression)
+     */
+    public function genererPDFApercu(Commande $commande): \Barryvdh\DomPDF\PDF
+    {
+        // Charger les relations
+        $commande->load(['table', 'produits', 'user', 'paiements.facture']);
+        
+        // Trouver la facture si elle existe
+        $facture = $commande->facture;
+        $paiement = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)->latest()->first();
+
+        // Si pas de facture officielle, on crée un objet temporaire pour la vue
+        if (!$facture) {
+            $facture = new Facture([
+                'numero_facture' => 'PROFORMA-' . $commande->id,
+                'montant_total' => $commande->montant_total,
+                'montant_taxe' => 0,
+                'created_at' => now(),
+            ]);
+        }
+
+        // Préparer le logo
+        $logoPath = public_path('assets/img/logo.png');
+        $logoBase64 = null;
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        }
+
+        $data = [
+            'facture' => $facture,
+            'commande' => $commande,
+            'table' => $commande->table,
+            'products' => $commande->produits,
+            'paiement' => $paiement,
+            'logo_base64' => $logoBase64,
+            'restaurant' => [
+                'nom' => config('app.name', 'Restaurant'),
+                'adresse' => 'Dakar, Sénégal',
+                'telephone' => '+221 XX XXX XX XX',
+                'email' => 'contact@resto.sn',
+            ],
+        ];
+
+        return Pdf::loadView('factures.template', $data);
     }
 }
 

@@ -318,7 +318,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
         // Liste des moyens de paiement
         ...repartition.map((item) {
           final String label = item['moyen_paiement'];
-          final double total = (item['total'] as num).toDouble();
+          final double total = parseDouble(item['total']);
           
           return Container(
             margin: const EdgeInsets.only(bottom: 12),

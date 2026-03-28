@@ -24,7 +24,10 @@ class OrdersScreen extends StatefulWidget {
 
 class _OrdersScreenState extends State<OrdersScreen> {
   final OrderService _orderService = OrderService();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   List<Order> _orders = [];
+  List<Order> _filteredOrders = [];
   bool _isLoading = true;
   StreamSubscription? _orderUpdateSubscription;
   bool? _wasAuthenticated;
@@ -91,6 +94,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _orderUpdateSubscription?.cancel();
     super.dispose();
   }
@@ -109,6 +113,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       if (mounted) {
         setState(() {
           _orders = orders;
+          _filterOrders();
           _isLoading = false;
         });
       }
@@ -120,6 +125,27 @@ class _OrdersScreenState extends State<OrdersScreen> {
         });
       }
     }
+  }
+
+  void _filterOrders() {
+    if (_searchQuery.isEmpty) {
+      _filteredOrders = _orders;
+    } else {
+      final query = _searchQuery.toLowerCase();
+      _filteredOrders = _orders.where((order) {
+        final orderIdMatch = order.id.toString().contains(query);
+        final tableMatch = order.table?.numero.toLowerCase().contains(query) ?? false;
+        return orderIdMatch || tableMatch;
+      }).toList();
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    if (!mounted) return;
+    setState(() {
+      _searchQuery = value;
+      _filterOrders();
+    });
   }
 
   @override
@@ -289,54 +315,69 @@ class _OrdersScreenState extends State<OrdersScreen> {
               },
             ),
 
+            // Search Bar
+            if (authService.isAuthenticated)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher commande ou table...',
+                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFFD0A030), size: 20),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                _onSearchChanged('');
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+              ),
+
             Expanded(
               child: _isLoading
                   ? const Center(
                       child: CircularProgressIndicator(color: Colors.orange),
                     )
-                  : _orders.isEmpty
+                  : _filteredOrders.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(30),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.black.withValues(alpha: 0.06),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.12),
-                                  offset: const Offset(0, 10),
-                                  blurRadius: 22,
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.receipt_long_outlined,
-                              size: 60,
-                              color: Colors.grey[700],
-                            ),
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 64,
+                            color: Colors.grey[300],
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
                           Text(
-                            'Aucune commande en cours',
+                            _searchQuery.isEmpty
+                                ? 'Aucune commande en cours'
+                                : 'Aucun résultat pour "$_searchQuery"',
                             style: TextStyle(
-                              color: Colors.grey[800],
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Vos commandes du jour en cours\napparaîtront ici',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontSize: 14,
+                              color: Colors.grey[600],
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -351,9 +392,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           horizontal: 20,
                           vertical: 10,
                         ),
-                        itemCount: _orders.length,
+                        itemCount: _filteredOrders.length,
                         itemBuilder: (context, index) {
-                          final order = _orders[index];
+                          final order = _filteredOrders[index];
                           return _buildOrderCard(context, order);
                         },
                       ),

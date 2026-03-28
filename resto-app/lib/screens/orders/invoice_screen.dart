@@ -1,7 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:open_file_plus/open_file_plus.dart';
 import '../../models/invoice.dart';
 import '../../models/order.dart';
 import '../../services/invoice_service.dart';
+import '../../services/printer_service.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/app_header.dart';
 
@@ -16,8 +22,11 @@ class InvoiceScreen extends StatefulWidget {
 
 class _InvoiceScreenState extends State<InvoiceScreen> {
   final InvoiceService _invoiceService = InvoiceService();
+  final PrinterService _printerService = PrinterService();
   Invoice? _invoice;
   bool _isLoading = true;
+  bool _isDownloading = false;
+  bool _isPrinting = false;
   String? _errorMessage;
 
   @override
@@ -74,29 +83,109 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     }
   }
 
+  Future<void> _downloadPDF() async {
+    if (_invoice?.pdfUrl == null) return;
+
+    setState(() => _isDownloading = true);
+
+    try {
+      if (Platform.isAndroid) {
+        await Permission.storage.request();
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName = 'Facture_${_invoice!.numeroFacture}.pdf';
+      final savePath = '${directory.path}/$fileName';
+
+      await Dio().download(_invoice!.pdfUrl!, savePath);
+
+      if (mounted) {
+        setState(() => _isDownloading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Téléchargement terminé'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        await OpenFile.open(savePath);
+      }
+    } catch (e) {
+      debugPrint('Erreur téléchargement: $e');
+      if (mounted) {
+        setState(() => _isDownloading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de téléchargement: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _printInvoice() async {
+    if (_invoice == null) return;
+
+    setState(() => _isPrinting = true);
+
+    try {
+      if (Platform.isAndroid) {
+        await [
+          Permission.bluetooth,
+          Permission.bluetoothScan,
+          Permission.bluetoothConnect,
+          Permission.location,
+        ].request();
+      }
+
+      await _printerService.printReceipt(_invoice!);
+
+      if (mounted) {
+        setState(() => _isPrinting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impression envoyée'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Erreur impression: $e');
+      if (mounted) {
+        setState(() => _isPrinting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur d\'impression: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF6EC),
-      body: SafeArea(top: false,
+      body: SafeArea(
+        top: false,
         child: Column(
           children: [
             // Header gradient
             AppHeader(
               title: 'Reçu',
               actions: [
-                if (_invoice?.pdfUrl != null)
+                if (_invoice != null) ...[
                   HeaderActionButton(
-                    icon: Icons.download,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Téléchargement du PDF non implémenté'),
-                          backgroundColor: Colors.orange,
-                        ),
-                      );
-                    },
+                    icon: _isPrinting ? Icons.hourglass_empty : Icons.print,
+                    onTap: _isPrinting ? null : () => _printInvoice(),
                   ),
+                  if (_invoice!.pdfUrl != null)
+                    HeaderActionButton(
+                      icon: _isDownloading ? Icons.hourglass_empty : Icons.download,
+                      onTap: _isDownloading ? null : () => _downloadPDF(),
+                    ),
+                ],
                 HeaderActionButton(
                   icon: Icons.refresh,
                   onTap: _loadInvoice,

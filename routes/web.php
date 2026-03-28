@@ -94,6 +94,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('commandes', [CommandeController::class, 'index'])->name('commandes.index');
         Route::get('commandes/{commande}', [CommandeController::class, 'show'])->name('commandes.show');
+        Route::get('commandes/{commande}/print', [CommandeController::class, 'printReceipt'])->name('commandes.print-receipt');
         
         Route::middleware(['can:update_orders'])->group(function () {
             Route::get('commandes/{commande}/edit', [CommandeController::class, 'edit'])->name('commandes.edit');

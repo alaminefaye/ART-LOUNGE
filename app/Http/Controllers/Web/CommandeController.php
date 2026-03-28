@@ -10,10 +10,17 @@ use App\Enums\OrderStatus;
 use App\Enums\TableStatus;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Services\FactureService;
 use Illuminate\Support\Facades\DB;
 
 class CommandeController extends Controller
 {
+    protected $factureService;
+
+    public function __construct(FactureService $factureService)
+    {
+        $this->factureService = $factureService;
+    }
     public function index(Request $request)
     {
         $query = Commande::with(['table', 'user', 'produits']);
@@ -196,5 +203,12 @@ class CommandeController extends Controller
 
         return redirect()->route('commandes.index')
                         ->with('success', 'Commande annulée avec succès !');
+    }
+
+    public function printReceipt(Commande $commande)
+    {
+        $pdf = $this->factureService->genererPDFApercu($commande);
+        
+        return $pdf->stream("recu-commande-{$commande->id}.pdf");
     }
 }

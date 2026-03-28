@@ -233,6 +233,9 @@
         <!-- En-tête -->
         <div class="header">
             <div class="header-left">
+                @if(isset($logo_base64) && $logo_base64)
+                    <img src="{{ $logo_base64 }}" alt="Logo" style="max-height: 60px; margin-bottom: 10px;">
+                @endif
                 <div class="resto-name">{{ $restaurant['nom'] }}</div>
                 <div class="resto-info">
                     📍 {{ $restaurant['adresse'] }}<br>

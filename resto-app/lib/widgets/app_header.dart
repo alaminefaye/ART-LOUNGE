@@ -218,7 +218,7 @@ class HeaderActionButton extends StatelessWidget {
   });
 
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final int badgeCount;
 
   @override
