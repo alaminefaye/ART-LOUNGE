@@ -58,7 +58,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (result['success'] == true) {
       if (mounted) {
         if (!kIsWeb) {
-          await FCMService().initialize(authService);
+          try {
+            await FCMService().initialize(authService);
+          } catch (e) {
+            debugPrint('FCM initialization skipped or failed: $e');
+          }
         }
 
         if (!mounted) return;
@@ -88,9 +92,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
-                builder: (_) => isStaff
-                    ? const DashboardScreen()
-                    : const MenuScreen(),
+                builder: (_) =>
+                    isStaff ? const DashboardScreen() : const MenuScreen(),
               ),
               (route) => false,
             );
@@ -224,10 +227,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: TextFormField(
                           controller: _emailOrPhoneController,
                           keyboardType: TextInputType.text,
-                          style: const TextStyle(color: Colors.black87, fontSize: 14),
+                          style: const TextStyle(
+                              color: Colors.black87, fontSize: 14),
                           decoration: InputDecoration(
                             labelText: 'Email ou Téléphone',
-                            labelStyle: TextStyle(color: Colors.grey[700], fontSize: 13),
+                            labelStyle: TextStyle(
+                                color: Colors.grey[700], fontSize: 13),
                             hintText: 'exemple@email.com ou 0705316506',
                             hintStyle: TextStyle(
                               color: Colors.grey[500],
@@ -273,10 +278,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          style: const TextStyle(color: Colors.black87, fontSize: 14),
+                          style: const TextStyle(
+                              color: Colors.black87, fontSize: 14),
                           decoration: InputDecoration(
                             labelText: 'Mot de passe',
-                            labelStyle: TextStyle(color: Colors.grey[700], fontSize: 13),
+                            labelStyle: TextStyle(
+                                color: Colors.grey[700], fontSize: 13),
                             prefixIcon: const Icon(
                               Icons.lock,
                               color: _brandGoldDark,

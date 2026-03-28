@@ -62,12 +62,13 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
     final res = await _caisseService.openSession(amount);
     if (res['success']) {
       _amountController.clear();
-      await _loadData();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Session ouverte avec succès')),
       );
     } else {
       setState(() => _isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(res['message'] ?? 'Erreur lors de l\'ouverture')),
       );
@@ -95,12 +96,13 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
     if (res['success']) {
       _amountController.clear();
       _notesController.clear();
-      await _loadData();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Session clôturée avec succès')),
       );
     } else {
       setState(() => _isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(res['message'] ?? 'Erreur lors de la fermeture')),
       );
@@ -144,7 +146,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               )
@@ -155,7 +157,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.no_accounts_outlined, size: 48, color: Colors.orange),
@@ -227,9 +229,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.1),
+            color: Colors.green.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.green.withOpacity(0.3)),
+            border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -262,7 +264,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 15,
                 offset: const Offset(0, 8),
               )
@@ -312,7 +314,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.black.withOpacity(0.05)),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
             ),
             child: Row(
               children: [
@@ -338,7 +340,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
               ],
             ),
           );
-        }).toList(),
+        }),
 
         const SizedBox(height: 40),
         const Text(
@@ -351,7 +353,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.orange.withOpacity(0.2)),
+            border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [

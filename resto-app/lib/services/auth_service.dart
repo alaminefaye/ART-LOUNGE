@@ -28,7 +28,8 @@ class AuthService extends ChangeNotifier {
     if (!hasNetwork) {
       return {
         'success': false,
-        'message': 'Pas de connexion internet. Vérifiez que le Wi-Fi ou les données mobiles sont activés et que l\'accès réseau est autorisé pour l\'application.',
+        'message':
+            'Pas de connexion internet. Vérifiez que le Wi-Fi ou les données mobiles sont activés et que l\'accès réseau est autorisé pour l\'application.',
       };
     }
     try {
@@ -44,7 +45,7 @@ class AuthService extends ChangeNotifier {
         },
       );
 
-        if (response.statusCode == 201 || response.statusCode == 200) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         _token = data['token'] as String?;
         if (data['user'] != null) {
@@ -55,7 +56,7 @@ class AuthService extends ChangeNotifier {
               ? User.fromAuthResponse(data)
               : User.fromJson(data['user'] as Map<String, dynamic>);
         }
-        
+
         // Sauvegarder le token
         if (_token != null) {
           await _saveToken(_token!);
@@ -66,12 +67,15 @@ class AuthService extends ChangeNotifier {
           return {'success': false, 'message': 'Token non reçu du serveur'};
         }
       } else {
-        return {'success': false, 'message': 'Erreur d\'inscription (${response.statusCode})'};
+        return {
+          'success': false,
+          'message': 'Erreur d\'inscription (${response.statusCode})'
+        };
       }
     } on DioException catch (e) {
       // Gérer les erreurs HTTP spécifiques
       String message = 'Erreur d\'inscription';
-      
+
       if (e.response != null) {
         // Erreur avec réponse du serveur
         final data = e.response?.data;
@@ -90,34 +94,50 @@ class AuthService extends ChangeNotifier {
             }
           }
         }
-        
+
         if (e.response?.statusCode == 422) {
-          message = message.isNotEmpty ? message : 'Les données fournies sont invalides.';
+          message = message.isNotEmpty
+              ? message
+              : 'Les données fournies sont invalides.';
         } else if (e.response?.statusCode == 409) {
           message = 'Un compte existe déjà avec cet email ou ce téléphone.';
         } else if (e.response?.statusCode == 500) {
           message = 'Erreur serveur. Veuillez réessayer plus tard.';
         }
       } else if (e.type == DioExceptionType.connectionTimeout ||
-                 e.type == DioExceptionType.receiveTimeout ||
-                 e.type == DioExceptionType.sendTimeout) {
-        message = 'Délai d\'attente dépassé. Vérifiez votre connexion internet et que l\'accès réseau est autorisé.';
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        message =
+            'Délai d\'attente dépassé. Vérifiez votre connexion internet et que l\'accès réseau est autorisé.';
       } else if (e.type == DioExceptionType.connectionError) {
-        message = 'Impossible de joindre le serveur. Vérifiez votre connexion internet et que l\'accès réseau est autorisé pour l\'application.';
+        message =
+            'Impossible de joindre le serveur. Vérifiez votre connexion internet et que l\'accès réseau est autorisé pour l\'application.';
       }
-      
+
       return {'success': false, 'message': message};
     } catch (e) {
-      return {'success': false, 'message': 'Erreur inattendue: ${e.toString()}'};
+      return {
+        'success': false,
+        'message': 'Erreur inattendue: ${e.toString()}'
+      };
     }
   }
 
   /// Vérifie si une connexion réseau est disponible (Wi-Fi, données mobiles, etc.).
   Future<bool> _hasConnectivity() async {
+    // Sur Windows/Desktop, le plugin connectivity_plus est parfois instable.
+    // On autorise la tentative d'appel API par défaut sur ces plateformes.
+    if (defaultTargetPlatform == TargetPlatform.windows || 
+        defaultTargetPlatform == TargetPlatform.macOS || 
+        defaultTargetPlatform == TargetPlatform.linux) {
+      return true;
+    }
+
     try {
       final result = await Connectivity().checkConnectivity();
       if (result.isEmpty) return false;
-      if (result.contains(ConnectivityResult.none) && result.length == 1) return false;
+      if (result.contains(ConnectivityResult.none) && result.length == 1)
+        return false;
       if (result.every((r) => r == ConnectivityResult.none)) return false;
       return true;
     } catch (_) {
@@ -126,12 +146,14 @@ class AuthService extends ChangeNotifier {
   }
 
   // Login (accepte email ou téléphone)
-  Future<Map<String, dynamic>> login(String emailOrPhone, String password) async {
+  Future<Map<String, dynamic>> login(
+      String emailOrPhone, String password) async {
     final hasNetwork = await _hasConnectivity();
     if (!hasNetwork) {
       return {
         'success': false,
-        'message': 'Pas de connexion internet. Vérifiez que le Wi-Fi ou les données mobiles sont activés et que l\'accès réseau est autorisé pour l\'application.',
+        'message':
+            'Pas de connexion internet. Vérifiez que le Wi-Fi ou les données mobiles sont activés et que l\'accès réseau est autorisé pour l\'application.',
       };
     }
     try {
@@ -143,7 +165,7 @@ class AuthService extends ChangeNotifier {
         },
       );
 
-        if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         _token = data['token'] as String?;
         if (data['user'] != null) {
@@ -154,7 +176,7 @@ class AuthService extends ChangeNotifier {
               ? User.fromAuthResponse(data)
               : User.fromJson(data['user'] as Map<String, dynamic>);
         }
-        
+
         // Sauvegarder le token
         if (_token != null) {
           await _saveToken(_token!);
@@ -165,12 +187,15 @@ class AuthService extends ChangeNotifier {
           return {'success': false, 'message': 'Token non reçu du serveur'};
         }
       } else {
-        return {'success': false, 'message': 'Erreur de connexion (${response.statusCode})'};
+        return {
+          'success': false,
+          'message': 'Erreur de connexion (${response.statusCode})'
+        };
       }
     } on DioException catch (e) {
       // Gérer les erreurs HTTP spécifiques
       String message = 'Erreur de connexion';
-      
+
       if (e.response != null) {
         // Erreur avec réponse du serveur
         final data = e.response?.data;
@@ -187,9 +212,11 @@ class AuthService extends ChangeNotifier {
             }
           }
         }
-        
+
         if (e.response?.statusCode == 422) {
-          message = message.isNotEmpty ? message : 'Les identifiants fournis sont incorrects.';
+          message = message.isNotEmpty
+              ? message
+              : 'Les identifiants fournis sont incorrects.';
         } else if (e.response?.statusCode == 401) {
           message = 'Email ou mot de passe incorrect';
         } else if (e.response?.statusCode == 403) {
@@ -200,16 +227,21 @@ class AuthService extends ChangeNotifier {
           message = 'Erreur serveur. Veuillez réessayer plus tard.';
         }
       } else if (e.type == DioExceptionType.connectionTimeout ||
-                 e.type == DioExceptionType.receiveTimeout ||
-                 e.type == DioExceptionType.sendTimeout) {
-        message = 'Délai d\'attente dépassé. Vérifiez votre connexion internet et que l\'accès réseau est autorisé.';
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        message =
+            'Délai d\'attente dépassé. Vérifiez votre connexion internet et que l\'accès réseau est autorisé.';
       } else if (e.type == DioExceptionType.connectionError) {
-        message = 'Impossible de joindre le serveur. Vérifiez votre connexion internet, que l\'accès réseau est autorisé pour l\'application, et que l\'adresse du serveur est correcte.';
+        message =
+            'Impossible de joindre le serveur. Vérifiez votre connexion internet, que l\'accès réseau est autorisé pour l\'application, et que l\'adresse du serveur est correcte.';
       }
-      
+
       return {'success': false, 'message': message};
     } catch (e) {
-      return {'success': false, 'message': 'Erreur inattendue: ${e.toString()}'};
+      return {
+        'success': false,
+        'message': 'Erreur inattendue: ${e.toString()}'
+      };
     }
   }
 
@@ -260,9 +292,7 @@ class AuthService extends ChangeNotifier {
           }
         }
         if (e.response?.statusCode == 422) {
-          message = message.isNotEmpty
-              ? message
-              : 'Mot de passe incorrect.';
+          message = message.isNotEmpty ? message : 'Mot de passe incorrect.';
         } else if (e.response?.statusCode == 403) {
           message = message.isNotEmpty
               ? message
@@ -299,11 +329,11 @@ class AuthService extends ChangeNotifier {
   Future<bool> checkAuth() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    
+
     if (token != null && token.isNotEmpty) {
       _token = token;
       _apiService.setToken(token);
-      
+
       // Récupérer les infos utilisateur
       try {
         final response = await _apiService.get(ApiConfig.me);
@@ -335,7 +365,7 @@ class AuthService extends ChangeNotifier {
         return false;
       }
     }
-    
+
     _token = null;
     _currentUser = null;
     _apiService.setToken(null);
@@ -354,4 +384,3 @@ class AuthService extends ChangeNotifier {
     await prefs.remove('auth_token');
   }
 }
-

@@ -7,8 +7,6 @@ import '../../services/auth_service.dart';
 import '../../services/fcm_events.dart';
 import '../../config/api_config.dart';
 import '../../models/order.dart';
-import '../../models/product.dart';
-import '../../models/category.dart';
 import '../../services/order_service.dart';
 import '../../services/invoice_service.dart';
 import '../../services/api_service.dart';

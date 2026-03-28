@@ -77,7 +77,7 @@ class PaiementController extends Controller
         if ($request->isMethod('GET')) {
             // Si la commande est déjà payée, rediriger vers la facture si elle existe
             if ($commande->statut === OrderStatus::Terminee) {
-                $facture = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)
+                $facture = $commande->paiements()->where('statut', StatutPaiement::Valide)
                     ->latest()
                     ->first()
                     ?->facture;
@@ -103,7 +103,7 @@ class PaiementController extends Controller
         ]);
 
         if ($commande->statut === OrderStatus::Terminee) {
-            $facture = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)
+            $facture = $commande->paiements()->where('statut', StatutPaiement::Valide)
                 ->latest()
                 ->first()
                 ?->facture;

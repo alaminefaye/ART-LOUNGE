@@ -16,7 +16,7 @@ class FCMService {
   factory FCMService() => _instance;
   FCMService._internal();
 
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  FirebaseMessaging get _firebaseMessaging => FirebaseMessaging.instance;
   final ApiService _apiService = ApiService();
   AuthService? _authService;
 

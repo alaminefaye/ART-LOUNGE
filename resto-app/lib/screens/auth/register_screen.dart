@@ -100,9 +100,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
-                builder: (_) => isStaff
-                    ? const DashboardScreen()
-                    : const MenuScreen(),
+                builder: (_) =>
+                    isStaff ? const DashboardScreen() : const MenuScreen(),
               ),
               (route) => false,
             );
@@ -441,7 +440,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           Text(
                             'Vous avez déjà un compte ? ',
-                            style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                            style: TextStyle(
+                                color: Colors.grey[700], fontSize: 14),
                           ),
                           TextButton(
                             onPressed: () {
