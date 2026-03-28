@@ -53,14 +53,16 @@
                 
                 <ul class="menu-inner py-1">
                     <!-- Dashboard -->
+                    @can('view_dashboard')
                     <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                         <a href="{{ route('dashboard') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-home-circle"></i>
                             <div>Dashboard</div>
                         </a>
                     </li>
+                    @endcan
                     
-                    @can('view_dashboard')
+                    @can('view_reports')
                     <li class="menu-item {{ request()->routeIs('rapport.*') ? 'active' : '' }}">
                         <a href="{{ route('rapport.index') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
@@ -70,22 +72,27 @@
                     @endcan
                     
                     <!-- Tables -->
+                    @can('view_tables')
                     <li class="menu-item {{ request()->routeIs('tables.*') ? 'active' : '' }}">
                         <a href="{{ route('tables.index') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-grid-alt"></i>
                             <div>Tables</div>
                         </a>
                     </li>
+                    @endcan
                     
                     <!-- Réservations -->
+                    @can('view_reservations')
                     <li class="menu-item {{ request()->routeIs('reservations.*') ? 'active' : '' }}">
                         <a href="{{ route('reservations.index') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-calendar"></i>
                             <div>Réservations</div>
                         </a>
                     </li>
+                    @endcan
                     
                     <!-- Menu -->
+                    @can('view_menu')
                     <li class="menu-item {{ request()->routeIs('menu.*') ? 'active open' : '' }}">
                         <a href="javascript:void(0);" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons bx bx-food-menu"></i>
@@ -104,33 +111,38 @@
                             </li>
                         </ul>
                     </li>
+                    @endcan
                     
                     <!-- Commandes -->
+                    @can('view_orders')
                     <li class="menu-item {{ request()->routeIs('commandes.*') ? 'active' : '' }}">
                         <a href="{{ route('commandes.index') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-receipt"></i>
                             <div>Commandes</div>
                         </a>
                     </li>
+                    @endcan
                     
                     <!-- Caisse -->
-                    <li class="menu-item {{ request()->routeIs('caisse.*') ? 'active' : '' }}">
+                    @can('access_cashier')
+                    <li class="menu-item {{ request()->routeIs('caisse.index') || request()->routeIs('caisse.payer') ? 'active' : '' }}">
                         <a href="{{ route('caisse.index') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-dollar-circle"></i>
                             <div>Caisse</div>
                         </a>
                     </li>
                     
-                    <!-- Paiements -->
-                    <li class="menu-item {{ request()->routeIs('caisse.*') ? 'active' : '' }}">
-                        <a href="{{ route('caisse.index') }}" class="menu-link">
+                    <!-- Paiements (Historique) -->
+                    <li class="menu-item {{ request()->routeIs('caisse.historique') ? 'active' : '' }}">
+                        <a href="{{ route('caisse.historique') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-credit-card"></i>
-                            <div>Paiements</div>
+                            <div>Historique Paiements</div>
                         </a>
                     </li>
-
+                    @endcan
+ 
                     <!-- Avis -->
-                    @can('view_dashboard')
+                    @can('view_avis')
                     <li class="menu-item {{ request()->routeIs('avis.*') ? 'active' : '' }}">
                         <a href="{{ route('avis.index') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-star"></i>
@@ -172,20 +184,25 @@
                                     <div>Clients</div>
                                 </a>
                             </li>
+                            @can('manage_loyalty')
                             <li class="menu-item {{ request()->routeIs('fidelity.*') ? 'active' : '' }}">
                                 <a href="{{ route('fidelity.edit') }}" class="menu-link">
                                     <div>Paramètres points fidélité</div>
                                 </a>
                             </li>
+                            @endcan
+                            @can('manage_payment_methods')
                             <li class="menu-item {{ request()->routeIs('payment-methods.*') ? 'active' : '' }}">
                                 <a href="{{ route('payment-methods.edit') }}" class="menu-link">
                                     <div>Moyens de paiement (Wave / Orange Money)</div>
                                 </a>
                             </li>
+                            @endcan
                         </ul>
                     </li>
                     @endcan
                 </ul>
+      </ul>
             </aside>
             <!-- / Menu -->
             
