@@ -167,7 +167,7 @@ class FactureService
     public function genererPDFThermal(Commande $commande): \Barryvdh\DomPDF\PDF
     {
         // Charger les relations
-        $commande->load(['table', 'produits', 'user', 'paiements.moyen_paiement', 'paiements.facture']);
+        $commande->load(['table', 'produits', 'user', 'paiements.facture']);
         
         $facture = $commande->facture;
         $paiement = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)->latest()->first();

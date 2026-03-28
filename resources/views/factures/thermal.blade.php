@@ -89,7 +89,7 @@
         
         @if(isset($paiement))
         <div style="margin-top: 2mm;">
-            <div>Payé par: {{ $paiement->moyen_paiement->displayName }}</div>
+            <div>Payé par: {{ $paiement->moyen_paiement->displayName() }}</div>
             @if($paiement->moyen_paiement->value === 'especes')
                 <div>Reçu: {{ number_format($paiement->montant_recu, 0, ',', ' ') }}</div>
                 <div>Rendu: {{ number_format($paiement->monnaie_rendue, 0, ',', ' ') }}</div>
