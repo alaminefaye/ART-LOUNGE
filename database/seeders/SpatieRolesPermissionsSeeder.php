@@ -23,9 +23,9 @@ class SpatieRolesPermissionsSeeder extends Seeder
             'stock' => ['manage_stock', 'view_stock', 'manage_suppliers', 'manage_recipes', 'perform_inventory'],
             'cashier' => ['manage_cashier', 'view_cashier', 'process_payments', 'generate_invoices'],
             'reservations' => ['manage_reservations', 'view_reservations', 'confirm_reservations'],
-            'customers' => ['manage_customers', 'view_customers', 'manage_loyalty', 'manage_promotions'],
-            'reports' => ['view_reports', 'export_reports', 'view_dashboard'],
-            'settings' => ['manage_settings', 'view_settings'],
+            'customers' => ['manage_customers', 'view_customers', 'manage_loyalty', 'manage_promotions', 'view_avis', 'manage_avis', 'manage_fidelity', 'view_fidelity'],
+            'reports' => ['view_reports', 'export_reports', 'view_dashboard', 'view_statistics'],
+            'settings' => ['manage_settings', 'view_settings', 'manage_payment_methods', 'view_payment_methods'],
         ];
 
         foreach ($permissionsByGroup as $group => $permissions) {
@@ -45,9 +45,10 @@ class SpatieRolesPermissionsSeeder extends Seeder
         $manager->syncPermissions([
             'view_dashboard', 'manage_tables', 'view_tables', 'manage_menu', 'view_menu',
             'create_orders', 'view_orders', 'update_orders', 'update_order_status', 'cancel_orders',
-            'manage_stock', 'view_stock', 'manage_reservations',
+            'manage_stock', 'view_stock', 'manage_reservations', 'view_roles', 'view_users',
             'view_reservations', 'manage_customers', 'view_customers', 'manage_promotions',
-            'view_reports', 'export_reports', 'manage_settings', 'view_settings'
+            'view_reports', 'export_reports', 'manage_settings', 'view_settings', 'view_avis',
+            'manage_loyalty', 'view_fidelity', 'manage_fidelity'
         ]);
 
         $caissier = Role::firstOrCreate(['name' => 'caissier', 'guard_name' => 'web']);
@@ -59,7 +60,7 @@ class SpatieRolesPermissionsSeeder extends Seeder
 
         $serveur = Role::firstOrCreate(['name' => 'serveur', 'guard_name' => 'web']);
         $serveur->syncPermissions([
-            'view_tables', 'view_menu', 'create_orders', 'view_orders', 'update_orders', 'view_reservations'
+            'view_dashboard', 'view_tables', 'view_menu', 'create_orders', 'view_orders', 'update_orders', 'view_reservations', 'update_order_status', 'update_table_status'
         ]);
 
         // Rôle client pour les utilisateurs de l'application mobile

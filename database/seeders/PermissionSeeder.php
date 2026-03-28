@@ -19,6 +19,7 @@ class PermissionSeeder extends Seeder
             
             // Gestion des rôles et permissions
             ['name' => 'manage_roles', 'display_name' => 'Gérer les rôles', 'description' => 'Créer, modifier, supprimer des rôles', 'group' => 'roles'],
+            ['name' => 'view_roles', 'display_name' => 'Voir les rôles', 'description' => 'Consulter la liste des rôles', 'group' => 'roles'],
             ['name' => 'assign_roles', 'display_name' => 'Attribuer des rôles', 'description' => 'Attribuer des rôles aux utilisateurs', 'group' => 'roles'],
             
             // Gestion des tables
@@ -61,11 +62,13 @@ class PermissionSeeder extends Seeder
             ['name' => 'view_customers', 'display_name' => 'Voir les clients', 'description' => 'Consulter les clients', 'group' => 'customers'],
             ['name' => 'manage_loyalty', 'display_name' => 'Gérer la fidélité', 'description' => 'Configurer le programme de fidélité', 'group' => 'customers'],
             ['name' => 'manage_promotions', 'display_name' => 'Gérer les promotions', 'description' => 'Créer et gérer des promotions', 'group' => 'customers'],
+            ['name' => 'view_avis', 'display_name' => 'Voir les avis', 'description' => 'Consulter les avis clients', 'group' => 'customers'],
             
             // Statistiques et rapports
             ['name' => 'view_statistics', 'display_name' => 'Voir les statistiques', 'description' => 'Accéder aux statistiques', 'group' => 'reports'],
             ['name' => 'view_reports', 'display_name' => 'Voir les rapports', 'description' => 'Consulter les rapports', 'group' => 'reports'],
             ['name' => 'export_reports', 'display_name' => 'Exporter les rapports', 'description' => 'Exporter les rapports en PDF/Excel', 'group' => 'reports'],
+            ['name' => 'view_dashboard', 'display_name' => 'Voir le dashboard', 'description' => 'Accéder au tableau de bord principal', 'group' => 'reports'],
             
             // Paramètres système
             ['name' => 'manage_settings', 'display_name' => 'Gérer les paramètres', 'description' => 'Configurer les paramètres système', 'group' => 'settings'],
