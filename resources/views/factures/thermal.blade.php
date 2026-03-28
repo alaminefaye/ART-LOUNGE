@@ -109,6 +109,21 @@
         .payment-block div {
             margin-bottom: 0.5mm;
         }
+        .client-block {
+            margin-top: 1.5mm;
+            font-size: 8px;
+            word-wrap: break-word;
+        }
+        .client-block .client-title {
+            font-weight: bold;
+            margin-bottom: 0.5mm;
+        }
+        .caissier-line {
+            margin-top: 2mm;
+            font-size: 8px;
+            text-align: center;
+            word-wrap: break-word;
+        }
         .footer { margin-top: 4mm; font-size: 8px; }
     </style>
 </head>
@@ -130,6 +145,16 @@
 
     @if(isset($table))
     <div class="text-center bold" style="margin-top: 1.5mm;">TABLE: {{ $table->numero }}</div>
+    @endif
+
+    @if(!empty($client_display))
+    <div class="client-block text-center">
+        <div class="client-title">Client</div>
+        <div>{{ $client_display['nom_complet'] }}</div>
+        @if(!empty($client_display['telephone']))
+            <div>Tél. {{ $client_display['telephone'] }}</div>
+        @endif
+    </div>
     @endif
 
     <div class="divider"></div>
@@ -180,6 +205,10 @@
             @endif
         @endif
     </div>
+    @endif
+
+    @if(!empty($caissier_name))
+    <div class="caissier-line">Encaissé par : {{ $caissier_name }}</div>
     @endif
 
     <div class="footer text-center">

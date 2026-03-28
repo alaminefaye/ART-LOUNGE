@@ -22,6 +22,8 @@ final class DolceVitaMenu
             'Fast food',
             'Garnitures',
             'Desserts',
+            'MENU BOISSONS — Cocktails alcoolisés',
+            'MENU BOISSONS — Cocktails sans alcool',
         ];
     }
 }

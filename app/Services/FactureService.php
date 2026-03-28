@@ -61,8 +61,8 @@ class FactureService
             'logo_base64' => $logoBase64,
             'restaurant' => [
                 'nom' => config('app.name', 'Restaurant'),
-                'adresse' => 'Dakar, Sénégal', // À configurer
-                'telephone' => '+221 XX XXX XX XX', // À configurer
+                'adresse' => 'Nimbo ond point de la source',
+                'telephone' => '0708792031',
                 'email' => 'contact@resto.sn', // À configurer
             ],
         ];
@@ -152,8 +152,8 @@ class FactureService
             'logo_base64' => $logoBase64,
             'restaurant' => [
                 'nom' => config('app.name', 'Restaurant'),
-                'adresse' => 'Dakar, Sénégal',
-                'telephone' => '+221 XX XXX XX XX',
+                'adresse' => 'Nimbo ond point de la source',
+                'telephone' => '0708792031',
                 'email' => 'contact@resto.sn',
             ],
         ];
@@ -166,11 +166,12 @@ class FactureService
      */
     public function genererPDFThermal(Commande $commande): \Barryvdh\DomPDF\PDF
     {
-        // Charger les relations
-        $commande->load(['table', 'produits', 'user', 'paiements.facture']);
-        
+        // Charger les relations (client + user du paiement pour ticket caisse)
+        $commande->load(['table', 'produits', 'user', 'client', 'paiements.facture']);
+
         $facture = $commande->facture;
         $paiement = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)->latest()->first();
+        $paiement?->loadMissing('user');
 
         if (!$facture) {
             $facture = new Facture([
@@ -188,17 +189,39 @@ class FactureService
             $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
         }
 
+        $caissierName = $paiement?->user?->name;
+
+        $clientDisplay = null;
+        if ($commande->user && $commande->user->hasRole('client')) {
+            $commande->loadMissing('client');
+            $commande->user->loadMissing('client');
+            $profil = $commande->client ?? $commande->user->client;
+            if ($profil) {
+                $clientDisplay = [
+                    'nom_complet' => trim($profil->nom_complet),
+                    'telephone' => $profil->telephone ? (string) $profil->telephone : '',
+                ];
+            } else {
+                $clientDisplay = [
+                    'nom_complet' => (string) $commande->user->name,
+                    'telephone' => $commande->user->phone ? (string) $commande->user->phone : '',
+                ];
+            }
+        }
+
         $data = [
             'facture' => $facture,
             'commande' => $commande,
             'table' => $commande->table,
             'products' => $commande->produits,
             'paiement' => $paiement,
+            'caissier_name' => $caissierName,
+            'client_display' => $clientDisplay,
             'logo_base64' => $logoBase64,
             'restaurant' => [
                 'nom' => config('app.name', 'Restaurant'),
-                'adresse' => 'Dakar, Sénégal',
-                'telephone' => '+221 XX XXX XX XX',
+                'adresse' => 'Nimbo ond point de la source',
+                'telephone' => '0708792031',
                 'email' => 'contact@resto.sn',
             ],
         ];

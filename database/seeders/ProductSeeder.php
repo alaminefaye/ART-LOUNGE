@@ -123,6 +123,27 @@ class ProductSeeder extends Seeder
             ['categorie' => 'Desserts', 'nom' => 'Cake au citron', 'description' => 'Menu Dolce Vita Palace', 'prix' => 3000],
             ['categorie' => 'Desserts', 'nom' => 'Crêpes au Nutella', 'description' => 'Menu Dolce Vita Palace', 'prix' => 3000],
             ['categorie' => 'Desserts', 'nom' => 'Fondant au chocolat', 'description' => 'Menu Dolce Vita Palace', 'prix' => 3000],
+
+            // ——— MENU BOISSONS — Cocktails alcoolisés ———
+            ['categorie' => 'MENU BOISSONS — Cocktails alcoolisés', 'nom' => 'Mojito', 'description' => 'Citron, sirop de canne, menthe fraîche, rhum blanc — Menu Dolce Vita Palace', 'prix' => 5000],
+            ['categorie' => 'MENU BOISSONS — Cocktails alcoolisés', 'nom' => 'Pina colada', 'description' => 'Rhum, jus d\'ananas, lait de coco, sirop de canne — Menu Dolce Vita Palace', 'prix' => 5000],
+            ['categorie' => 'MENU BOISSONS — Cocktails alcoolisés', 'nom' => 'Rosa beach', 'description' => 'Sirop de citron, sirop d\'orange, jus d\'ananas, grenadine — Menu Dolce Vita Palace', 'prix' => 5000],
+            ['categorie' => 'MENU BOISSONS — Cocktails alcoolisés', 'nom' => 'Bora Bora', 'description' => 'Passion, jus de citron, ananas, grenadine — Menu Dolce Vita Palace', 'prix' => 5000],
+            ['categorie' => 'MENU BOISSONS — Cocktails alcoolisés', 'nom' => 'Long island', 'description' => 'Rhum, tequila, vodka, gin, Cointreau, Coca-Cola — Menu Dolce Vita Palace', 'prix' => 5000],
+            ['categorie' => 'MENU BOISSONS — Cocktails alcoolisés', 'nom' => 'Margharita', 'description' => 'Cointreau, citron — Menu Dolce Vita Palace', 'prix' => 5000],
+            ['categorie' => 'MENU BOISSONS — Cocktails alcoolisés', 'nom' => 'Limonade', 'description' => 'Jus de citron, sirop de canne, tranche de citron, sirop de menthe — Menu Dolce Vita Palace', 'prix' => 5000],
+            ['categorie' => 'MENU BOISSONS — Cocktails alcoolisés', 'nom' => 'Chericoco', 'description' => 'Crème fraîche, crème chantilly, lait de coco, Nutella, rhum blanc — Menu Dolce Vita Palace', 'prix' => 5000],
+            ['categorie' => 'MENU BOISSONS — Cocktails alcoolisés', 'nom' => 'Dolce Vita Palace sunset', 'description' => 'Jack Daniel\'s, miel, jus de citron, sirop de gingembre — Menu Dolce Vita Palace', 'prix' => 10000],
+
+            // ——— MENU BOISSONS — Cocktails sans alcool ———
+            ['categorie' => 'MENU BOISSONS — Cocktails sans alcool', 'nom' => 'Mojito', 'description' => 'Citron, sirop de canne, menthe fraîche — Menu Dolce Vita Palace', 'prix' => 4500],
+            ['categorie' => 'MENU BOISSONS — Cocktails sans alcool', 'nom' => 'Pina colada', 'description' => 'Jus d\'ananas, lait de coco, sirop de canne — Menu Dolce Vita Palace', 'prix' => 4500],
+            ['categorie' => 'MENU BOISSONS — Cocktails sans alcool', 'nom' => 'Rosa beach', 'description' => 'Sirop de citron, sirop d\'orange, jus d\'ananas, grenadine — Menu Dolce Vita Palace', 'prix' => 4500],
+            ['categorie' => 'MENU BOISSONS — Cocktails sans alcool', 'nom' => 'Bora Bora', 'description' => 'Passion, jus de citron, ananas, grenadine — Menu Dolce Vita Palace', 'prix' => 4500],
+            ['categorie' => 'MENU BOISSONS — Cocktails sans alcool', 'nom' => 'Margharita', 'description' => 'Cointreau, citron — Menu Dolce Vita Palace', 'prix' => 4500],
+            ['categorie' => 'MENU BOISSONS — Cocktails sans alcool', 'nom' => 'Limonade', 'description' => 'Jus de citron, sirop de canne, tranche de citron, sirop de menthe — Menu Dolce Vita Palace', 'prix' => 4500],
+            ['categorie' => 'MENU BOISSONS — Cocktails sans alcool', 'nom' => 'Chericoco', 'description' => 'Crème fraîche, crème chantilly, lait de coco, Nutella — Menu Dolce Vita Palace', 'prix' => 5000],
+            ['categorie' => 'MENU BOISSONS — Cocktails sans alcool', 'nom' => 'Dolce Vita Palace sunset', 'description' => 'Miel, jus de citron, sirop de gingembre — Menu Dolce Vita Palace', 'prix' => 8000],
         ];
 
         $allowedProductIds = [];
