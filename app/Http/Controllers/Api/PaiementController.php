@@ -11,6 +11,7 @@ use App\Enums\StatutPaiement;
 use App\Enums\MoyenPaiement;
 use App\Enums\OrderStatus;
 use App\Enums\TableStatus;
+use App\Models\CaisseSession;
 use App\Services\FactureService;
 use App\Services\FCMService;
 use Illuminate\Http\Request;
@@ -69,6 +70,21 @@ class PaiementController extends Controller
             $user = $request->user();
             $moyenPaiement = MoyenPaiement::from($validated['moyen_paiement']);
             $pointsUtilises = (int) ($validated['points_utilises'] ?? 0);
+
+            // Si c'est un membre du staff, vérifier la session de caisse
+            $session = null;
+            if ($user->hasAnyRole(['admin', 'manager', 'caissier'])) {
+                $session = CaisseSession::where('user_id', $user->id)
+                    ->where('statut', 'ouverte')
+                    ->first();
+
+                if (!$session) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Veuillez ouvrir une session de caisse avant d\'encaisser.',
+                    ], 403);
+                }
+            }
 
             if ($commande->paiements()->where('statut', StatutPaiement::Valide)->sum('montant') >= (float) $commande->montant_total) {
                 return response()->json([
@@ -132,6 +148,7 @@ class PaiementController extends Controller
                     'commande_id' => $commande->id,
                     'user_id' => $user->id,
                     'client_id' => $client->id,
+                    'caisse_session_id' => $session ? $session->id : null,
                     'moyen_paiement' => MoyenPaiement::PointsFidelite,
                     'montant' => $montantPoints,
                     'statut' => StatutPaiement::Valide,
@@ -180,6 +197,7 @@ class PaiementController extends Controller
             $paiement = Paiement::create([
                 'commande_id' => $commande->id,
                 'user_id' => $user->id,
+                'caisse_session_id' => $session ? $session->id : null,
                 'montant' => $commande->montant_total,
                 'moyen_paiement' => $moyenPaiement,
                 'statut' => StatutPaiement::EnAttente,
@@ -377,6 +395,20 @@ class PaiementController extends Controller
         ]);
 
         return DB::transaction(function () use ($validated, $request) {
+            $user = $request->user();
+            
+            // Vérifier la session de caisse pour le staff
+            $session = CaisseSession::where('user_id', $user->id)
+                ->where('statut', 'ouverte')
+                ->first();
+
+            if (!$session) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Veuillez ouvrir une session de caisse avant d\'encaisser.',
+                ], 403);
+            }
+
             $commande = Commande::with(['table', 'products'])->findOrFail($validated['commande_id']);
 
             // Vérifier si la commande n'est pas déjà payée
@@ -404,6 +436,7 @@ class PaiementController extends Controller
             $paiement = Paiement::create([
                 'commande_id' => $commande->id,
                 'user_id' => $request->user()->id,
+                'caisse_session_id' => $session->id,
                 'montant' => $commande->montant_total,
                 'moyen_paiement' => MoyenPaiement::Especes,
                 'statut' => StatutPaiement::Valide, // Validé directement pour espèces

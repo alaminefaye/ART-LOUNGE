@@ -43,6 +43,13 @@ class ApiConfig {
   static String validatePayment(int id) => '/paiements/$id/valider';
   static const String payCash = '/paiements/especes';
 
+  // Caisse Sessions
+  static const String caisseSessions = '/caisse/sessions';
+  static const String currentCaisseSession = '/caisse/sessions/current';
+  static const String openCaisseSession = '/caisse/sessions/ouvrir';
+  static const String closeCaisseSession = '/caisse/sessions/fermer';
+  static const String bilanCaisseSession = '/caisse/sessions/bilan';
+
   // Avis
   static const String avis = '/avis';
   static String avisForOrder(int commandeId) => '/avis/commande/$commandeId';

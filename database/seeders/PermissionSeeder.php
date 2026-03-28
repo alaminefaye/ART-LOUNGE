@@ -51,6 +51,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'process_payments', 'display_name' => 'Traiter les paiements', 'description' => 'Valider les paiements', 'group' => 'cashier'],
             ['name' => 'view_payments', 'display_name' => 'Voir les paiements', 'description' => 'Consulter les paiements', 'group' => 'cashier'],
             ['name' => 'refund_payments', 'display_name' => 'Rembourser les paiements', 'description' => 'Effectuer des remboursements', 'group' => 'cashier'],
+            ['name' => 'manage_sessions', 'display_name' => 'Gérer les sessions de caisse', 'description' => 'Ouvrir et fermer les sessions de caisse', 'group' => 'cashier'],
             
             // Gestion des réservations
             ['name' => 'manage_reservations', 'display_name' => 'Gérer les réservations', 'description' => 'Créer, modifier, annuler des réservations', 'group' => 'reservations'],

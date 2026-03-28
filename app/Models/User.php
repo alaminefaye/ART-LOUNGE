@@ -69,6 +69,8 @@ class User extends Authenticatable
         return $this->hasOne(Client::class);
     }
 
-    // Toutes les méthodes de gestion des rôles et permissions sont fournies par Spatie\Permission\Traits\HasRoles
-    // hasRole(), assignRole(), removeRole(), hasPermissionTo(), givePermissionTo(), etc.
+    public function caisseSessions()
+    {
+        return $this->hasMany(CaisseSession::class);
+    }
 }

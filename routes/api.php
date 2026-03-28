@@ -209,6 +209,22 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ==========================================
+    // SESSIONS DE CAISSE - Gestion des shifts
+    // ==========================================
+    Route::prefix('caisse/sessions')->group(function () {
+        Route::get('/', [App\Http\Controllers\Api\CaisseSessionController::class, 'index'])
+            ->middleware('permission:manage_sessions');
+        Route::get('/current', [App\Http\Controllers\Api\CaisseSessionController::class, 'current'])
+            ->middleware('permission:manage_sessions');
+        Route::post('/ouvrir', [App\Http\Controllers\Api\CaisseSessionController::class, 'ouvrir'])
+            ->middleware('permission:manage_sessions');
+        Route::get('/bilan', [App\Http\Controllers\Api\CaisseSessionController::class, 'bilan'])
+            ->middleware('permission:manage_sessions');
+        Route::post('/fermer', [App\Http\Controllers\Api\CaisseSessionController::class, 'fermer'])
+            ->middleware('permission:manage_sessions');
+    });
+
+    // ==========================================
     // AVIS - Notes & commentaires (clients + staff)
     // ==========================================
     Route::prefix('avis')->group(function () {

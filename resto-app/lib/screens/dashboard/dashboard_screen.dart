@@ -19,6 +19,7 @@ import '../tables/qr_scan_screen.dart';
 import '../../models/table.dart' as models;
 import '../../models/cart.dart';
 import '../home/home_screen.dart';
+import '../caisse/session_management_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -705,6 +706,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           );
                         },
+                      ),
+                    
+                    // SESSION DE CAISSE
+                    if (isCaissier || isManager || isAdmin)
+                      _buildDashboardCard(
+                        context,
+                        'Session de Caisse',
+                        Icons.account_balance_wallet,
+                        Colors.blueGrey,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SessionManagementScreen(),
+                          ),
+                        ).then((_) => _loadDashboardData()),
                       ),
                   ],
                 ),

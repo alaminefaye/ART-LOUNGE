@@ -11,6 +11,7 @@ use App\Enums\StatutPaiement;
 use App\Enums\OrderStatus;
 use App\Models\Client;
 use App\Models\FidelitySetting;
+use App\Models\CaisseSession;
 use App\Services\FactureService;
 use App\Services\FCMService;
 use App\Services\FidelityService;
@@ -114,6 +115,16 @@ class PaiementController extends Controller
                             ->with('error', 'Cette commande a déjà été payée.');
         }
 
+        // Vérifier si une session de caisse est ouverte
+        $session = CaisseSession::where('user_id', auth()->id())
+            ->where('statut', 'ouverte')
+            ->first();
+
+        if (!$session) {
+            return redirect()->route('caisse.sessions.index')
+                            ->with('error', 'Vous devez ouvrir une session de caisse avant d\'encaisser des paiements.');
+        }
+
         $pointsUtilises = (int) ($validated['points_utilises'] ?? 0);
         $moyenPaiement = MoyenPaiement::from($validated['moyen_paiement']);
 
@@ -130,7 +141,7 @@ class PaiementController extends Controller
             }
         }
 
-        return DB::transaction(function () use ($validated, $commande, $pointsUtilises, $moyenPaiement) {
+        return DB::transaction(function () use ($validated, $commande, $pointsUtilises, $moyenPaiement, $session) {
             $commande->calculerMontantTotal(); // Recalculer pour inclure les frais de salle finaux
             
             $settings = FidelitySetting::get();
@@ -152,6 +163,7 @@ class PaiementController extends Controller
                     'commande_id' => $commande->id,
                     'user_id' => auth()->id(),
                     'client_id' => $client->id,
+                    'caisse_session_id' => $session->id,
                     'moyen_paiement' => MoyenPaiement::PointsFidelite,
                     'montant' => $montantPoints,
                     'statut' => StatutPaiement::Valide,
@@ -194,6 +206,7 @@ class PaiementController extends Controller
                     'commande_id' => $commande->id,
                     'user_id' => auth()->id(),
                     'client_id' => $validated['client_id'] ?? null,
+                    'caisse_session_id' => $session->id,
                     'moyen_paiement' => $moyenPaiement,
                     'montant' => $resteAPayer,
                     'montant_recu' => $montantRecu,

@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\MenuController;
 use App\Http\Controllers\Web\CommandeController;
 use App\Http\Controllers\Web\PaiementController;
 use App\Http\Controllers\Web\AvisController;
+use App\Http\Controllers\Web\CaisseSessionController;
 use App\Http\Controllers\ReportController;
 
 // Authentication Routes
@@ -112,6 +113,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('caisse/facture/{facture}', [PaiementController::class, 'afficherFacture'])->name('caisse.facture');
         Route::get('caisse/facture/{facture}/telecharger', [PaiementController::class, 'telechargerFacture'])->name('caisse.facture.telecharger');
         Route::get('caisse/historique', [PaiementController::class, 'historique'])->name('caisse.historique');
+
+        // Sessions de Caisse
+        Route::prefix('caisse/sessions')->name('caisse.sessions.')->group(function () {
+            Route::get('/', [CaisseSessionController::class, 'index'])->name('index');
+            Route::post('/ouvrir', [CaisseSessionController::class, 'ouvrir'])->name('ouvrir');
+            Route::get('/bilan', [CaisseSessionController::class, 'bilan'])->name('bilan');
+            Route::post('/fermer', [CaisseSessionController::class, 'fermer'])->name('fermer');
+        });
     });
 
     // Avis & Rapports

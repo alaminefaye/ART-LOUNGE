@@ -65,6 +65,7 @@ class RoleSeeder extends Seeder
             'view_customers',
             'view_reservations',
             'view_statistics',
+            'manage_sessions',
         ])->get();
         $caissier->permissions()->syncWithoutDetaching($caissierPermissions);
 

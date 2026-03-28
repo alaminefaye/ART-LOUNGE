@@ -15,6 +15,7 @@ class Paiement extends Model
         'commande_id',
         'user_id',
         'client_id',
+        'caisse_session_id',
         'montant',
         'moyen_paiement',
         'statut',
@@ -24,6 +25,11 @@ class Paiement extends Model
         'notes',
         'points_utilises',
     ];
+
+    public function caisseSession(): BelongsTo
+    {
+        return $this->belongsTo(CaisseSession::class);
+    }
 
     protected $casts = [
         'moyen_paiement' => \App\Enums\MoyenPaiement::class,

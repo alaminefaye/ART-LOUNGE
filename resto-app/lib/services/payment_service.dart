@@ -185,7 +185,11 @@ class PaymentService {
           message = data['message'] as String;
         }
         if (e.response?.statusCode == 403) {
-          message = 'Non autorisé. Veuillez vous reconnecter.';
+          if (data is Map && data['message'] != null) {
+            message = data['message'] as String;
+          } else {
+            message = 'Action non autorisée. Vérifiez si votre session de caisse est ouverte.';
+          }
         }
       }
       return {
