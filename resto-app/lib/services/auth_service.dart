@@ -135,10 +135,15 @@ class AuthService extends ChangeNotifier {
 
     try {
       final result = await Connectivity().checkConnectivity();
-      if (result.isEmpty) return false;
-      if (result.contains(ConnectivityResult.none) && result.length == 1)
+      if (result.isEmpty) {
         return false;
-      if (result.every((r) => r == ConnectivityResult.none)) return false;
+      }
+      if (result.contains(ConnectivityResult.none) && result.length == 1) {
+        return false;
+      }
+      if (result.every((r) => r == ConnectivityResult.none)) {
+        return false;
+      }
       return true;
     } catch (_) {
       return true; // En cas de doute, laisser tenter l'appel API
