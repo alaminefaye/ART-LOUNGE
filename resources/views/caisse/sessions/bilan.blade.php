@@ -1,6 +1,65 @@
 @extends('layouts.app')
 
+@push('page-css')
+<style>
+    @media print {
+        /* Masquer les éléments inutiles */
+        .layout-menu, .layout-navbar, .footer, .btn, .nav-item, .content-backdrop, .navbar-nav-right {
+            display: none !important;
+        }
+        
+        .layout-wrapper, .layout-container, .layout-page, .content-wrapper, .container-xxl {
+            padding: 0 !important;
+            margin: 0 !important;
+            display: block !important;
+        }
+
+        .card {
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+        }
+
+        body {
+            background: white !important;
+            padding: 20px !important;
+        }
+
+        .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+
+        .h2, h2 { font-size: 24pt !important; }
+        .h4, h4 { font-size: 18pt !important; }
+        .text-primary { color: #000 !important; }
+        
+        .row {
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        .col-md-8, .col-md-4 {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 0 0 100% !important;
+        }
+    }
+
+    .print-header {
+        display: none;
+    }
+</style>
+@endpush
+
 @section('content')
+<div class="print-header">
+    <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" style="height: 80px; margin-bottom: 10px;">
+    <h1>BILAN DE SESSION DE CAISSE</h1>
+    <p>Date d'impression : {{ now()->format('d/m/Y H:i') }}</p>
+</div>
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12 mb-4">
