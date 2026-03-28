@@ -6,6 +6,7 @@ import 'orders_history_screen.dart';
 import '../../widgets/app_header.dart';
 import '../auth/login_screen.dart';
 import '../auth/register_screen.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -231,7 +232,12 @@ class ProfileScreen extends StatelessWidget {
                         // Bouton Edit Profile
                         GestureDetector(
                           onTap: () {
-                            // TODO: Éditer le profil
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const EditProfileScreen(),
+                              ),
+                            );
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(

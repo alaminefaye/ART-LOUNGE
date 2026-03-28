@@ -21,6 +21,7 @@ class ApiConfig {
   static const String logout = '/auth/logout';
   static const String deleteAccount = '/auth/delete-account';
   static const String me = '/auth/me';
+  static const String updateProfile = '/auth/update-profile';
   static const String updateFcmToken = '/auth/fcm-token';
 
   // Tables

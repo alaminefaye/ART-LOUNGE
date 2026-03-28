@@ -156,7 +156,7 @@ class AuthController extends Controller
                 'token_type' => 'Bearer',
             ], 201);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Erreur de validation',
@@ -445,6 +445,64 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'Impossible de supprimer le compte pour le moment. Réessayez plus tard.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Mettre à jour le profil de l'utilisateur
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+        ]);
+
+        try {
+            DB::transaction(function () use ($user, $validated) {
+                // Mettre à jour l'utilisateur
+                $user->update([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'phone' => $validated['phone'],
+                ]);
+
+                // Mettre à jour le client associé si existe
+                $client = $user->client;
+                if ($client) {
+                    // Tenter de séparer nom et prénom à partir du nom complet
+                    $parts = explode(' ', $validated['name'], 2);
+                    $nom = $parts[0];
+                    $prenom = count($parts) > 1 ? $parts[1] : '';
+
+                    $client->update([
+                        'nom' => $nom,
+                        'prenom' => $prenom,
+                        'email' => $validated['email'],
+                        'telephone' => $validated['phone'],
+                    ]);
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil mis à jour avec succès',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('updateProfile error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour du profil'
             ], 500);
         }
     }

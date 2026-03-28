@@ -377,6 +377,58 @@ class AuthService extends ChangeNotifier {
     return false;
   }
 
+  // Mettre à jour le profil
+  Future<Map<String, dynamic>> updateProfile({
+    required String name,
+    required String email,
+    required String phone,
+  }) async {
+    try {
+      final response = await _apiService.put(
+        ApiConfig.updateProfile,
+        data: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        if (data['success'] == true && data['user'] != null) {
+          // Mettre à jour l'utilisateur localement
+          final userData = data['user'] as Map<String, dynamic>;
+          
+          if (_currentUser != null) {
+            // On garde les infos de rôle/client et on met à jour le reste
+            _currentUser = User(
+              id: _currentUser!.id,
+              name: userData['name'] ?? name,
+              email: userData['email'] ?? email,
+              phone: userData['phone'] ?? phone,
+              roles: _currentUser!.roles,
+              pointsFidelite: _currentUser!.pointsFidelite,
+              valeurFcfa1Point: _currentUser!.valeurFcfa1Point,
+              waveEnabled: _currentUser!.waveEnabled,
+              orangeMoneyEnabled: _currentUser!.orangeMoneyEnabled,
+            );
+            notifyListeners();
+          }
+          return {'success': true, 'message': data['message']};
+        }
+      }
+      return {
+        'success': false,
+        'message': response.data['message'] ?? 'Erreur lors de la mise à jour'
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur réseau: ${e.toString()}'
+      };
+    }
+  }
+
   // Sauvegarder le token
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
