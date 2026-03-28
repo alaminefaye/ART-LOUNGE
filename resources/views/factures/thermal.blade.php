@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <title>Ticket #{{ $facture->numero_facture }}</title>
     <style>
+        /*
+         * Ticket 80 mm (DomPDF) : éviter tout débordement à droite — ne pas utiliser width:100%
+         * sur body avec padding sans largeur max explicite en mm ; marges page légères.
+         */
         @page {
             size: 80mm auto;
-            margin: 0;
+            margin: 1.5mm 2mm;
         }
         * {
             box-sizing: border-box;
@@ -17,11 +21,12 @@
         }
         body {
             font-family: DejaVu Sans, sans-serif;
-            font-size: 10px;
+            font-size: 9px;
             width: 100%;
-            margin: 0;
-            padding: 3mm 1.5mm 4mm 1.5mm;
-            line-height: 1.25;
+            max-width: 76mm;
+            margin: 0 auto;
+            padding: 2mm 0 3mm 0;
+            line-height: 1.3;
             color: #000;
             text-align: left;
         }
@@ -31,64 +36,80 @@
         .logo {
             max-width: 100%;
             height: auto;
-            margin-bottom: 3mm;
+            margin-bottom: 2mm;
         }
         .divider {
             border-top: 1px dashed #000;
             margin: 2mm 0;
         }
-        .resto-name { font-size: 14px; margin-bottom: 1mm; }
+        .resto-name {
+            font-size: 12px;
+            margin-bottom: 1mm;
+            word-wrap: break-word;
+        }
+        .header {
+            max-width: 100%;
+            word-wrap: break-word;
+        }
 
-        /* Tableaux : DomPDF gère mal flex ; largeurs % stables sur 80mm */
+        /* Tableaux : colonnes resserrées ; pas de nowrap sur les montants (retour à la ligne si besoin) */
         table.ticket-table {
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
-            font-size: 9px;
+            font-size: 8px;
         }
         table.ticket-table th,
         table.ticket-table td {
-            padding: 0.5mm 0;
+            padding: 0.4mm 0;
             vertical-align: top;
             word-wrap: break-word;
-            overflow-wrap: break-word;
         }
         table.ticket-table .col-article {
-            width: 46%;
+            width: 52%;
             text-align: left;
-            padding-right: 1mm;
+            padding-right: 0.5mm;
         }
         table.ticket-table .col-qte {
-            width: 14%;
+            width: 13%;
             text-align: center;
-            white-space: nowrap;
         }
         table.ticket-table .col-total {
-            width: 40%;
+            width: 35%;
             text-align: right;
-            padding-left: 1mm;
-            white-space: nowrap;
+            padding-left: 0.5mm;
+            font-size: 8px;
         }
         table.totals-table {
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
-            font-size: 10px;
+            font-size: 9px;
             margin-top: 2mm;
         }
         table.totals-table td {
-            padding: 0.5mm 0;
+            padding: 0.4mm 0;
             vertical-align: top;
+            word-wrap: break-word;
         }
         table.totals-table .label {
-            width: 42%;
+            width: 38%;
         }
         table.totals-table .amount {
-            width: 58%;
+            width: 62%;
             text-align: right;
-            white-space: nowrap;
+            font-size: 9px;
         }
-        .footer { margin-top: 5mm; font-size: 8px; }
+        .payment-block {
+            margin-top: 2mm;
+            font-size: 8px;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        .payment-block div {
+            margin-bottom: 0.5mm;
+        }
+        .footer { margin-top: 4mm; font-size: 8px; }
     </style>
 </head>
 <body>
@@ -142,7 +163,7 @@
     </table>
 
     @if(isset($paiement))
-    <div style="margin-top: 2mm; font-size: 9px;">
+    <div class="payment-block">
         <div>Payé par : {{ $paiement->moyen_paiement->displayName() }}</div>
         @if($paiement->moyen_paiement->value === 'especes')
             @if($paiement->montant_recu !== null)

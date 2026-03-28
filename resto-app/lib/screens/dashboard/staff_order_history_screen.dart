@@ -8,6 +8,13 @@ import '../../utils/formatters.dart';
 import '../../widgets/app_header.dart';
 import '../orders/order_detail_screen.dart';
 
+enum _DateSort {
+  /// Plus récent en premier (ordre décroissant)
+  recentFirst,
+  /// Plus ancien en premier (ordre croissant)
+  oldestFirst,
+}
+
 /// Liste complète des commandes (toutes dates) avec recherche et tri par date.
 class StaffOrderHistoryScreen extends StatefulWidget {
   const StaffOrderHistoryScreen({super.key});
@@ -24,7 +31,9 @@ class _StaffOrderHistoryScreenState extends State<StaffOrderHistoryScreen> {
 
   List<Order> _orders = [];
   bool _isLoading = true;
-  bool _newestFirst = true;
+  _DateSort _dateSort = _DateSort.recentFirst;
+  /// Incrémenté à chaque chargement : ignore les réponses obsolètes (courses async).
+  int _loadSeq = 0;
 
   @override
   void initState() {
@@ -39,26 +48,40 @@ class _StaffOrderHistoryScreenState extends State<StaffOrderHistoryScreen> {
     super.dispose();
   }
 
+  void _sortOrdersByDate(List<Order> list, _DateSort sort) {
+    list.sort((a, b) {
+      final c = a.createdAt.compareTo(b.createdAt);
+      return sort == _DateSort.recentFirst ? -c : c;
+    });
+  }
+
   Future<void> _load() async {
-    setState(() => _isLoading = true);
+    final seq = ++_loadSeq;
+    final sort = _dateSort;
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
     try {
       final list = await _orderService.getStaffOrderHistory(
         search: _searchController.text,
-        newestFirst: _newestFirst,
+        newestFirst: sort == _DateSort.recentFirst,
       );
-      if (mounted) {
-        setState(() {
-          _orders = list;
-          _isLoading = false;
-        });
+      if (!mounted || seq != _loadSeq) {
+        return;
       }
+      _sortOrdersByDate(list, sort);
+      setState(() {
+        _orders = list;
+        _isLoading = false;
+      });
     } catch (_) {
-      if (mounted) {
-        setState(() {
-          _orders = [];
-          _isLoading = false;
-        });
+      if (!mounted || seq != _loadSeq) {
+        return;
       }
+      setState(() {
+        _orders = [];
+        _isLoading = false;
+      });
     }
   }
 
@@ -123,23 +146,23 @@ class _StaffOrderHistoryScreenState extends State<StaffOrderHistoryScreen> {
                   const Text('Tri par date :'),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: SegmentedButton<bool>(
+                    child: SegmentedButton<_DateSort>(
                       segments: const [
-                        ButtonSegment<bool>(
-                          value: true,
+                        ButtonSegment<_DateSort>(
+                          value: _DateSort.recentFirst,
                           label: Text('Récent'),
                           icon: Icon(Icons.arrow_downward, size: 18),
                         ),
-                        ButtonSegment<bool>(
-                          value: false,
+                        ButtonSegment<_DateSort>(
+                          value: _DateSort.oldestFirst,
                           label: Text('Ancien'),
                           icon: Icon(Icons.arrow_upward, size: 18),
                         ),
                       ],
-                      selected: {_newestFirst},
-                      onSelectionChanged: (Set<bool> s) {
+                      selected: {_dateSort},
+                      onSelectionChanged: (Set<_DateSort> s) {
                         setState(() {
-                          _newestFirst = s.first;
+                          _dateSort = s.single;
                         });
                         _load();
                       },
