@@ -79,7 +79,9 @@ class CommandeController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $commandes->map(fn($c) => $this->formatCommande($c)),
+            'data' => $commandes->map(function (Commande $c) {
+                return $this->formatCommande($c);
+            }),
         ]);
     }
 
@@ -175,20 +177,30 @@ class CommandeController extends Controller
                 }
 
                 try {
-                $commande->produits()->attach($produit->id, [
-                    'quantite' => $item['quantite'],
-                    'prix_unitaire' => $produit->prix,
-                    'notes' => $item['notes'] ?? null,
-                    'statut' => 'envoye', // Directement envoyé à la création
-                ]);
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    Log::error('CommandeController::store - Erreur lors de l\'ajout du produit', [
-                        'produit_id' => $produit->id,
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
+                    $commande->produits()->attach($produit->id, [
+                        'quantite' => $item['quantite'],
+                        'prix_unitaire' => $produit->prix,
+                        'notes' => $item['notes'] ?? null,
+                        'statut' => 'envoye', // Directement envoyé à la création
                     ]);
-                    throw $e;
+                } catch (\Exception $e) {
+                    // Si l'erreur est liée à la colonne 'statut' (migration non lancée)
+                    // On essaie sans le champ statut
+                    if (str_contains($e->getMessage(), 'statut') || str_contains($e->getMessage(), 'column not found')) {
+                        try {
+                            $commande->produits()->attach($produit->id, [
+                                'quantite' => $item['quantite'],
+                                'prix_unitaire' => $produit->prix,
+                                'notes' => $item['notes'] ?? null,
+                            ]);
+                        } catch (\Exception $e2) {
+                            Log::error('CommandeController::store - Erreur critique pivot', ['error' => $e2->getMessage()]);
+                            throw $e2;
+                        }
+                    } else {
+                        Log::error('CommandeController::store - Erreur attach', ['error' => $e->getMessage()]);
+                        throw $e;
+                    }
                 }
             }
 
@@ -698,8 +710,19 @@ class CommandeController extends Controller
         try {
             // Utiliser whereHas au lieu du scope role() pour éviter l'erreur "There is no role named X"
             // si un rôle n'existe pas dans la base de données.
-            $tokens = User::whereHas('roles', function($q) {
-                $q->whereIn('name', ['serveur', 'manager', 'admin', 'superadmin']);
+            // Vérifier quels rôles existent réellement pour éviter l'exception Spatie
+            $rolesToNotify = ['serveur', 'manager', 'admin', 'superadmin'];
+            $existingRolesForTokens = \Spatie\Permission\Models\Role::whereIn('name', $rolesToNotify)
+                ->where('guard_name', 'web')
+                ->pluck('name')
+                ->toArray();
+
+            if (empty($existingRolesForTokens)) {
+                return;
+            }
+
+            $tokens = User::whereHas('roles', function($q) use ($existingRolesForTokens) {
+                $q->whereIn('name', $existingRolesForTokens);
             })
             ->whereNotNull('fcm_token')
             ->pluck('fcm_token')
@@ -745,11 +768,26 @@ class CommandeController extends Controller
             $this->fcmService->sendToTokens($tokens, $title, $body, $data);
 
             // Enregistrer en base pour la liste notifications (lu / non lu)
-            $users = User::whereHas('roles', function ($q) {
-                $q->whereIn('name', ['serveur', 'manager', 'admin', 'superadmin']);
+            // Récupérer les tokens des personnels (Serveurs, Managers, Admin)
+            $rolesToNotify = ['serveur', 'manager', 'admin', 'superadmin'];
+            
+            // On vérifie quels rôles existent réellement en base pour éviter les exceptions Spatie
+            $existingRoles = \Spatie\Permission\Models\Role::whereIn('name', $rolesToNotify)
+                ->where('guard_name', 'web')
+                ->pluck('name')
+                ->toArray();
+
+            if (empty($existingRoles)) {
+                 Log::warning("Aucun rôle de notification trouvé en base (" . implode(', ', $rolesToNotify) . "). Les notifications ne seront pas envoyées.");
+                 return;
+            }
+
+            $users = User::whereHas('roles', function ($q) use ($existingRoles) {
+                $q->whereIn('name', $existingRoles);
             })->whereNotNull('fcm_token')->get();
 
             foreach ($users as $u) {
+                /** @var User $u */
                 $u->notifications()->create([
                     'type' => 'commande',
                     'title' => $title,

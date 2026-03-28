@@ -212,7 +212,6 @@
                     </li>
                     @endcan
                 </ul>
-      </ul>
             </aside>
             <!-- / Menu -->
             

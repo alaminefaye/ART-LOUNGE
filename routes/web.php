@@ -27,12 +27,15 @@ Route::middleware(['auth'])->group(function () {
     
     // Tables
     Route::middleware(['can:view_tables'])->group(function () {
+        Route::middleware(['can:manage_tables'])->group(function () {
+            Route::get('tables/create', [TableController::class, 'create'])->name('tables.create');
+            Route::post('tables', [TableController::class, 'store'])->name('tables.store');
+        });
+
         Route::get('tables', [TableController::class, 'index'])->name('tables.index');
         Route::get('tables/{table}', [TableController::class, 'show'])->name('tables.show');
         
         Route::middleware(['can:manage_tables'])->group(function () {
-            Route::get('tables/create', [TableController::class, 'create'])->name('tables.create');
-            Route::post('tables', [TableController::class, 'store'])->name('tables.store');
             Route::get('tables/{table}/edit', [TableController::class, 'edit'])->name('tables.edit');
             Route::put('tables/{table}', [TableController::class, 'update'])->name('tables.update');
             Route::delete('tables/{table}', [TableController::class, 'destroy'])->name('tables.destroy');
@@ -42,12 +45,15 @@ Route::middleware(['auth'])->group(function () {
     
     // Réservations
     Route::middleware(['can:view_reservations'])->group(function () {
+        Route::middleware(['can:manage_reservations'])->group(function () {
+            Route::get('reservations/create', [\App\Http\Controllers\Web\ReservationController::class, 'create'])->name('reservations.create');
+            Route::post('reservations', [\App\Http\Controllers\Web\ReservationController::class, 'store'])->name('reservations.store');
+        });
+
         Route::get('reservations', [\App\Http\Controllers\Web\ReservationController::class, 'index'])->name('reservations.index');
         Route::get('reservations/{reservation}', [\App\Http\Controllers\Web\ReservationController::class, 'show'])->name('reservations.show');
         
         Route::middleware(['can:manage_reservations'])->group(function () {
-            Route::get('reservations/create', [\App\Http\Controllers\Web\ReservationController::class, 'create'])->name('reservations.create');
-            Route::post('reservations', [\App\Http\Controllers\Web\ReservationController::class, 'store'])->name('reservations.store');
             Route::get('reservations/{reservation}/edit', [\App\Http\Controllers\Web\ReservationController::class, 'edit'])->name('reservations.edit');
             Route::put('reservations/{reservation}', [\App\Http\Controllers\Web\ReservationController::class, 'update'])->name('reservations.update');
             Route::delete('reservations/{reservation}', [\App\Http\Controllers\Web\ReservationController::class, 'destroy'])->name('reservations.destroy');
@@ -81,13 +87,13 @@ Route::middleware(['auth'])->group(function () {
     
     // Commandes
     Route::middleware(['can:view_orders'])->group(function () {
-        Route::get('commandes', [CommandeController::class, 'index'])->name('commandes.index');
-        Route::get('commandes/{commande}', [CommandeController::class, 'show'])->name('commandes.show');
-        
         Route::middleware(['can:create_orders'])->group(function () {
             Route::get('commandes/create', [CommandeController::class, 'create'])->name('commandes.create');
             Route::post('commandes', [CommandeController::class, 'store'])->name('commandes.store');
         });
+
+        Route::get('commandes', [CommandeController::class, 'index'])->name('commandes.index');
+        Route::get('commandes/{commande}', [CommandeController::class, 'show'])->name('commandes.show');
         
         Route::middleware(['can:update_orders'])->group(function () {
             Route::get('commandes/{commande}/edit', [CommandeController::class, 'edit'])->name('commandes.edit');
