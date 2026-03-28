@@ -130,6 +130,7 @@
     <div class="col-xl-3 col-md-4 col-12 invoice-actions">
         <div class="card">
             <div class="card-body">
+                @can('manage_reservations')
                 <a href="{{ route('reservations.edit', $reservation) }}" class="btn btn-primary d-grid w-100 mb-3">
                     <span class="d-flex align-items-center justify-content-center text-nowrap"><i class="bx bx-edit me-1"></i> Modifier</span>
                 </a>
@@ -151,6 +152,7 @@
                         </button>
                     </form>
                 @endif
+                @endcan
 
                 <a href="{{ route('reservations.index') }}" class="btn btn-label-secondary d-grid w-100">
                     Retour à la liste

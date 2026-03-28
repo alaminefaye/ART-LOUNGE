@@ -4,7 +4,9 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">📅 Réservations</h5>
+        @can('manage_reservations')
         <a href="{{ route('reservations.create') }}" class="btn btn-primary"><i class="bx bx-plus"></i> Nouvelle Réservation</a>
+        @endcan
     </div>
     <div class="card-body">
         @if(session('success'))
@@ -89,6 +91,7 @@
                                     <a class="dropdown-item" href="{{ route('reservations.show', $reservation) }}">
                                         <i class="bx bx-show-alt me-1"></i> Détails
                                     </a>
+                                    @can('manage_reservations')
                                     @if($reservation->statut->value === 'attente' || $reservation->statut->value === 'confirmee')
                                         <a class="dropdown-item" href="{{ route('reservations.edit', $reservation) }}">
                                             <i class="bx bx-edit-alt me-1"></i> Modifier
@@ -112,6 +115,7 @@
                                             </button>
                                         </form>
                                     @endif
+                                    @endcan
                                 </div>
                             </div>
                         </td>

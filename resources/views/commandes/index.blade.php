@@ -3,8 +3,10 @@
 @section('content')
 <div class="card">
     <div class="card-header d-flex justify-content-between">
-        <h5 class="mb-0">📝 Commandes</h5>
+            <h5 class="mb-0">📝 Commandes</h5>
+        @can('create_orders')
         <a href="{{ route('commandes.create') }}" class="btn btn-primary"><i class="bx bx-plus"></i> Nouvelle Commande</a>
+        @endcan
     </div>
     <div class="card-body">
         <form method="get" action="{{ route('commandes.index') }}" class="mb-4">
@@ -94,7 +96,9 @@
                         <td>
                             <a href="{{ route('commandes.show', $commande) }}" class="btn btn-sm btn-info" title="Voir"><i class="bx bx-show"></i></a>
                             @if($commande->statut->value !== 'terminee' && $commande->statut->value !== 'annulee')
+                                @can('update_orders')
                                 <a href="{{ route('commandes.edit', $commande) }}" class="btn btn-sm btn-warning" title="Modifier"><i class="bx bx-edit"></i></a>
+                                @endcan
                             @endif
                         </td>
                     </tr>

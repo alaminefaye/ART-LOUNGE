@@ -161,10 +161,24 @@ Route::middleware(['auth'])->group(function () {
         });
     });
     
-    // Clients & Fidélité
+    // Clients & Fidélité (clients/create avant clients/{client} pour éviter que "create" soit pris pour un id)
     Route::middleware(['can:view_customers'])->group(function () {
-        Route::resource('clients', \App\Http\Controllers\Web\ClientController::class);
-        
+        Route::get('clients', [\App\Http\Controllers\Web\ClientController::class, 'index'])->name('clients.index');
+    });
+
+    Route::middleware(['can:manage_customers'])->group(function () {
+        Route::get('clients/create', [\App\Http\Controllers\Web\ClientController::class, 'create'])->name('clients.create');
+        Route::post('clients', [\App\Http\Controllers\Web\ClientController::class, 'store'])->name('clients.store');
+        Route::get('clients/{client}/edit', [\App\Http\Controllers\Web\ClientController::class, 'edit'])->name('clients.edit');
+        Route::match(['put', 'patch'], 'clients/{client}', [\App\Http\Controllers\Web\ClientController::class, 'update'])->name('clients.update');
+        Route::delete('clients/{client}', [\App\Http\Controllers\Web\ClientController::class, 'destroy'])->name('clients.destroy');
+    });
+
+    Route::middleware(['can:view_customers'])->group(function () {
+        Route::get('clients/{client}', [\App\Http\Controllers\Web\ClientController::class, 'show'])->name('clients.show');
+    });
+
+    Route::middleware(['can:view_customers'])->group(function () {
         Route::middleware(['can:manage_loyalty'])->group(function () {
             Route::post('clients/{client}/ajuster-points', [\App\Http\Controllers\Web\ClientController::class, 'ajusterPoints'])->name('clients.ajuster-points');
             Route::get('fidelity', [\App\Http\Controllers\Web\FidelitySettingController::class, 'edit'])->name('fidelity.edit');

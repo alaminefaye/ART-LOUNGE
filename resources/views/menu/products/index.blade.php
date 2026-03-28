@@ -4,7 +4,9 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between">
         <h5 class="mb-0">🍽️ Produits</h5>
+        @can('manage_menu')
         <a href="{{ route('menu.products.create') }}" class="btn btn-primary"><i class="bx bx-plus"></i> Nouveau Produit</a>
+        @endcan
     </div>
     <div class="card-body">
         <form method="get" action="{{ route('menu.products.index') }}" class="mb-4">
@@ -98,11 +100,13 @@
                             @endif
                         </td>
                         <td>
+                            @can('manage_menu')
                             <a href="{{ route('menu.products.edit', $product) }}" class="btn btn-sm btn-warning"><i class="bx bx-edit"></i></a>
                             <form action="{{ route('menu.products.destroy', $product) }}" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer ce produit ?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger"><i class="bx bx-trash"></i></button>
                             </form>
+                            @endcan
                         </td>
                     </tr>
                     @empty

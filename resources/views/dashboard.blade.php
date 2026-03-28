@@ -26,7 +26,9 @@
                             Vous avez <span class="fw-bold">{{ $commandesJour }}</span> commandes aujourd'hui.
                             Chiffre d'affaires : <span class="fw-bold">{{ number_format($caJour, 0, ',', ' ') }} FCFA</span>
                         </p>
+                        @can('view_orders')
                         <a href="{{ route('commandes.index') }}" class="btn btn-sm btn-outline-primary">Voir les commandes</a>
+                        @endcan
                     </div>
                 </div>
                 <div class="col-sm-5 text-center text-sm-left">
@@ -185,30 +187,38 @@
             </div>
             <div class="card-body">
                 <div class="row text-center">
+                    @can('view_tables')
                     <div class="col-md-3 col-6 mb-3">
                         <a href="{{ route('tables.index') }}" class="btn btn-outline-primary w-100 p-3">
                             <i class="bx bx-grid-alt mb-1 d-block" style="font-size: 1.5rem;"></i>
                             <span class="small">Tables</span>
                         </a>
                     </div>
+                    @endcan
+                    @can('create_orders')
                     <div class="col-md-3 col-6 mb-3">
                         <a href="{{ route('commandes.create') }}" class="btn btn-outline-success w-100 p-3">
                             <i class="bx bx-plus-circle mb-1 d-block" style="font-size: 1.5rem;"></i>
                             <span class="small">Commande</span>
                         </a>
                     </div>
+                    @endcan
+                    @can('access_cashier')
                     <div class="col-md-3 col-6 mb-3">
                         <a href="{{ route('caisse.index') }}" class="btn btn-outline-warning w-100 p-3">
                             <i class="bx bx-dollar-circle mb-1 d-block" style="font-size: 1.5rem;"></i>
                             <span class="small">Caisse</span>
                         </a>
                     </div>
+                    @endcan
+                    @can('view_menu')
                     <div class="col-md-3 col-6 mb-3">
                         <a href="{{ route('menu.products.index') }}" class="btn btn-outline-info w-100 p-3">
                             <i class="bx bx-food-menu mb-1 d-block" style="font-size: 1.5rem;"></i>
                             <span class="small">Menu</span>
                         </a>
                     </div>
+                    @endcan
                 </div>
             </div>
         </div>

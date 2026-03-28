@@ -8,9 +8,11 @@
                 <h5 class="mb-0">📋 Commande #{{ $commande->id }}</h5>
                 <div>
                     @if($commande->statut->value !== 'terminee' && $commande->statut->value !== 'annulee')
+                        @can('update_orders')
                         <a href="{{ route('commandes.edit', $commande) }}" class="btn btn-sm btn-warning">
                             <i class="bx bx-edit"></i> Modifier
                         </a>
+                        @endcan
                     @endif
                     <a href="{{ route('commandes.index') }}" class="btn btn-sm btn-label-secondary">
                         <i class="bx bx-arrow-back"></i> Retour
@@ -102,6 +104,7 @@
     
     <div class="col-md-4">
         @if($commande->statut->value !== 'terminee' && $commande->statut->value !== 'annulee')
+        @can('update_order_status')
         <div class="card">
             <div class="card-header"><h6 class="mb-0">Changer le statut</h6></div>
             <div class="card-body">
@@ -120,7 +123,9 @@
                 </form>
             </div>
         </div>
+        @endcan
         
+        @can('cancel_orders')
         <div class="card mt-3">
             <div class="card-header"><h6 class="mb-0 text-danger">Actions</h6></div>
             <div class="card-body">
@@ -133,6 +138,7 @@
                 </form>
             </div>
         </div>
+        @endcan
         @endif
     </div>
 </div>

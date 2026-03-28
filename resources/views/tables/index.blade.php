@@ -9,9 +9,11 @@
             <h4 class="fw-bold mb-1">📊 Gestion des Tables</h4>
             <p class="text-muted mb-0">{{ $stats['total'] }} tables au total ({{ $stats['libres'] }} libres)</p>
         </div>
+        @can('manage_tables')
         <a href="{{ route('tables.create') }}" class="btn btn-primary">
             <i class="bx bx-plus me-1"></i> Nouvelle Table
         </a>
+        @endcan
     </div>
 </div>
 
@@ -76,11 +78,13 @@
                     
                     <div class="mt-auto d-flex justify-content-center gap-1">
                         <a href="{{ route('tables.show', $table) }}" class="btn btn-icon btn-sm btn-outline-info" title="Voir"><i class="bx bx-show"></i></a>
+                        @can('manage_tables')
                         <a href="{{ route('tables.edit', $table) }}" class="btn btn-icon btn-sm btn-outline-warning" title="Modifier"><i class="bx bx-edit"></i></a>
                         <form action="{{ route('tables.destroy', $table) }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer cette table ?')">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn btn-icon btn-sm btn-outline-danger" title="Supprimer"><i class="bx bx-trash"></i></button>
                         </form>
+                        @endcan
                     </div>
                 </div>
             </div>

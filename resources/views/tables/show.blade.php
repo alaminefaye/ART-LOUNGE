@@ -9,9 +9,11 @@
             <div class="card-header d-flex justify-content-between">
                 <h5 class="mb-0">📋 Détails de la Table {{ $table->numero }}</h5>
                 <div>
+                    @can('manage_tables')
                     <a href="{{ route('tables.edit', $table) }}" class="btn btn-sm btn-warning">
                         <i class="bx bx-edit"></i> Modifier
                     </a>
+                    @endcan
                     <a href="{{ route('tables.index') }}" class="btn btn-sm btn-label-secondary">
                         <i class="bx bx-arrow-back"></i> Retour
                     </a>
@@ -91,12 +93,14 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">QR Code</h5>
+                @can('manage_tables')
                 <form action="{{ route('tables.regenerate-qr', $table) }}" method="POST" style="display:inline;">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-outline-primary" title="Régénérer QR Code">
                         <i class="bx bx-refresh"></i>
                     </button>
                 </form>
+                @endcan
             </div>
             <div class="card-body text-center">
                 @if($table->qr_code)
@@ -107,12 +111,14 @@
                     </a>
                 @else
                     <p class="text-muted">QR Code non disponible</p>
+                    @can('manage_tables')
                     <form action="{{ route('tables.regenerate-qr', $table) }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-primary">
                             <i class="bx bx-qr"></i> Générer QR Code
                         </button>
                     </form>
+                    @endcan
                 @endif
             </div>
         </div>

@@ -4,7 +4,9 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between">
         <h5 class="mb-0">📑 Catégories</h5>
+        @can('manage_menu')
         <a href="{{ route('menu.categories.create') }}" class="btn btn-primary"><i class="bx bx-plus"></i> Nouvelle</a>
+        @endcan
     </div>
     <div class="card-body">
         <form method="get" action="{{ route('menu.categories.index') }}" class="mb-4">
@@ -54,11 +56,13 @@
                             @endif
                         </td>
                         <td>
+                            @can('manage_menu')
                             <a href="{{ route('menu.categories.edit', $category) }}" class="btn btn-sm btn-warning"><i class="bx bx-edit"></i></a>
                             <form action="{{ route('menu.categories.destroy', $category) }}" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer ?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger"><i class="bx bx-trash"></i></button>
                             </form>
+                            @endcan
                         </td>
                     </tr>
                     @empty
