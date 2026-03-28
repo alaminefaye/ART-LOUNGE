@@ -90,7 +90,7 @@ class CommandeController extends Controller
                 ];
             }
             $commande->produits()->attach($produitsToAttach);
-            $commande->calculateTotal();
+            $commande->calculerMontantTotal();
 
             return redirect()->route('commandes.show', $commande)
                             ->with('success', 'Commande créée avec succès !');
@@ -150,7 +150,7 @@ class CommandeController extends Controller
                 ];
             }
             $commande->produits()->sync($produitsToSync);
-            $commande->calculateTotal();
+            $commande->calculerMontantTotal();
 
             return redirect()->route('commandes.show', $commande)
                             ->with('success', 'Commande modifiée avec succès !');
