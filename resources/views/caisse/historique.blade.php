@@ -57,6 +57,7 @@
                         <th>Facture</th>
                         <th>Commande</th>
                         <th>Table</th>
+                        <th>Personnel</th>
                         <th>Moyen</th>
                         <th>Montant</th>
                         <th>Statut</th>
@@ -70,6 +71,7 @@
                         <td><strong>{{ $paiement->facture->numero_facture ?? 'N/A' }}</strong></td>
                         <td>#{{ $paiement->commande->id }}</td>
                         <td><span class="badge bg-primary">{{ $paiement->commande->table->numero }}</span></td>
+                        <td>{{ $paiement->user->name ?? 'N/A' }}</td>
                         <td>
                             @switch($paiement->moyen_paiement->value)
                                 @case('especes') 💵 Espèces @break
@@ -106,7 +108,7 @@
                     </tr>
                     @empty
                     <tr class="no-results">
-                        <td colspan="8" class="text-center text-muted">Aucun paiement trouvé</td>
+                        <td colspan="9" class="text-center text-muted">Aucun paiement trouvé</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -146,8 +148,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         allRows.forEach(row => {
             const facture = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-            const moyen = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
-            const statut = row.querySelector('td:nth-child(6)').textContent.toLowerCase();
+            const moyen = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
+            const statut = row.querySelector('td:nth-child(7)').textContent.toLowerCase();
             
             const matchSearch = facture.includes(searchTerm);
             const matchMoyen = !moyenFilter || moyen.includes(moyenFilter);

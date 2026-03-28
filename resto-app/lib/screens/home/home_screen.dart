@@ -10,9 +10,17 @@ import '../../utils/formatters.dart';
 import '../menu/products_screen.dart';
 import '../menu/product_detail_screen.dart';
 import '../profile/profile_screen.dart';
+import '../orders/cart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool showBackButton;
+  final int? targetOrderId;
+
+  const HomeScreen({
+    super.key,
+    this.showBackButton = false,
+    this.targetOrderId,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -135,6 +143,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Row(
                     children: [
+                      if (widget.showBackButton)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,6 +215,75 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
+                  if (widget.showBackButton) ...[
+                    const SizedBox(height: 18),
+                    // Afficher un résumé du panier pour le staff
+                    Consumer<Cart>(
+                      builder: (context, cart, child) {
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CartScreen(
+                                  showBackButton: true,
+                                  targetOrderId: widget.targetOrderId,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.shopping_cart,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Panier de la commande',
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(
+                                              alpha: 0.8),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${cart.itemCount} produits - ${Formatters.formatCurrency(cart.total)}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 18),
                   // Barre de recherche
                   Container(

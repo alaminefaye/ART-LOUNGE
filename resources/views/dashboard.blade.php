@@ -2,7 +2,17 @@
 
 @section('title', 'Dashboard')
 
-@section('content')
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Accueil /</span> Dashboard</h4>
+        <div class="d-flex gap-2">
+            <button onclick="window.location.reload()" class="btn btn-primary">
+                <i class="bx bx-refresh me-1"></i> Actualiser
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <!-- Welcome Card -->
     <div class="col-lg-8 mb-4 order-0">
@@ -175,27 +185,27 @@
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col-md-3 col-6 mb-3">
-                        <a href="{{ route('tables.index') }}" class="btn btn-outline-primary btn-lg w-100">
-                            <i class="bx bx-grid-alt mb-2 d-block" style="font-size: 2rem;"></i>
-                            Tables
+                        <a href="{{ route('tables.index') }}" class="btn btn-outline-primary w-100 p-3">
+                            <i class="bx bx-grid-alt mb-1 d-block" style="font-size: 1.5rem;"></i>
+                            <span class="small">Tables</span>
                         </a>
                     </div>
                     <div class="col-md-3 col-6 mb-3">
-                        <a href="{{ route('commandes.create') }}" class="btn btn-outline-success btn-lg w-100">
-                            <i class="bx bx-plus-circle mb-2 d-block" style="font-size: 2rem;"></i>
-                            Nouvelle Commande
+                        <a href="{{ route('commandes.create') }}" class="btn btn-outline-success w-100 p-3">
+                            <i class="bx bx-plus-circle mb-1 d-block" style="font-size: 1.5rem;"></i>
+                            <span class="small">Commande</span>
                         </a>
                     </div>
                     <div class="col-md-3 col-6 mb-3">
-                        <a href="{{ route('caisse.index') }}" class="btn btn-outline-warning btn-lg w-100">
-                            <i class="bx bx-dollar-circle mb-2 d-block" style="font-size: 2rem;"></i>
-                            Caisse
+                        <a href="{{ route('caisse.index') }}" class="btn btn-outline-warning w-100 p-3">
+                            <i class="bx bx-dollar-circle mb-1 d-block" style="font-size: 1.5rem;"></i>
+                            <span class="small">Caisse</span>
                         </a>
                     </div>
                     <div class="col-md-3 col-6 mb-3">
-                        <a href="{{ route('menu.products.index') }}" class="btn btn-outline-info btn-lg w-100">
-                            <i class="bx bx-food-menu mb-2 d-block" style="font-size: 2rem;"></i>
-                            Menu
+                        <a href="{{ route('menu.products.index') }}" class="btn btn-outline-info w-100 p-3">
+                            <i class="bx bx-food-menu mb-1 d-block" style="font-size: 1.5rem;"></i>
+                            <span class="small">Menu</span>
                         </a>
                     </div>
                 </div>

@@ -134,6 +134,16 @@ class ReportController extends Controller
             ? (($caMoisEnCours - $caMoisPrecedent) / $caMoisPrecedent) * 100
             : null;
 
+        // Performance par personnel (CA et nombre de transactions)
+        $performancePersonnel = Paiement::query()
+            ->where('paiements.statut', StatutPaiement::Valide)
+            ->where('paiements.created_at', '>=', $start)
+            ->join('users', 'paiements.user_id', '=', 'users.id')
+            ->select('users.name', DB::raw('COUNT(*) as nb_transactions'), DB::raw('SUM(montant) as total_ca'))
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('total_ca')
+            ->get();
+
         return view('rapport.index', compact(
             'days',
             'start',
@@ -150,7 +160,8 @@ class ReportController extends Controller
             'topProduits',
             'caMoisEnCours',
             'caMoisPrecedent',
-            'evolutionMoisPct'
+            'evolutionMoisPct',
+            'performancePersonnel'
         ));
     }
 

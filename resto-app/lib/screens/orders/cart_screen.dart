@@ -13,9 +13,15 @@ import '../../utils/auth_gate.dart';
 
 class CartScreen extends StatelessWidget {
   final int? tableId;
+  final int? targetOrderId;
   final bool showBackButton;
 
-  const CartScreen({super.key, this.tableId, this.showBackButton = true});
+  const CartScreen({
+    super.key,
+    this.tableId,
+    this.targetOrderId,
+    this.showBackButton = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -483,7 +489,7 @@ class CartScreen extends StatelessWidget {
                           ),
                         );
                       }
-                    : () => _createOrder(context, cart, orderService),
+                    : () => _handleCheckout(context, cart, orderService),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFD0A030),
                   foregroundColor: Colors.white,
@@ -526,6 +532,82 @@ class CartScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _handleCheckout(
+    BuildContext context,
+    Cart cart,
+    OrderService orderService,
+  ) async {
+    if (targetOrderId != null) {
+      return _addToExistingOrder(context, cart, orderService);
+    } else {
+      return _createOrder(context, cart, orderService);
+    }
+  }
+
+  Future<void> _addToExistingOrder(
+    BuildContext context,
+    Cart cart,
+    OrderService orderService,
+  ) async {
+    final ok = await requireAuth(context);
+    if (!ok || !context.mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+          const Center(child: CircularProgressIndicator(color: Colors.orange)),
+    );
+
+    bool allSuccess = true;
+    String? lastError;
+
+    // Ajouter chaque produit un par un (l'API semble être par produit)
+    for (var item in cart.items) {
+      final res = await orderService.addProductToOrder(
+        orderId: targetOrderId!,
+        produitId: item.product.id,
+        quantite: item.quantite,
+      );
+      if (res['success'] != true) {
+        allSuccess = false;
+        lastError = res['message'];
+      }
+    }
+
+    if (!context.mounted) return;
+    Navigator.pop(context); // Fermer le loading
+
+    if (allSuccess) {
+      cart.clear();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Produits ajoutés à la commande !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Retourner à l'écran de détail de commande (OrderDetailScreen)
+        // On doit depiler le Panier et le Menu
+        if (showBackButton) {
+          Navigator.pop(context); // Pop le CartScreen
+          Navigator.pop(context); // Pop le HomeScreen (Menu)
+        } else {
+          Navigator.pop(context);
+        }
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(lastError ?? 'Erreur lors de l\'ajout'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _createOrder(
     BuildContext context,
     Cart cart,
@@ -556,11 +638,17 @@ class CartScreen extends StatelessWidget {
     if (result['success'] == true) {
       cart.clear();
       if (context.mounted) {
-        // Naviguer vers MenuScreen avec l'onglet Commandes (index 2)
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const MenuScreenWithOrders()),
-          (route) => false,
-        );
+        // Si on est dans le flux staff (showBackButton), on revient aux tables ou dashboard
+        if (showBackButton) {
+          Navigator.pop(context); // Retour au Menu (HomeScreen)
+          Navigator.pop(context); // Retour aux Tables
+        } else {
+          // Naviguer vers MenuScreen avec l'onglet Commandes (index 2)
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const MenuScreenWithOrders()),
+            (route) => false,
+          );
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Commande créée avec succès !'),

@@ -101,7 +101,7 @@
 
 <div class="row mb-4">
     <!-- Commandes par statut -->
-    <div class="col-lg-6 mb-4 mb-lg-0">
+    <div class="col-lg-4 mb-4 mb-lg-0">
         <div class="card h-100">
             <div class="card-header">
                 <h5 class="card-title mb-0">Commandes créées par statut</h5>
@@ -117,32 +117,65 @@
         </div>
     </div>
     <!-- Top produits -->
-    <div class="col-lg-6">
+    <div class="col-lg-4 mb-4 mb-lg-0">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="card-title mb-0">Top produits (quantités vendues)</h5>
-                <small class="text-muted">Lignes de commande sur la période</small>
+                <h5 class="card-title mb-0">Top vendeurs (quantités)</h5>
+                <small class="text-muted">Articles vendus sur la période</small>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>#</th>
                                 <th>Produit</th>
-                                <th class="text-end">Quantité</th>
+                                <th class="text-end">Qté</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($topProduits as $i => $p)
+                            @forelse($topProduits as $p)
                                 <tr>
-                                    <td>{{ $i + 1 }}</td>
-                                    <td>{{ Str::limit($p->nom, 42) }}</td>
+                                    <td>{{ Str::limit($p->nom, 30) }}</td>
                                     <td class="text-end fw-semibold">{{ number_format($p->quantite, 0, ',', ' ') }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center text-muted py-4">Aucune vente sur cette période.</td>
+                                    <td colspan="2" class="text-center text-muted py-4">Aucune vente.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Performance Personnel -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Performance Personnel</h5>
+                <small class="text-muted">Encaissements par membre</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th class="text-end">Trans.</th>
+                                <th class="text-end">CA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($performancePersonnel as $pp)
+                                <tr>
+                                    <td>{{ $pp->name }}</td>
+                                    <td class="text-end">{{ $pp->nb_transactions }}</td>
+                                    <td class="text-end fw-semibold text-primary">{{ number_format($pp->total_ca, 0, ',', ' ') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">Aucun encaissement.</td>
                                 </tr>
                             @endforelse
                         </tbody>

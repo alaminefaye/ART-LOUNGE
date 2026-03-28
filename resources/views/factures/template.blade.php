@@ -297,6 +297,20 @@
                         </td>
                     </tr>
                     @endforeach
+
+                    @if($table->type->value === 'espace_jeux')
+                    <tr>
+                        <td>
+                            <strong>Frais de salle (Occupation)</strong>
+                            <br><span style="font-size: 10px; color: #666;">Table: {{ $table->numero }}</span>
+                        </td>
+                        <td class="text-center">{{ $commande->getDureeOccupationHeures() }} h</td>
+                        <td class="text-right">{{ number_format($table->prix_par_heure, 0, ',', ' ') }} FCFA/h</td>
+                        <td class="text-right">
+                            <strong>{{ number_format($commande->getFraisSalle(), 0, ',', ' ') }} FCFA</strong>
+                        </td>
+                    </tr>
+                    @endif
                 </tbody>
             </table>
         </div>

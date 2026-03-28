@@ -183,11 +183,39 @@ class Commande extends Model
      */
     public function calculerMontantTotal(): void
     {
-        $total = \Illuminate\Support\Facades\DB::table('commande_produit')
+        $produitsTotal = \Illuminate\Support\Facades\DB::table('commande_produit')
             ->where('commande_id', $this->id)
             ->sum(\Illuminate\Support\Facades\DB::raw('quantite * prix_unitaire'));
+
+        $fraisSalle = $this->getFraisSalle();
             
-        $this->update(['montant_total' => $total]);
+        $this->update(['montant_total' => $produitsTotal + $fraisSalle]);
+    }
+
+    /**
+     * Calculer les frais de salle pour les espaces jeux
+     */
+    public function getFraisSalle(): float
+    {
+        if ($this->table && $this->table->type === \App\Enums\TableType::EspaceJeux) {
+            $dureeHeures = $this->getDureeOccupationHeures();
+            return $dureeHeures * (float) $this->table->prix_par_heure;
+        }
+        return 0;
+    }
+
+    /**
+     * Calculer la durée d'occupation en heures (arrondi au supérieur)
+     */
+    public function getDureeOccupationHeures(): int
+    {
+        $start = $this->created_at;
+        $end = $this->statut === OrderStatus::Terminee ? $this->updated_at : now();
+        
+        $diffMinutes = $start->diffInMinutes($end);
+        
+        // Minimum 1 heure, puis arrondi au supérieur pour chaque heure entamée
+        return max(1, (int) ceil($diffMinutes / 60));
     }
 
     /**

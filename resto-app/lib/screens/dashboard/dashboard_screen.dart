@@ -15,6 +15,10 @@ import '../tables/tables_screen.dart';
 import '../profile/profile_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../../services/notification_service.dart';
+import '../tables/qr_scan_screen.dart';
+import '../../models/table.dart' as models;
+import '../../models/cart.dart';
+import '../home/home_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -309,8 +313,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF6EC),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
+        child: RefreshIndicator(
+          onRefresh: _loadDashboardData,
+          color: Colors.orange,
+          backgroundColor: Colors.white,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
             children: [
               // HEADER CUSTOM
               Padding(
@@ -411,6 +420,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ],
                     ),
+                    ),
+                    // Bouton Actualiser
+                    IconButton(
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        _loadDashboardData();
+                      },
+                      icon: Icon(
+                        Icons.refresh,
+                        color: Colors.grey[900],
+                        size: 26,
+                      ),
+                      tooltip: 'Actualiser',
                     ),
                     // Icône notifications
                     Stack(
@@ -591,9 +613,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
                   children: [
                     // MENU & COMMANDES
                     _buildDashboardCard(
@@ -626,8 +648,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ).then((_) => _loadDashboardData()),
                       ),
 
-                    // TABLES
-                    if (isServeur || isManager || isAdmin || isCaissier)
+                     // TABLES
+                    if (isServeur || isManager || isAdmin || isCaissier) ...[
                       _buildDashboardCard(
                         context,
                         'Tables',
@@ -638,8 +660,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           MaterialPageRoute(
                             builder: (_) => const TablesScreen(),
                           ),
-                        ),
+                        ).then((_) => _loadDashboardData()),
                       ),
+                      _buildDashboardCard(
+                        context,
+                        'Scanner Table',
+                        Icons.qr_code_scanner,
+                        const Color(0xFFD0A030),
+                        () => _scanTable(context),
+                      ),
+                    ],
 
                     // STATISTIQUES
                     if (isAdmin || isManager)
@@ -761,6 +791,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -836,23 +867,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, size: 40, color: color),
+                    child: Icon(icon, size: 24, color: color),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 8),
                   Text(
                     title,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Colors.grey[900],
-                      letterSpacing: 0.2,
-                      height: 1.25,
+                      letterSpacing: 0.1,
+                      height: 1.1,
                     ),
                   ),
                 ],
@@ -882,6 +913,90 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  void _scanTable(BuildContext context) async {
+    final result = await Navigator.push<models.Table>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const QrScanScreen(returnTableOnly: true),
+      ),
+    );
+
+    if (result != null && context.mounted) {
+      _handleTableSelection(context, result);
+    }
+  }
+
+  void _handleTableSelection(BuildContext context, models.Table table) async {
+    if (table.statut == models.TableStatus.reservee &&
+        table.reservationActuelle != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const TablesScreen()),
+      );
+    } else if (table.statut == models.TableStatus.libre) {
+      final cart = Provider.of<Cart>(context, listen: false);
+      cart.clear();
+      cart.setTable(table.id);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(showBackButton: true),
+        ),
+      ).then((_) => _loadDashboardData());
+    } else if (table.statut == models.TableStatus.occupee ||
+        table.statut == models.TableStatus.enPaiement) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: Colors.orange),
+        ),
+      );
+
+      try {
+        final currentOrders = await _orderService.getCurrentOrders();
+        if (context.mounted) Navigator.pop(context);
+
+        final activeOrder = currentOrders.fold<Order?>(
+          null,
+          (prev, order) {
+            if (order.tableId == table.id &&
+                order.statut != OrderStatus.terminee &&
+                order.statut != OrderStatus.annulee) {
+              return order;
+            }
+            return prev;
+          },
+        );
+
+        if (activeOrder != null && context.mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OrderDetailScreen(orderId: activeOrder.id),
+            ),
+          ).then((_) => _loadDashboardData());
+        } else {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Aucune commande active trouvée pour cette table'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (context.mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
   }
 }
 

@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../models/table.dart' as models;
+import '../../models/order.dart';
 import '../../services/table_service.dart';
+import '../../services/order_service.dart';
+import '../../models/cart.dart';
+import 'package:provider/provider.dart';
 import '../../widgets/app_header.dart';
+import '../home/home_screen.dart';
+import '../orders/order_detail_screen.dart';
+import 'qr_scan_screen.dart';
 
 class TablesScreen extends StatefulWidget {
   const TablesScreen({super.key});
@@ -12,7 +19,9 @@ class TablesScreen extends StatefulWidget {
 
 class _TablesScreenState extends State<TablesScreen> {
   final TableService _tableService = TableService();
+  final OrderService _orderService = OrderService();
   List<models.Table> _tables = [];
+  List<Order> _currentOrders = [];
   bool _isLoading = true;
 
   @override
@@ -23,10 +32,15 @@ class _TablesScreenState extends State<TablesScreen> {
 
   Future<void> _loadTables() async {
     try {
-      final tables = await _tableService.getTables();
+      final results = await Future.wait([
+        _tableService.getTables(),
+        _orderService.getCurrentOrders(),
+      ]);
+
       if (mounted) {
         setState(() {
-          _tables = tables;
+          _tables = results[0] as List<models.Table>;
+          _currentOrders = results[1] as List<Order>;
           _isLoading = false;
         });
       }
@@ -57,6 +71,10 @@ class _TablesScreenState extends State<TablesScreen> {
             AppHeader(
               title: 'Gestion des Tables',
               actions: [
+                HeaderActionButton(
+                  icon: Icons.qr_code_scanner,
+                  onTap: _scanTable,
+                ),
                 HeaderActionButton(
                   icon: Icons.refresh,
                   onTap: _loadTables,
@@ -96,13 +114,13 @@ class _TablesScreenState extends State<TablesScreen> {
                       color: Colors.orange,
                       backgroundColor: const Color(0xFF252525),
                       child: GridView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(12),
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 1.1,
+                              crossAxisCount: 4,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 0.82,
                             ),
                         itemCount: _tables.length,
                         itemBuilder: (context, index) {
@@ -125,16 +143,11 @@ class _TablesScreenState extends State<TablesScreen> {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF252525),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            offset: const Offset(4, 4),
-            blurRadius: 8,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.05),
-            offset: const Offset(-2, -2),
+            color: Colors.black.withValues(alpha: 0.3),
+            offset: const Offset(2, 2),
             blurRadius: 4,
           ),
         ],
@@ -142,23 +155,10 @@ class _TablesScreenState extends State<TablesScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            if (table.statut == models.TableStatus.reservee &&
-                table.reservationActuelle != null) {
-              _showReservationDetails(table);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Table ${table.numero}: $statusText'),
-                  backgroundColor: statusColor,
-                  duration: const Duration(seconds: 1),
-                ),
-              );
-            }
-          },
-          borderRadius: BorderRadius.circular(20),
+          onTap: () => _handleTableSelection(table),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -167,12 +167,12 @@ class _TablesScreenState extends State<TablesScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                        horizontal: 4,
+                        vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(6),
                         border: Border.all(
                           color: statusColor.withValues(alpha: 0.5),
                           width: 1,
@@ -182,7 +182,7 @@ class _TablesScreenState extends State<TablesScreen> {
                         statusText,
                         style: TextStyle(
                           color: statusColor,
-                          fontSize: 10,
+                          fontSize: 7,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -194,24 +194,19 @@ class _TablesScreenState extends State<TablesScreen> {
                           ? Icons.sports_esports
                           : Icons.table_restaurant,
                       color: Colors.grey[400],
-                      size: 20,
+                      size: 14,
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.all(15),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: const Color(0xFF1E1E1E),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.5),
-                        offset: const Offset(2, 2),
-                        blurRadius: 4,
-                      ),
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        offset: const Offset(-1, -1),
+                        offset: const Offset(1, 1),
                         blurRadius: 2,
                       ),
                     ],
@@ -220,21 +215,14 @@ class _TablesScreenState extends State<TablesScreen> {
                     table.numero,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.people, size: 14, color: Colors.grey[500]),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${table.capacite} places',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
-                  ],
+                Text(
+                  '${table.capacite}',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 8),
                 ),
               ],
             ),
@@ -242,6 +230,67 @@ class _TablesScreenState extends State<TablesScreen> {
         ),
       ),
     );
+  }
+
+  void _scanTable() async {
+    final result = await Navigator.push<models.Table>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const QrScanScreen(returnTableOnly: true),
+      ),
+    );
+
+    if (result != null && mounted) {
+      _handleTableSelection(result);
+    }
+  }
+
+  void _handleTableSelection(models.Table table) {
+    if (table.statut == models.TableStatus.reservee &&
+        table.reservationActuelle != null) {
+      _showReservationDetails(table);
+    } else if (table.statut == models.TableStatus.libre) {
+      // Nouvelle commande
+      final cart = Provider.of<Cart>(context, listen: false);
+      cart.clear();
+      cart.setTable(table.id);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(showBackButton: true),
+        ),
+      ).then((_) => _loadTables());
+    } else if (table.statut == models.TableStatus.occupee ||
+        table.statut == models.TableStatus.enPaiement) {
+      // Trouver la commande active pour cette table
+      final activeOrder = _currentOrders.fold<Order?>(
+        null,
+        (prev, order) {
+          if (order.tableId == table.id &&
+              order.statut != OrderStatus.terminee &&
+              order.statut != OrderStatus.annulee) {
+            return order;
+          }
+          return prev;
+        },
+      );
+
+      if (activeOrder != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OrderDetailScreen(orderId: activeOrder.id),
+          ),
+        ).then((_) => _loadTables());
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Aucune commande active trouvée pour cette table'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
   }
 
   void _showReservationDetails(models.Table table) {

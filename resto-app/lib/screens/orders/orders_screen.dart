@@ -9,6 +9,7 @@ import '../../utils/formatters.dart';
 import '../menu/menu_screen.dart';
 import 'order_detail_screen.dart';
 import '../../widgets/app_header.dart';
+import '../tables/tables_screen.dart';
 import '../auth/login_screen.dart';
 import '../auth/register_screen.dart';
 
@@ -252,10 +253,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
       floatingActionButton: isStaff
           ? FloatingActionButton.extended(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MenuScreen()),
-                );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const TablesScreen()),
+        );
               },
               backgroundColor: Colors.orange,
               icon: const Icon(Icons.add, color: Colors.white),

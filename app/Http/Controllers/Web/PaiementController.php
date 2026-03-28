@@ -131,6 +131,8 @@ class PaiementController extends Controller
         }
 
         return DB::transaction(function () use ($validated, $commande, $pointsUtilises, $moyenPaiement) {
+            $commande->calculerMontantTotal(); // Recalculer pour inclure les frais de salle finaux
+            
             $settings = FidelitySetting::get();
             $montantTotal = (float) $commande->montant_total;
             $reductionFcfa = $pointsUtilises > 0 ? (float) $settings->fcfaPourPoints($pointsUtilises) : 0;

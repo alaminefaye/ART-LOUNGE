@@ -2,8 +2,11 @@
 @section('title', 'Caisse')
 @section('content')
 <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">💰 Interface de Caisse</h5>
+        <button onclick="window.location.reload()" class="btn btn-sm btn-outline-primary">
+            <i class="bx bx-refresh"></i> Actualiser
+        </button>
     </div>
     <div class="card-body">
         <h6 class="mb-3">Commandes en attente de paiement</h6>
@@ -38,7 +41,7 @@
                 </div>
                 <div class="col-md-2 mb-3">
                     <button id="resetFilters" class="btn btn-outline-secondary w-100">
-                        <i class="bx bx-reset"></i> Réinitialiser filtres
+                        <i class="bx bx-reset"></i> Reset
                     </button>
                 </div>
             </div>
@@ -49,56 +52,52 @@
 
             <div class="row" id="commandesContainer">
                 @foreach($commandesEnAttente as $commande)
-                <div class="col-md-6 col-lg-4 mb-3 commande-card"
+                <div class="col-md-4 col-lg-3 mb-3 commande-card"
                      data-id="{{ $commande->id }}"
                      data-table="{{ $commande->table->numero }}"
                      data-statut="{{ $commande->statut->value }}"
                      data-montant="{{ $commande->montant_total }}"
                      data-date="{{ $commande->created_at->timestamp }}">
-                    <div class="card border {{ $commande->statut->value === 'servie' ? 'border-primary' : 'border-secondary' }}">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <strong>Table {{ $commande->table->numero }}</strong>
+                    <div class="card border {{ $commande->statut->value === 'servie' ? 'border-primary' : 'border-secondary' }} shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center py-2">
+                            <strong class="text-primary">Table {{ $commande->table->numero }}</strong>
                             @switch($commande->statut->value)
                                 @case('attente')
-                                    <span class="badge bg-warning">En attente</span>
+                                    <span class="badge bg-warning small">Attente</span>
                                     @break
                                 @case('preparation')
-                                    <span class="badge bg-info">En préparation</span>
+                                    <span class="badge bg-info small">Prép.</span>
                                     @break
                                 @case('servie')
-                                    <span class="badge bg-success">Servie</span>
+                                    <span class="badge bg-success small">Servie</span>
                                     @break
                             @endswitch
                         </div>
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <small class="text-muted">Commande #{{ $commande->id }}</small>
+                        <div class="card-body py-2">
+                            <div class="mb-1">
+                                <small class="text-muted">#{{ $commande->id }} • {{ $commande->created_at->format('H:i') }}</small>
                             </div>
-                            <div class="mb-2">
-                                <strong>Articles :</strong>
-                                <ul class="small mb-0">
-                                    @foreach($commande->produits->take(3) as $produit)
-                                        <li>{{ $produit->nom }} x{{ $produit->pivot->quantite }}</li>
+                            <div class="mb-2" style="min-height: 45px;">
+                                <ul class="list-unstyled small mb-0">
+                                    @foreach($commande->produits->take(2) as $produit)
+                                        <li class="text-truncate">• {{ $produit->nom }} x{{ $produit->pivot->quantite }}</li>
                                     @endforeach
-                                    @if($commande->produits->count() > 3)
-                                        <li class="text-muted">+ {{ $commande->produits->count() - 3 }} autre(s)</li>
+                                    @if($commande->produits->count() > 2)
+                                        <li class="text-muted italic small">+{{ $commande->produits->count() - 2 }} autres...</li>
                                     @endif
                                 </ul>
                             </div>
-                            <div class="mb-3">
-                                <strong class="text-success h4">{{ number_format($commande->montant_total, 0, ',', ' ') }} FCFA</strong>
+                            <div class="mb-2">
+                                <strong class="text-dark h5 mb-0">{{ number_format($commande->montant_total, 0, ',', ' ') }} <small>F</small></strong>
                             </div>
-                            <div class="d-flex gap-2">
-                                <a href="{{ route('commandes.show', $commande) }}" class="btn btn-sm btn-outline-secondary flex-grow-1">
-                                    <i class="bx bx-show"></i> Détails
+                            <div class="d-flex gap-1">
+                                <a href="{{ route('commandes.show', $commande) }}" class="btn btn-xs btn-outline-secondary px-2">
+                                    <i class="bx bx-show"></i>
                                 </a>
                                 <a href="{{ route('caisse.payer', $commande) }}" class="btn btn-sm btn-primary flex-grow-1">
-                                    <i class="bx bx-money"></i> Payer
+                                    Payer
                                 </a>
                             </div>
-                        </div>
-                        <div class="card-footer text-muted small">
-                            <i class="bx bx-time"></i> {{ $commande->created_at->diffForHumans() }}
                         </div>
                     </div>
                 </div>
@@ -107,8 +106,7 @@
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
                 <div class="text-muted small">
-                    Page caisse : affichage de <strong>{{ $commandesEnAttente->firstItem() }}</strong> à <strong>{{ $commandesEnAttente->lastItem() }}</strong>
-                    sur <strong>{{ $commandesEnAttente->total() }}</strong> commande(s) en attente
+                    <strong>{{ $commandesEnAttente->total() }}</strong> en attente
                 </div>
                 {{ $commandesEnAttente->links() }}
             </div>
@@ -117,26 +115,23 @@
 </div>
 
 <div class="card mt-3">
-    <div class="card-header">
-        <h6 class="mb-0">📊 Statistiques du jour (toutes commandes en attente)</h6>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-3">
+    <div class="card-body py-2">
+        <div class="row align-items-center">
+            <div class="col-md-4 border-end">
                 <div class="text-center">
-                    <h3 class="text-primary">{{ $statsCount }}</h3>
-                    <p class="text-muted mb-0">Commandes en attente</p>
+                    <span class="text-muted small d-block">Commandes</span>
+                    <h4 class="mb-0">{{ $statsCount }}</h4>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4 border-end">
                 <div class="text-center">
-                    <h3 class="text-success">{{ number_format($statsMontant, 0, ',', ' ') }}</h3>
-                    <p class="text-muted mb-0">Total à encaisser (FCFA)</p>
+                    <span class="text-muted small d-block">Total à encaisser</span>
+                    <h4 class="text-success mb-0">{{ number_format($statsMontant, 0, ',', ' ') }} FCFA</h4>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="text-center">
-                    <a href="{{ route('caisse.historique') }}" class="btn btn-outline-primary">
+                    <a href="{{ route('caisse.historique') }}" class="btn btn-sm btn-label-primary">
                         <i class="bx bx-history"></i> Historique
                     </a>
                 </div>
