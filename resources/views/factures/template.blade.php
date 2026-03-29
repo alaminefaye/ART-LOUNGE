@@ -246,7 +246,7 @@
             <div class="header-right">
                 <div class="facture-title">FACTURE</div>
                 <div class="facture-numero">N° {{ $facture->numero_facture }}</div>
-                <div class="facture-numero">{{ $facture->created_at->format('d/m/Y H:i') }}</div>
+                <div class="facture-numero">{{ ($facture->created_at ?? $commande->created_at ?? $paiement?->created_at ?? now())->format('d/m/Y H:i') }}</div>
             </div>
         </div>
 

@@ -147,7 +147,7 @@
 
     <div class="text-center bold" style="font-size: 11px;">TICKET DE CAISSE</div>
     <div class="text-center">N° {{ $facture->numero_facture }}</div>
-    <div class="text-center">{{ $facture->created_at->format('d/m/Y H:i') }}</div>
+    <div class="text-center">{{ ($facture->created_at ?? $commande->created_at ?? $paiement?->created_at ?? now())->format('d/m/Y H:i') }}</div>
 
     @if(isset($table))
     <div class="text-center bold" style="margin-top: 1.5mm;">TABLE: {{ $table->numero }}</div>

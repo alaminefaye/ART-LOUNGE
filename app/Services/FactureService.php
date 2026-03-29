@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Models\Commande;
-use App\Models\Paiement;
 use App\Models\Facture;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Paiement;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class FactureService
 {
@@ -43,12 +43,19 @@ class FactureService
         // Charger la facture avec toutes ses relations
         $facture->load(['commande.table', 'commande.produits', 'commande.user', 'paiement']);
 
+        if ($facture->created_at === null) {
+            $facture->setAttribute(
+                'created_at',
+                $facture->paiement?->created_at ?? $facture->commande?->created_at ?? now()
+            );
+        }
+
         // Préparer le logo
         $logoPath = public_path('assets/img/logo.png');
         $logoBase64 = null;
         if (file_exists($logoPath)) {
             $logoData = file_get_contents($logoPath);
-            $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+            $logoBase64 = 'data:image/'.pathinfo($logoPath, PATHINFO_EXTENSION).';base64,'.base64_encode($logoData);
         }
 
         // Préparer les données pour le PDF
@@ -87,11 +94,11 @@ class FactureService
     public function telechargerFacture(Facture $facture): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         $filePath = Storage::disk('public')->path($facture->fichier_pdf);
-        
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             throw new \Exception("Le fichier PDF de la facture n'existe pas.");
         }
-        
+
         return response()->download($filePath, "facture-{$facture->numero_facture}.pdf");
     }
 
@@ -120,19 +127,24 @@ class FactureService
     {
         // Charger les relations
         $commande->load(['table', 'produits', 'user', 'paiements.facture']);
-        
+
         // Trouver la facture si elle existe
         $facture = $commande->facture;
         $paiement = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)->latest()->first();
 
         // Si pas de facture officielle, on crée un objet temporaire pour la vue
-        if (!$facture) {
+        if (! $facture) {
             $facture = new Facture([
-                'numero_facture' => 'PROFORMA-' . $commande->id,
+                'numero_facture' => 'PROFORMA-'.$commande->id,
                 'montant_total' => $commande->montant_total,
                 'montant_taxe' => 0,
                 'created_at' => now(),
             ]);
+        } elseif ($facture->created_at === null) {
+            $facture->setAttribute(
+                'created_at',
+                $paiement?->created_at ?? $commande->created_at ?? now()
+            );
         }
 
         // Préparer le logo
@@ -140,7 +152,7 @@ class FactureService
         $logoBase64 = null;
         if (file_exists($logoPath)) {
             $logoData = file_get_contents($logoPath);
-            $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+            $logoBase64 = 'data:image/'.pathinfo($logoPath, PATHINFO_EXTENSION).';base64,'.base64_encode($logoData);
         }
 
         $data = [
@@ -173,20 +185,25 @@ class FactureService
         $paiement = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)->latest()->first();
         $paiement?->loadMissing('user');
 
-        if (!$facture) {
+        if (! $facture) {
             $facture = new Facture([
-                'numero_facture' => '80-' . $commande->id,
+                'numero_facture' => '80-'.$commande->id,
                 'montant_total' => $commande->montant_total,
                 'montant_taxe' => 0,
                 'created_at' => now(),
             ]);
+        } elseif ($facture->created_at === null) {
+            $facture->setAttribute(
+                'created_at',
+                $paiement?->created_at ?? $commande->created_at ?? now()
+            );
         }
 
         $logoPath = public_path('assets/img/logo.png');
         $logoBase64 = null;
         if (file_exists($logoPath)) {
             $logoData = file_get_contents($logoPath);
-            $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+            $logoBase64 = 'data:image/'.pathinfo($logoPath, PATHINFO_EXTENSION).';base64,'.base64_encode($logoData);
         }
 
         $caissierName = $paiement?->user?->name;
@@ -236,4 +253,3 @@ class FactureService
             ->setOption('isHtml5ParserEnabled', true);
     }
 }
-
