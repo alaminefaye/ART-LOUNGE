@@ -159,8 +159,9 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
         }
 
         if (paymentSuccess) {
+          // Capture le nom du caissier avant tout appel async
+          final cashierName = mounted ? Provider.of<AuthService>(context, listen: false).currentUser?.name : null;
           // 3. Print the receipt (invoice)
-          final cashierName = Provider.of<AuthService>(context, listen: false).currentUser?.name;
           await _printerService.printOrderReceipt(order, cashierName: cashierName);
           // 4. Print the kitchen ticket (only if new order, usually)
           if (widget.cart != null) {
