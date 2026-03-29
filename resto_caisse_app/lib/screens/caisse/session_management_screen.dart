@@ -311,6 +311,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
                   Container(width: 1, height: 30, color: Colors.white10),
                   _buildMiniStat('Recettes Shift', Formatters.formatCurrency(parseDouble(_bilan?['total_liquide']))),
                   Container(width: 1, height: 30, color: Colors.white10),
+                  _buildMiniStat('Paiement Points', Formatters.formatCurrency(parseDouble(_bilan?['total_points_fidelite_montant']))),
+                  Container(width: 1, height: 30, color: Colors.white10),
                   _buildMiniStat('Total Ventes', Formatters.formatCurrency(totalVentes)),
                 ],
               ),
