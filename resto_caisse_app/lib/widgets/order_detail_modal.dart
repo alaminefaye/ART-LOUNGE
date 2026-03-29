@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../models/product.dart';
+import '../services/auth_service.dart';
 import '../services/order_service.dart';
 import '../services/printer_service.dart';
 import '../services/menu_service.dart';
@@ -532,7 +534,10 @@ class _OrderDetailModalState extends State<OrderDetailModal> {
                           label: 'Facture',
                           icon: Icons.print,
                           color: Colors.blueGrey,
-                          onPressed: () => _printerService.printOrderReceipt(_order),
+                          onPressed: () {
+                            final cashierName = Provider.of<AuthService>(context, listen: false).currentUser?.name;
+                            _printerService.printOrderReceipt(_order, cashierName: cashierName);
+                          },
                         ),
                       ],
                     ),

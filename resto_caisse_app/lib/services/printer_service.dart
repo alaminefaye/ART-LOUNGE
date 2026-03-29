@@ -87,33 +87,36 @@ class PrinterService {
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             mainAxisSize: pw.MainAxisSize.min,
             children: [
-              if (logo != null) pw.Image(logo, width: 60, height: 60),
-              pw.SizedBox(height: 10),
-              pw.Text('Dolce Vita Palace', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16, color: PdfColors.black)),
-              pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
-              pw.SizedBox(height: 10),
+              if (logo != null) pw.Image(logo, width: 50, height: 50, fit: pw.BoxFit.contain),
+              pw.SizedBox(height: 4),
+              pw.Text('Dolce Vita Palace', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black)),
+              pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+              pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+              pw.SizedBox(height: 4),
               ...cart.items.map((item) {
                 return pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Expanded(child: pw.Text('${item.quantite}x ${item.product.nom}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black))),
-                    pw.Text(Formatters.formatCurrency(item.total), style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
+                    pw.Expanded(child: pw.Text('${item.quantite}x ${item.product.nom}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black))),
+                    pw.Text(Formatters.formatCurrency(item.total), style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
                   ],
                 );
               }),
-              pw.SizedBox(height: 10),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
-                  pw.Text(Formatters.formatCurrency(cart.total), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
+                  pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
+                  pw.Text(Formatters.formatCurrency(cart.total), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
                 ],
               ),
-              pw.SizedBox(height: 10),
-              pw.Text('Merci de votre visite !', style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
-              pw.SizedBox(height: 20),
+              pw.SizedBox(height: 8),
+              pw.Text('Merci de votre visite !', style: const pw.TextStyle(fontSize: 8, color: PdfColors.black)),
+              pw.SizedBox(height: 4),
+              pw.Text('Nimzatt Point de la Source', style: const pw.TextStyle(fontSize: 8, color: PdfColors.black)),
+              pw.Text('Tél: 0708792031', style: const pw.TextStyle(fontSize: 8, color: PdfColors.black)),
+              pw.SizedBox(height: 8),
             ],
           );
         },
@@ -135,22 +138,22 @@ class PrinterService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             mainAxisSize: pw.MainAxisSize.min,
             children: [
-              pw.Center(child: pw.Text('BON DE CUISINE', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16, color: PdfColors.black))),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
-              pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
-              if (order.table != null) pw.Text('Table: ${order.table?.numero}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
-              pw.Text('Heure: ${order.createdAt.hour}:${order.createdAt.minute.toString().padLeft(2, '0')}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
-              pw.SizedBox(height: 10),
+              pw.Center(child: pw.Text('BON DE CUISINE', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black))),
+              pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+              pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
+              if (order.table != null) pw.Text('Table: ${order.table?.numero}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
+              pw.Text('Heure: ${order.createdAt.hour}:${order.createdAt.minute.toString().padLeft(2, '0')}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+              pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+              pw.SizedBox(height: 6),
               if (order.produits != null)
                 ...order.produits!.map((p) => pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('${p.quantite}x ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
-                    pw.Expanded(child: pw.Text(p.produitNom, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black))),
+                    pw.Text('${p.quantite}x ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black)),
+                    pw.Expanded(child: pw.Text(p.produitNom, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black))),
                   ],
                 )),
-              pw.SizedBox(height: 20),
+              pw.SizedBox(height: 16),
               pw.Divider(color: PdfColors.black),
             ],
           );
@@ -162,7 +165,7 @@ class PrinterService {
   }
 
   // Impression d'une facture depuis une commande existante
-  Future<void> printOrderReceipt(Order order) async {
+  Future<void> printOrderReceipt(Order order, {String? cashierName}) async {
     final pdf = pw.Document();
     final logo = await _loadLogo();
 
@@ -170,43 +173,109 @@ class PrinterService {
       pw.Page(
         pageFormat: _thermalFormat,
         build: (context) {
+          final bool hasClient = order.client != null && order.client!.nomComplet.isNotEmpty;
+          final bool hasFidelite = order.reductionFidelite > 0 && order.pointsUtilises > 0;
+          final double netAPayer = order.montantTotal - order.reductionFidelite;
+
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             mainAxisSize: pw.MainAxisSize.min,
             children: [
-              if (logo != null) pw.Image(logo, width: 60, height: 60),
-              pw.SizedBox(height: 10),
-              pw.Text('Dolce Vita Palace', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16, color: PdfColors.black)),
-              pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
-              pw.SizedBox(height: 10),
-              pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
-              if (order.table != null) pw.Text('Table ${order.table!.numero}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
-              pw.SizedBox(height: 10),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
-              pw.SizedBox(height: 10),
+              // === EN-TÊTE ===
+              if (logo != null) pw.Image(logo, width: 55, height: 55, fit: pw.BoxFit.contain),
+              pw.SizedBox(height: 4),
+              pw.Text('Dolce Vita Palace', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black)),
+              pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+
+              // === CLIENT (si associé) ===
+              if (hasClient) ...[
+                pw.SizedBox(height: 4),
+                pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+                pw.Text('Client: ${order.client!.nomComplet}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black)),
+                if (order.client!.telephone != null && order.client!.telephone!.isNotEmpty)
+                  pw.Text('Tél: ${order.client!.telephone}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.black)),
+              ],
+
+              pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+              pw.SizedBox(height: 3),
+              pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+              if (order.table != null)
+                pw.Text('Table ${order.table!.numero}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+              pw.Text(
+                '${order.createdAt.day.toString().padLeft(2,'0')}/${order.createdAt.month.toString().padLeft(2,'0')}/${order.createdAt.year}  ${order.createdAt.hour.toString().padLeft(2,'0')}:${order.createdAt.minute.toString().padLeft(2,'0')}',
+                style: const pw.TextStyle(fontSize: 8, color: PdfColors.black),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+
+              // === ARTICLES ===
+              pw.SizedBox(height: 3),
               if (order.produits != null)
                 ...order.produits!.map((item) {
-                  return pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      pw.Expanded(child: pw.Text('${item.quantite}x ${item.produitNom}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black))),
-                      pw.Text(Formatters.formatCurrency(item.total), style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
-                    ],
+                  return pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(vertical: 1),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Expanded(child: pw.Text('${item.quantite}x ${item.produitNom}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black))),
+                        pw.Text(Formatters.formatCurrency(item.total), style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+                      ],
+                    ),
                   );
                 }),
-              pw.SizedBox(height: 10),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+
+              // === TOTAUX ===
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
-                  pw.Text(Formatters.formatCurrency(order.montantTotal), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
+                  pw.Text('Sous-total', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+                  pw.Text(Formatters.formatCurrency(order.montantTotal), style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
                 ],
               ),
-              pw.SizedBox(height: 10),
-              pw.Text('Merci de votre visite !', style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
-              pw.SizedBox(height: 20),
+
+              // === SECTION FIDÉLITÉ ===
+              if (hasFidelite) ...[
+                pw.SizedBox(height: 3),
+                pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+                pw.Center(child: pw.Text('★ RÉDUCTION FIDÉLITÉ ★', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black))),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('Points utilisés: ${order.pointsUtilises} pts', style: const pw.TextStyle(fontSize: 8, color: PdfColors.black)),
+                    pw.Text('- ${Formatters.formatCurrency(order.reductionFidelite)}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black)),
+                  ],
+                ),
+                pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('NET À PAYER', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
+                    pw.Text(Formatters.formatCurrency(netAPayer), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
+                  ],
+                ),
+              ] else ...[
+                pw.SizedBox(height: 2),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('TOTAL', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
+                    pw.Text(Formatters.formatCurrency(order.montantTotal), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
+                  ],
+                ),
+              ],
+
+              // === PIED DE PAGE ===
+              pw.SizedBox(height: 8),
+              pw.Divider(thickness: 0.5, color: PdfColors.black),
+              pw.Text('Merci de votre visite !', style: const pw.TextStyle(fontSize: 8, color: PdfColors.black)),
+              if (cashierName != null && cashierName.isNotEmpty)
+                pw.Text('Caissier: $cashierName', style: const pw.TextStyle(fontSize: 8, color: PdfColors.black)),
+              pw.Text('Nimzatt Point de la Source', style: const pw.TextStyle(fontSize: 8, color: PdfColors.black)),
+              pw.Text('Tél: 0708792031', style: const pw.TextStyle(fontSize: 8, color: PdfColors.black)),
+              pw.SizedBox(height: 8),
             ],
           );
         },
