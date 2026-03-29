@@ -104,7 +104,7 @@ class CaisseSessionController extends Controller
         $pointsDetails = Paiement::where('caisse_session_id', $session->id)
             ->where('statut', StatutPaiement::Valide->value)
             ->where('moyen_paiement', MoyenPaiement::PointsFidelite->value)
-            ->with(['client:id,nom,prenom', 'commande.table:id,nom'])
+            ->with(['client:id,nom,prenom', 'commande.table:id,numero'])
             ->select('id', 'client_id', 'montant', 'points_utilises', 'commande_id')
             ->get();
 
