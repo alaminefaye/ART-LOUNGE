@@ -125,7 +125,7 @@ class CommandeController extends Controller
 
     public function show(Commande $commande)
     {
-        $commande->load(['table', 'user', 'produits.categorie']);
+        $commande->load(['table', 'user.roles', 'user.client', 'client', 'produits.categorie']);
 
         return view('commandes.show', compact('commande'));
     }

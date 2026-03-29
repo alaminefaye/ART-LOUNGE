@@ -5,6 +5,19 @@
     $showSidebar = $commande->statut->value !== 'terminee'
         && $commande->statut->value !== 'annulee'
         && (auth()->user()?->can('update_order_status') || auth()->user()?->can('cancel_orders'));
+
+    $client = $commande->client;
+    if (! $client && $commande->user && $commande->user->hasRole('client')) {
+        $client = $commande->user->client;
+    }
+    $clientName = $client?->nom_complet ? trim((string) $client->nom_complet) : '';
+    if ($clientName === '' && $commande->user && $commande->user->hasRole('client')) {
+        $clientName = trim((string) $commande->user->name);
+    }
+    $clientPhone = $client?->telephone ? (string) $client->telephone : '';
+    if ($clientPhone === '' && $commande->user && $commande->user->hasRole('client') && ! empty($commande->user->phone)) {
+        $clientPhone = (string) $commande->user->phone;
+    }
 @endphp
 <div class="row">
     <div class="{{ $showSidebar ? 'col-12 col-lg-8' : 'col-12' }}">
@@ -31,15 +44,28 @@
             </div>
             <div class="card-body">
                 <div class="row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <strong>Table :</strong>
                         <p class="text-primary h4">{{ $commande->table->numero }}</p>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <strong>Serveur :</strong>
                         <p>{{ $commande->user->name ?? 'N/A' }}</p>
                     </div>
                 </div>
+
+                @if($clientName !== '' || $clientPhone !== '')
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6">
+                            <strong>Client :</strong>
+                            <p class="mb-0">{{ $clientName !== '' ? $clientName : '—' }}</p>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <strong>Téléphone :</strong>
+                            <p class="mb-0">{{ $clientPhone !== '' ? $clientPhone : '—' }}</p>
+                        </div>
+                    </div>
+                @endif
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
