@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\CaisseSession;
 use App\Models\Paiement;
+use App\Enums\StatutPaiement;
+use App\Enums\MoyenPaiement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -91,7 +93,7 @@ class CaisseSessionController extends Controller
         }
 
         $totaux = Paiement::where('caisse_session_id', $session->id)
-            ->where('statut', 'valide')
+            ->where('statut', StatutPaiement::Valide->value)
             ->select('moyen_paiement', DB::raw('SUM(montant) as total'))
             ->groupBy('moyen_paiement')
             ->get();
@@ -100,8 +102,8 @@ class CaisseSessionController extends Controller
         
         // Détails des points de fidélité utilisés
         $pointsDetails = Paiement::where('caisse_session_id', $session->id)
-            ->where('statut', 'valide')
-            ->where('moyen_paiement', 'points_fidelite')
+            ->where('statut', StatutPaiement::Valide->value)
+            ->where('moyen_paiement', MoyenPaiement::PointsFidelite->value)
             ->with(['client:id,nom,prenom', 'commande.table:id,nom'])
             ->select('id', 'client_id', 'montant', 'points_utilises', 'commande_id')
             ->get();
@@ -140,7 +142,7 @@ class CaisseSessionController extends Controller
 
         // Calculer le total attendu
         $totalVentes = Paiement::where('caisse_session_id', $session->id)
-            ->where('statut', 'valide')
+            ->where('statut', StatutPaiement::Valide->value)
             ->sum('montant');
 
         $totalAttendu = $session->solde_ouverture + $totalVentes;

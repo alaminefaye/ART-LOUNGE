@@ -414,7 +414,7 @@ class PaiementController extends Controller
             $commande = Commande::with(['table', 'produits', 'client'])->findOrFail($validated['commande_id']);
 
             // Vérifier si la commande n'est pas déjà payée
-            if ($commande->paiements()->where('statut', StatutPaiement::Valide)->exists()) {
+            if ($commande->paiements()->where('statut', StatutPaiement::Valide->value)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Cette commande a déjà été payée.',
@@ -473,8 +473,8 @@ class PaiementController extends Controller
                 'client_id' => $validated['client_id'] ?? $commande->client_id,
                 'caisse_session_id' => $session->id,
                 'montant' => $netAPayer,
-                'moyen_paiement' => MoyenPaiement::Especes,
-                'statut' => StatutPaiement::Valide,
+                'moyen_paiement' => MoyenPaiement::Especes->value,
+                'statut' => StatutPaiement::Valide->value,
                 'montant_recu' => $validated['montant_recu'],
                 'points_utilises' => $reductionFidelite > 0 ? 0 : $pointsUtilises, // Si paiement Points séparé, on met 0 ici
                 'notes' => $validated['notes'] ?? null,
@@ -488,8 +488,8 @@ class PaiementController extends Controller
                     'client_id' => $validated['client_id'],
                     'caisse_session_id' => $session->id,
                     'montant' => $reductionFidelite,
-                    'moyen_paiement' => MoyenPaiement::PointsFidelite,
-                    'statut' => StatutPaiement::Valide,
+                    'moyen_paiement' => MoyenPaiement::PointsFidelite->value,
+                    'statut' => StatutPaiement::Valide->value,
                     'points_utilises' => $pointsUtilises,
                     'notes' => 'Réduction appliquée',
                 ]);
