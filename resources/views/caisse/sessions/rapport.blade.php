@@ -3,7 +3,8 @@
 @push('page-css')
 <style>
     @media print {
-        @page { size: A4; margin: 10mm; }
+        @page { size: A4; margin: 8mm; }
+        html, body { font-size: 11px !important; line-height: 1.2 !important; }
         .layout-menu, .layout-navbar, .footer, .no-print, .content-backdrop, .navbar-nav-right {
             display: none !important;
         }
@@ -15,6 +16,22 @@
         body { background: #fff !important; padding: 0 !important; }
         .card { border: 1px solid #e5e7eb !important; box-shadow: none !important; }
         .print-area { margin: 0 !important; max-width: none !important; }
+
+        .report-header { padding: 10px 12px !important; margin-bottom: 10px !important; }
+        .report-brand img { height: 40px !important; }
+        .report-title h1 { font-size: 14px !important; }
+        .report-title .meta { font-size: 10px !important; margin-top: 2px !important; }
+        .report-badge { font-size: 10px !important; padding: 4px 8px !important; }
+        .pill { font-size: 10px !important; padding: 4px 8px !important; }
+        .kv { gap: 8px !important; }
+        .kv .item { padding: 8px 10px !important; }
+        .kv .k { font-size: 10px !important; }
+        .kv .v { font-size: 12px !important; margin-top: 2px !important; }
+        .card-header { padding-top: 10px !important; padding-bottom: 10px !important; }
+        .card-body { padding: 12px !important; }
+        .table-report th { font-size: 10px !important; padding-top: 8px !important; padding-bottom: 8px !important; }
+        .table-report td { padding-top: 8px !important; padding-bottom: 8px !important; }
+        .row.g-3 { --bs-gutter-x: .75rem !important; --bs-gutter-y: .75rem !important; }
     }
     .print-area { max-width: 980px; margin: 0 auto; }
     .report-header {
