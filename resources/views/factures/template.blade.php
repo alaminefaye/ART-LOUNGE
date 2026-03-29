@@ -324,6 +324,12 @@
                 <div class="total-label">Sous-total:</div>
                 <div class="total-value">{{ number_format($facture->montant_total, 0, ',', ' ') }} FCFA</div>
             </div>
+            @if(isset($reduction_fidelite) && $reduction_fidelite > 0)
+            <div class="total-row" style="color: #e74c3c;">
+                <div class="total-label">Réduction Fidélité:</div>
+                <div class="total-value">-{{ number_format($reduction_fidelite, 0, ',', ' ') }} FCFA</div>
+            </div>
+            @endif
             @if($facture->montant_taxe > 0)
             <div class="total-row">
                 <div class="total-label">TVA (18%):</div>
@@ -332,8 +338,8 @@
             @endif
             <div class="total-final">
                 <div class="total-row" style="padding: 0;">
-                    <div class="total-label">TOTAL:</div>
-                    <div class="total-value">{{ number_format($facture->montant_total, 0, ',', ' ') }} FCFA</div>
+                    <div class="total-label">NET À PAYER:</div>
+                    <div class="total-value">{{ number_format($facture->montant_total - ($reduction_fidelite ?? 0), 0, ',', ' ') }} FCFA</div>
                 </div>
             </div>
         </div>

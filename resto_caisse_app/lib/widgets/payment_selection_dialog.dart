@@ -65,9 +65,8 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
       _isSearching = false;
         if (res['success']) {
           _foundClient = res['client'] as ClientFid;
-          // Auto-appliquer le max possible
-          _pointsToUse = (_baseTotal / _foundClient!.valeurFcfa1Point).floor();
-          if (_pointsToUse > _foundClient!.pointsFidelite) _pointsToUse = _foundClient!.pointsFidelite;
+          // NE PAS auto-appliquer, laisser à 0 par défaut pour éviter le "gratuit" par erreur
+          _pointsToUse = 0;
           _calculateChange(_cashReceivedController.text);
         } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'])));
@@ -85,7 +84,7 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Client non identifié'),
-          content: const Text('Vous avez saisi un numéro mais n\'avez pas cliqué sur "ID.". Voulez-vous continuer sans points de fidélité ?'),
+          content: const Text('Vous avez saisi un numéro mais n\'avez pas cliqué sur l\'icône de recherche. Voulez-vous continuer sans points de fidélité ?'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Retour')),
             ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Continuer sans points')),
@@ -378,10 +377,11 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
                     backgroundColor: Colors.black87,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     minimumSize: const Size(0, 36),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   child: _isSearching 
                     ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('ID.', style: TextStyle(color: Colors.white)),
+                    : const Icon(Icons.search, color: Colors.white, size: 20),
                 ),
               ],
             )
@@ -393,8 +393,12 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(_foundClient!.nomComplet, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.brandGold)),
+                    Text(
+                      '1 pt = ${Formatters.formatCurrency(_foundClient!.valeurFcfa1Point)}',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                    ),
                     InkWell(
-                      onTap: () => setState(() { _foundClient = null; _pointsToUse = 0; }),
+                      onTap: () => setState(() { _foundClient = null; _pointsToUse = 0; _calculateChange(_cashReceivedController.text); }),
                       child: const Icon(Icons.close, size: 18, color: Colors.red),
                     ),
                   ],

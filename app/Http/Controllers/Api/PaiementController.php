@@ -476,7 +476,7 @@ class PaiementController extends Controller
                 'moyen_paiement' => MoyenPaiement::Especes,
                 'statut' => StatutPaiement::Valide,
                 'montant_recu' => $validated['montant_recu'],
-                'points_utilises' => $pointsUtilises, // On log les points sur ce paiement
+                'points_utilises' => $reductionFidelite > 0 ? 0 : $pointsUtilises, // Si paiement Points séparé, on met 0 ici
                 'notes' => $validated['notes'] ?? null,
             ]);
 

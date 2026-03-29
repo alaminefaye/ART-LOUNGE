@@ -66,6 +66,10 @@ class FactureService
             'products' => $facture->commande->produits, // Alias pour la vue
             'paiement' => $facture->paiement,
             'logo_base64' => $logoBase64,
+            'reduction_fidelite' => (float) $facture->commande->paiements()
+                ->where('moyen_paiement', \App\Enums\MoyenPaiement::PointsFidelite)
+                ->where('statut', \App\Enums\StatutPaiement::Valide)
+                ->sum('montant'),
             'restaurant' => [
                 'nom' => config('app.name', 'Restaurant'),
                 'adresse' => 'Nimbo ond point de la source',
@@ -162,6 +166,10 @@ class FactureService
             'products' => $commande->produits,
             'paiement' => $paiement,
             'logo_base64' => $logoBase64,
+            'reduction_fidelite' => (float) $commande->paiements()
+                ->where('moyen_paiement', \App\Enums\MoyenPaiement::PointsFidelite)
+                ->where('statut', \App\Enums\StatutPaiement::Valide)
+                ->sum('montant'),
             'restaurant' => [
                 'nom' => config('app.name', 'Restaurant'),
                 'adresse' => 'Nimbo ond point de la source',
@@ -231,6 +239,10 @@ class FactureService
             'caissier_name' => $caissierName,
             'client_display' => $clientDisplay,
             'logo_base64' => $logoBase64,
+            'reduction_fidelite' => (float) $commande->paiements()
+                ->where('moyen_paiement', \App\Enums\MoyenPaiement::PointsFidelite)
+                ->where('statut', \App\Enums\StatutPaiement::Valide)
+                ->sum('montant'),
             'restaurant' => [
                 'nom' => config('app.name', 'Restaurant'),
                 'adresse' => 'Nimbo ond point de la source',

@@ -191,9 +191,19 @@
 
     <table class="totals-table bold" cellspacing="0" cellpadding="0">
         <tr>
-            <td class="label">TOTAL</td>
+            <td class="label">SOUS-TOTAL</td>
             <td class="amount">{{ number_format((float) $facture->montant_total, 0, ',', ' ') }} FCFA</td>
         </tr>
+        @if(isset($reduction_fidelite) && $reduction_fidelite > 0)
+        <tr style="color: #000;">
+            <td class="label">RÉD. FIDÉLITÉ</td>
+            <td class="amount">-{{ number_format((float) $reduction_fidelite, 0, ',', ' ') }} FCFA</td>
+        </tr>
+        <tr>
+            <td class="label">NET À PAYER</td>
+            <td class="amount">{{ number_format((float) ($facture->montant_total - $reduction_fidelite), 0, ',', ' ') }} FCFA</td>
+        </tr>
+        @endif
     </table>
 
     @if(isset($paiement))
