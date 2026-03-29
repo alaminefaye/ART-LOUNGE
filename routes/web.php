@@ -152,15 +152,24 @@ Route::middleware(['auth'])->group(function () {
     // Utilisateurs (Staff)
     Route::middleware(['can:view_users'])->group(function () {
         Route::get('users', [\App\Http\Controllers\Web\UserController::class, 'index'])->name('users.index');
-        Route::get('users/{user}', [\App\Http\Controllers\Web\UserController::class, 'show'])->name('users.show');
         
         Route::middleware(['can:manage_users'])->group(function () {
             Route::get('users/create', [\App\Http\Controllers\Web\UserController::class, 'create'])->name('users.create');
             Route::post('users', [\App\Http\Controllers\Web\UserController::class, 'store'])->name('users.store');
-            Route::get('users/{user}/edit', [\App\Http\Controllers\Web\UserController::class, 'edit'])->name('users.edit');
-            Route::put('users/{user}', [\App\Http\Controllers\Web\UserController::class, 'update'])->name('users.update');
-            Route::delete('users/{user}', [\App\Http\Controllers\Web\UserController::class, 'destroy'])->name('users.destroy');
+            Route::get('users/{user}/edit', [\App\Http\Controllers\Web\UserController::class, 'edit'])
+                ->whereNumber('user')
+                ->name('users.edit');
+            Route::put('users/{user}', [\App\Http\Controllers\Web\UserController::class, 'update'])
+                ->whereNumber('user')
+                ->name('users.update');
+            Route::delete('users/{user}', [\App\Http\Controllers\Web\UserController::class, 'destroy'])
+                ->whereNumber('user')
+                ->name('users.destroy');
         });
+
+        Route::get('users/{user}', [\App\Http\Controllers\Web\UserController::class, 'show'])
+            ->whereNumber('user')
+            ->name('users.show');
     });
     
     // Clients & Fidélité (clients/create avant clients/{client} pour éviter que "create" soit pris pour un id)
