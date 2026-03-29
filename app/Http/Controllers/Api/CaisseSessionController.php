@@ -101,8 +101,9 @@ class CaisseSessionController extends Controller
         $totalVentes = $totaux->sum('total');
         
         // Calculer uniquement ce qui doit être physiquement en caisse (on exclut les points de fidélité)
-        $totalLiquide = $totaux->where('moyen_paiement', '!=', MoyenPaiement::PointsFidelite->value)->sum('total');
-        $totalPointsMontant = $totaux->where('moyen_paiement', MoyenPaiement::PointsFidelite->value)->sum('total');
+        // Utilisation de strcasecmp pour être insensible à la casse d'enregistrement
+        $totalLiquide = $totaux->filter(fn($t) => strcasecmp($t->moyen_paiement, MoyenPaiement::PointsFidelite->value) !== 0)->sum('total');
+        $totalPointsMontant = $totaux->filter(fn($t) => strcasecmp($t->moyen_paiement, MoyenPaiement::PointsFidelite->value) === 0)->sum('total');
         
         // Détails des points de fidélité utilisés
         $pointsDetails = Paiement::where('caisse_session_id', $session->id)
