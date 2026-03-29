@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Table;
 use App\Services\FactureService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -100,7 +101,7 @@ class CommandeController extends Controller
 
             $commande = Commande::create([
                 'table_id' => $validated['table_id'],
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'notes' => $validated['notes'],
                 'statut' => OrderStatus::Attente,
             ]);
@@ -194,7 +195,10 @@ class CommandeController extends Controller
 
         // If order is completed, free the table
         if ($commande->statut === OrderStatus::Terminee) {
-            $commande->table->liberer();
+            $table = $commande->table()->first();
+            if ($table) {
+                $table->liberer();
+            }
         }
 
         return back()->with('success', 'Statut mis à jour avec succès !');
@@ -207,14 +211,15 @@ class CommandeController extends Controller
         }
 
         // Free the table if it was occupied only by this order
-        if ($commande->table->statut === TableStatus::Occupee) {
-            $otherActiveOrders = $commande->table->commandes()
+        $table = $commande->table()->first();
+        if ($table && $table->statut === TableStatus::Occupee) {
+            $otherActiveOrders = $table->commandes()
                 ->where('id', '!=', $commande->id)
                 ->whereNotIn('statut', [OrderStatus::Terminee, OrderStatus::Annulee])
                 ->count();
 
             if ($otherActiveOrders === 0) {
-                $commande->table->liberer();
+                $table->liberer();
             }
         }
 
@@ -225,10 +230,17 @@ class CommandeController extends Controller
             ->with('success', 'Commande annulée avec succès !');
     }
 
-    public function printReceipt(Commande $commande)
+    public function printReceipt(Request $request, Commande $commande)
     {
-        $pdf = $this->factureService->genererPDFThermal($commande);
+        if ($request->boolean('pdf')) {
+            $pdf = $this->factureService->genererPDFThermal($commande);
 
-        return $pdf->stream("recu-commande-80mm-{$commande->id}.pdf");
+            return $pdf->stream("recu-commande-80mm-{$commande->id}.pdf");
+        }
+
+        $data = $this->factureService->buildThermalTicketData($commande);
+        $data['auto_print'] = true;
+
+        return response()->view('factures.thermal', $data);
     }
 }

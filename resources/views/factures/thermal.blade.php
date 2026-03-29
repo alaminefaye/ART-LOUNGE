@@ -225,5 +225,13 @@
         <div>À bientôt !</div>
         <div style="margin-top: 1.5mm;">{{ now()->format('d/m/Y H:i:s') }}</div>
     </div>
+
+    @if(!empty($auto_print))
+        <script>
+            window.addEventListener('load', function () {
+                window.print();
+            });
+        </script>
+    @endif
 </body>
 </html>

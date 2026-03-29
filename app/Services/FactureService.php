@@ -173,12 +173,8 @@ class FactureService
         return Pdf::loadView('factures.template', $data);
     }
 
-    /**
-     * Génère un flux PDF optimisé pour les imprimantes thermiques 80mm
-     */
-    public function genererPDFThermal(Commande $commande): \Barryvdh\DomPDF\PDF
+    public function buildThermalTicketData(Commande $commande): array
     {
-        // Charger les relations (client + user du paiement pour ticket caisse)
         $commande->load(['table', 'produits', 'user', 'client', 'paiements.facture']);
 
         $facture = $commande->facture;
@@ -226,7 +222,7 @@ class FactureService
             }
         }
 
-        $data = [
+        return [
             'facture' => $facture,
             'commande' => $commande,
             'table' => $commande->table,
@@ -242,6 +238,14 @@ class FactureService
                 'email' => 'contact@resto.sn',
             ],
         ];
+    }
+
+    /**
+     * Génère un flux PDF optimisé pour les imprimantes thermiques 80mm
+     */
+    public function genererPDFThermal(Commande $commande): \Barryvdh\DomPDF\PDF
+    {
+        $data = $this->buildThermalTicketData($commande);
 
         $mmToPt = static fn (float $mm): float => $mm * 72 / 25.4;
 
@@ -250,22 +254,22 @@ class FactureService
         };
 
         $estimatedNameLines = 0;
-        foreach ($commande->produits as $produit) {
+        foreach (($data['products'] ?? []) as $produit) {
             $name = (string) $produit->nom;
             $estimatedNameLines += max(1, (int) ceil($charLen($name) / 24));
         }
 
         $heightMm = 95 + ($estimatedNameLines * 6);
-        if ($logoBase64) {
+        if (! empty($data['logo_base64'])) {
             $heightMm += 18;
         }
-        if ($clientDisplay) {
+        if (! empty($data['client_display'])) {
             $heightMm += 14;
         }
-        if ($paiement) {
+        if (! empty($data['paiement'])) {
             $heightMm += 18;
         }
-        if ($caissierName) {
+        if (! empty($data['caissier_name'])) {
             $heightMm += 6;
         }
         $heightMm = max(120, min($heightMm, 500));
