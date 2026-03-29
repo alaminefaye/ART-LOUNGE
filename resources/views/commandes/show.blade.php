@@ -1,8 +1,13 @@
 @extends('layouts.app')
 @section('title', 'Commande #' . $commande->id)
 @section('content')
+@php
+    $showSidebar = $commande->statut->value !== 'terminee'
+        && $commande->statut->value !== 'annulee'
+        && (auth()->user()?->can('update_order_status') || auth()->user()?->can('cancel_orders'));
+@endphp
 <div class="row">
-    <div class="col-md-8">
+    <div class="{{ $showSidebar ? 'col-12 col-lg-8' : 'col-12' }}">
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between">
                 <h5 class="mb-0">📋 Commande #{{ $commande->id }}</h5>
@@ -107,45 +112,44 @@
         </div>
     </div>
     
-    <div class="col-md-4">
-        @if($commande->statut->value !== 'terminee' && $commande->statut->value !== 'annulee')
-        @can('update_order_status')
-        <div class="card">
-            <div class="card-header"><h6 class="mb-0">Changer le statut</h6></div>
-            <div class="card-body">
-                <form action="{{ route('commandes.update-status', $commande) }}" method="POST">
-                    @csrf
-                    @method('PATCH')
-                    <div class="mb-3">
-                        <select name="statut" class="form-select" required>
-                            <option value="attente" {{ $commande->statut->value === 'attente' ? 'selected' : '' }}>En attente</option>
-                            <option value="preparation" {{ $commande->statut->value === 'preparation' ? 'selected' : '' }}>En préparation</option>
-                            <option value="servie" {{ $commande->statut->value === 'servie' ? 'selected' : '' }}>Servie</option>
-                            <option value="terminee" {{ $commande->statut->value === 'terminee' ? 'selected' : '' }}>Terminée</option>
-                        </select>
+    @if($showSidebar)
+        <div class="col-12 col-lg-4">
+            @can('update_order_status')
+                <div class="card">
+                    <div class="card-header"><h6 class="mb-0">Changer le statut</h6></div>
+                    <div class="card-body">
+                        <form action="{{ route('commandes.update-status', $commande) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <div class="mb-3">
+                                <select name="statut" class="form-select" required>
+                                    <option value="attente" {{ $commande->statut->value === 'attente' ? 'selected' : '' }}>En attente</option>
+                                    <option value="preparation" {{ $commande->statut->value === 'preparation' ? 'selected' : '' }}>En préparation</option>
+                                    <option value="servie" {{ $commande->statut->value === 'servie' ? 'selected' : '' }}>Servie</option>
+                                    <option value="terminee" {{ $commande->statut->value === 'terminee' ? 'selected' : '' }}>Terminée</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Mettre à jour</button>
+                        </form>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Mettre à jour</button>
-                </form>
-            </div>
+                </div>
+            @endcan
+
+            @can('cancel_orders')
+                <div class="card mt-3">
+                    <div class="card-header"><h6 class="mb-0 text-danger">Actions</h6></div>
+                    <div class="card-body">
+                        <form action="{{ route('commandes.destroy', $commande) }}" method="POST" onsubmit="return confirm('Annuler cette commande ?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bx bx-x"></i> Annuler la commande
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endcan
         </div>
-        @endcan
-        
-        @can('cancel_orders')
-        <div class="card mt-3">
-            <div class="card-header"><h6 class="mb-0 text-danger">Actions</h6></div>
-            <div class="card-body">
-                <form action="{{ route('commandes.destroy', $commande) }}" method="POST" onsubmit="return confirm('Annuler cette commande ?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger w-100">
-                        <i class="bx bx-x"></i> Annuler la commande
-                    </button>
-                </form>
-            </div>
-        </div>
-        @endcan
-        @endif
-    </div>
+    @endif
 </div>
 @endsection
-
