@@ -113,6 +113,7 @@ class PaymentService {
     String? transactionId,
     String? notes,
     int? pointsUtilises,
+    int? clientId,
   }) async {
     try {
       final body = <String, dynamic>{
@@ -121,6 +122,7 @@ class PaymentService {
         if (transactionId != null && transactionId.isNotEmpty)
           'transaction_id': transactionId,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
+        if (clientId != null) 'client_id': clientId,
       };
       if (pointsUtilises != null && pointsUtilises > 0) {
         body['points_utilises'] = pointsUtilises;
@@ -283,7 +285,7 @@ class PaymentService {
         data: {
           'commande_id': commandeId,
           'montant_recu': montantRecu,
-          'client_id': ?clientId,
+          'client_id': clientId,
           if (pointsUtilises != null && pointsUtilises > 0)
             'points_utilises': pointsUtilises,
           if (notes != null && notes.isNotEmpty) 'notes': notes,

@@ -433,11 +433,13 @@ class CartTicket extends StatelessWidget {
   void _showTableSelectionDialog(BuildContext context, Cart cart) {
     showDialog(
       context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: FutureBuilder<List<model.Table>>(
-            future: TableService().getTables(),
-            builder: (ctx, snapshot) {
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (stateCtx, setDialogState) {
+            return AlertDialog(
+              title: FutureBuilder<List<model.Table>>(
+                future: TableService().getTables(),
+                builder: (futureCtx, snapshot) {
               final tables = snapshot.data ?? [];
               final libres = tables.where((t) => t.statut != model.TableStatus.occupee).length;
               final occupees = tables.where((t) => t.statut == model.TableStatus.occupee).length;
@@ -461,7 +463,7 @@ class CartTicket extends StatelessWidget {
             height: 400,
             child: FutureBuilder<List<model.Table>>(
               future: TableService().getTables(),
-              builder: (ctx, snapshot) {
+              builder: (futureCtx, snapshot) {
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator(color: AppTheme.brandGold));
@@ -488,18 +490,68 @@ class CartTicket extends StatelessWidget {
                     return InkWell(
                       onTap: () async {
                         if (isOccupied) {
-                          // Afficher un petit indicateur de chargement ou faire l'appel
-                          final activeOrder = await OrderService().getActiveOrderByTable(t.id);
-                          if (activeOrder != null) {
-                            cart.syncWithOrder(activeOrder);
-                          } else {
-                            cart.setTable(t.id, tableNumero: t.numero);
+                          // Afficher un indicateur de chargement
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (loaderCtx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
+                          );
+                          
+                          try {
+                            final activeOrder = await OrderService().getActiveOrderByTable(t.id);
+                            if (activeOrder != null) {
+                              cart.syncWithOrder(activeOrder);
+                            } else {
+                              cart.setTable(t.id, tableNumero: t.numero);
+                            }
+                          } finally {
+                            // Fermer le loader (on repasse par le root navigator pour être sûr)
+                            if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
                           }
                         } else {
                           cart.setTable(t.id, tableNumero: t.numero);
                         }
-                        if (context.mounted) Navigator.pop(context);
+                        
+                        // Fermer le dialogue de sélection
+                        if (context.mounted) {
+                          Navigator.of(dialogCtx).pop(); 
+                        }
                       },
+                      onLongPress: isOccupied ? () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (c) => AlertDialog(
+                            title: const Text('Libérer la table ?'),
+                            content: Text('Voulez-vous forcer la libération de la table ${t.numero} ?\nCela annulera toute commande en cours.'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Annuler')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(c, true),
+                                child: const Text('Libérer', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true && context.mounted) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
+                          );
+                          
+                          try {
+                            final activeOrder = await OrderService().getActiveOrderByTable(t.id);
+                            if (activeOrder != null) {
+                              await OrderService().updateOrderStatus(activeOrder.id, OrderStatus.annulee);
+                            }
+                            // On force un rafraîchissement du dialogue
+                            setDialogState(() {});
+                          } finally {
+                            if (context.mounted) Navigator.pop(context); // Fermer le loader
+                          }
+                        }
+                      } : null,
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         decoration: BoxDecoration(
@@ -537,7 +589,7 @@ class CartTicket extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx),
+              onPressed: () => Navigator.of(dialogCtx).pop(),
               child: const Text('Fermer', style: TextStyle(color: Colors.grey)),
             ),
           ],
@@ -545,6 +597,8 @@ class CartTicket extends StatelessWidget {
       },
     );
   }
+);
+}
 }
 
 class _TableBadge extends StatelessWidget {

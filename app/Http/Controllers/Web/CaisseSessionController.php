@@ -135,7 +135,10 @@ class CaisseSessionController extends Controller
      */
     private function totauxPaiementsSession(CaisseSession $session): array
     {
-        $paiements = $session->paiements()->where('statut', 'valide')->get();
+        $paiements = $session->paiements()
+            ->where('statut', 'valide')
+            ->with(['client:id,nom,prenom', 'commande.table:id,nom'])
+            ->get();
 
         return [
             'total_especes' => $paiements->where('moyen_paiement.value', 'especes')->sum('montant'),
@@ -144,6 +147,7 @@ class CaisseSessionController extends Controller
             'total_carte' => $paiements->where('moyen_paiement.value', 'carte_bancaire')->sum('montant'),
             'total_points' => $paiements->where('moyen_paiement.value', 'points_fidelite')->sum('montant'),
             'total_ventes' => $paiements->sum('montant'),
+            'points_details' => $paiements->where('moyen_paiement.value', 'points_fidelite'),
         ];
     }
 

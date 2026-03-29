@@ -14,6 +14,7 @@ import '../utils/formatters.dart';
 import '../widgets/cart_ticket.dart';
 import 'order_management_screen.dart';
 import 'caisse/session_management_screen.dart';
+import '../widgets/printer_settings_dialog.dart';
 
 class PosScreen extends StatefulWidget {
   final VoidCallback? onRequireSessionCheck;
@@ -333,6 +334,13 @@ class _PosScreenState extends State<PosScreen> {
           tooltip: 'Actualiser',
         ),
         
+        // Bouton Printer Settings
+        IconButton(
+          onPressed: () => _showPrinterSettings(),
+          icon: const Icon(Icons.print, color: AppTheme.brandGold),
+          tooltip: 'Imprimante',
+        ),
+        
         // Popup Menu pour les actions sur mobile ou Row sur Desktop
         if (isMobile)
           PopupMenuButton<String>(
@@ -439,21 +447,28 @@ class _PosScreenState extends State<PosScreen> {
     );
   }
 
+  void _showPrinterSettings() {
+    showDialog(
+      context: context,
+      builder: (ctx) => const PrinterSettingsDialog(),
+    );
+  }
+
   Widget _buildProductCard(BuildContext context, Product product, bool isMobile) {
     final cart = Provider.of<Cart>(context, listen: false);
     return GestureDetector(
       onTap: () {
         cart.addProduct(product);
-        if (isMobile) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${product.nom} ajouté au panier'),
-              duration: const Duration(seconds: 1),
-              backgroundColor: AppTheme.brandGold,
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${product.nom} ajouté au panier'),
+            duration: const Duration(seconds: 1),
+            backgroundColor: AppTheme.brandGold,
+            behavior: isMobile ? SnackBarBehavior.fixed : SnackBarBehavior.floating,
+            width: isMobile ? null : 300,
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(

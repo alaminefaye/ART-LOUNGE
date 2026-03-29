@@ -143,52 +143,50 @@
                 </div>
             </div>
 
-            <div class="col-12 col-lg-7">
-                <div class="card report-card shadow-sm">
-                    <div class="card-header py-3">
-                        <div class="fw-semibold text-primary">Encaissements par mode de paiement</div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-report align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th class="px-4 py-3">Mode</th>
-                                        <th class="px-4 py-3 text-end">Montant</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-money text-success"></i> Espèces</span></td>
-                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_especes'], 0, ',', ' ') }} FCFA</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-mobile text-info"></i> Wave</span></td>
-                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_wave'], 0, ',', ' ') }} FCFA</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-building text-warning"></i> Orange Money</span></td>
-                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_orange_money'], 0, ',', ' ') }} FCFA</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-credit-card text-primary"></i> Carte bancaire</span></td>
-                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_carte'], 0, ',', ' ') }} FCFA</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-star text-secondary"></i> Points fidélité</span></td>
-                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_points'], 0, ',', ' ') }} FCFA</td>
-                                    </tr>
-                                    <tr class="sum-row">
-                                        <td class="px-4 py-3 fw-semibold">Total ventes encaissées</td>
-                                        <td class="px-4 py-3 text-end fw-bold text-primary money">{{ number_format($details['total_ventes'], 0, ',', ' ') }} FCFA</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
+
+        @if($details['points_details']->isNotEmpty())
+        <div class="card report-card shadow-sm mb-3">
+            <div class="card-header py-3">
+                <div class="fw-semibold text-primary">Détails de l'utilisation des Points</div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-report align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="px-4 py-3">Client</th>
+                                <th class="py-3 text-center">Cmd #</th>
+                                <th class="py-3 text-center">Points</th>
+                                <th class="px-4 py-3 text-end">Réduction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($details['points_details'] as $p)
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <span class="fw-semibold">{{ $p->client->nomComplet ?? 'Client inconnu' }}</span>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <a href="{{ route('commandes.show', $p->commande_id) }}" class="fw-bold">
+                                        #{{ $p->commande_id }}
+                                    </a>
+                                    <div class="small text-muted" style="font-size: 10px;">{{ $p->commande->table->nom ?? 'Table' }}</div>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <span class="badge bg-label-info">{{ $p->points_utilises }} pts</span>
+                                </td>
+                                <td class="px-4 py-3 text-end fw-bold money">{{ number_format($p->montant, 0, ',', ' ') }} FCFA</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <div class="card report-card shadow-sm accent-left">
             <div class="card-header py-3">

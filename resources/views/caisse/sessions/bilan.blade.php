@@ -119,10 +119,55 @@
                     </ul>
                 </div>
                 <div class="card-footer bg-light py-3 px-4 d-flex justify-content-between align-items-center">
-                    <span class="h5 mb-0 font-weight-bold">Total Ventes</span>
                     <span class="h4 mb-0 text-primary font-weight-bold">{{ number_format($details['total_ventes'], 0, ',', ' ') }} FCFA</span>
                 </div>
             </div>
+
+            @if($details['points_details']->isNotEmpty())
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 text-primary">Détails de l'utilisation des Points</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="px-4">Client</th>
+                                    <th class="text-center">Commande</th>
+                                    <th class="text-center">Points</th>
+                                    <th class="text-end px-4">Réduction</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($details['points_details'] as $p)
+                                <tr>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar avatar-xs me-2">
+                                                <span class="avatar-initial rounded-circle bg-label-primary">{{ substr($p->client->nomComplet ?? '?', 0, 1) }}</span>
+                                            </div>
+                                            <span>{{ $p->client->nomComplet ?? 'Client inconnu' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ route('commandes.show', $p->commande_id) }}" class="text-primary font-weight-bold">
+                                            #{{ $p->commande_id }}
+                                        </a>
+                                        <div class="small text-muted">{{ $p->commande->table->nom ?? 'Table' }}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-label-info">{{ $p->points_utilises }} pts</span>
+                                    </td>
+                                    <td class="text-end px-4 font-weight-bold">{{ number_format($p->montant, 0, ',', ' ') }} FCFA</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
 
         <div class="col-md-4">

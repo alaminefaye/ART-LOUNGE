@@ -132,6 +132,8 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
           final res = await _paymentService.initiatePayment(
             commandeId: order.id,
             moyenPaiement: _selectedMethod,
+            pointsUtilises: _pointsToUse > 0 ? _pointsToUse : null,
+            clientId: _foundClient?.id,
           );
           paymentSuccess = res['success'];
           errorMsg = res['message'];
@@ -214,7 +216,9 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
                     childAspectRatio: isNarrow ? 2.0 : 2.5,
-                    children: PaymentMethod.values.map((method) {
+                    children: PaymentMethod.values
+                        .where((m) => m != PaymentMethod.pointsFidelite)
+                        .map((method) {
                       final isSelected = _selectedMethod == method;
                       return InkWell(
                         onTap: () => setState(() => _selectedMethod = method),

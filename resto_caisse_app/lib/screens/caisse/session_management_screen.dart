@@ -240,6 +240,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
     final double totalVentes = parseDouble(_bilan?['total_ventes']);
     final double totalAttendu = parseDouble(_bilan?['total_attendu_caisse']);
     final List repartition = _bilan?['repartition'] ?? [];
+    final List pointsDetails = _bilan?['points_details'] ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,6 +361,67 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
             ),
           );
         }),
+
+        if (pointsDetails.isNotEmpty) ...[
+          const SizedBox(height: 32),
+          const Text(
+            'DÉTAILS FIDÉLITÉ',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.5),
+          ),
+          const SizedBox(height: 16),
+          ...pointsDetails.map((p) {
+            final client = p['client'] ?? {};
+            final String clientName = '${client['nom'] ?? ''} ${client['prenom'] ?? ''}'.trim();
+            final int points = p['points_utilises'] ?? 0;
+            final double amount = parseDouble(p['montant']);
+            final String tableName = p['commande']?['table']?['nom'] ?? 'Table';
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          clientName.isEmpty ? 'Client inconnu' : clientName,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        Text(
+                          '$tableName • Commande #${p['commande_id']}',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$points pts',
+                      style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 11),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    Formatters.formatCurrency(amount),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
 
         const SizedBox(height: 40),
         const Text(

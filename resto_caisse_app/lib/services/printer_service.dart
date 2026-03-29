@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/order.dart';
 import '../models/cart.dart';
 import '../utils/formatters.dart';
@@ -14,6 +15,57 @@ class PrinterService {
     } catch (_) {
       return null;
     }
+  }
+
+  // --- Gestion de l'imprimante par défaut ---
+
+  static const String _kDefaultPrinterKey = 'default_printer_name';
+
+  Future<List<Printer>> getAvailablePrinters() async {
+    return await Printing.listPrinters();
+  }
+
+  Future<void> setDefaultPrinter(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kDefaultPrinterKey, name);
+  }
+
+  Future<String?> getDefaultPrinterName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kDefaultPrinterKey);
+  }
+
+  // Méthode générique pour imprimer (Silencieux si configuré, sinon dialogue)
+  Future<void> _dispatchPrint(pw.Document pdf, String jobName) async {
+    final defaultName = await getDefaultPrinterName();
+    
+    if (defaultName != null && defaultName.isNotEmpty) {
+      final printers = await getAvailablePrinters();
+      Printer? targetPrinter;
+      
+      try {
+        targetPrinter = printers.firstWhere((p) => p.name == defaultName);
+      } catch (e) {
+        // Si l'imprimante n'est plus disponible, on retombe sur le dialogue
+        targetPrinter = null;
+      }
+
+      if (targetPrinter != null) {
+        await Printing.directPrintPdf(
+          printer: targetPrinter,
+          onLayout: (PdfPageFormat format) async => pdf.save(),
+          name: jobName,
+        );
+        return;
+      }
+    }
+
+    // Comportement par défaut : Boîte de dialogue standard
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+      name: jobName,
+      format: PdfPageFormat.roll80, // Forcer le format POS80 par défaut
+    );
   }
 
   // Impression d'un ticket de caisse depuis le panier
@@ -62,10 +114,7 @@ class PrinterService {
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Ticket_${DateTime.now().millisecondsSinceEpoch}',
-    );
+    await _dispatchPrint(pdf, 'Ticket_${DateTime.now().millisecondsSinceEpoch}');
   }
 
   // Impression d'un bon de cuisine depuis une commande
@@ -103,10 +152,7 @@ class PrinterService {
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Cuisine_${order.id}',
-    );
+    await _dispatchPrint(pdf, 'Cuisine_${order.id}');
   }
 
   // Impression d'une facture depuis une commande existante
@@ -161,10 +207,7 @@ class PrinterService {
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Facture_${order.id}',
-    );
+    await _dispatchPrint(pdf, 'Facture_${order.id}');
   }
 
   /// Bon de cuisine SUPPLÉMENT — uniquement les articles nouvellement ajoutés.
@@ -216,9 +259,6 @@ class PrinterService {
         },
       ),
     );
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Supplement_${orderId}_${DateTime.now().millisecondsSinceEpoch}',
-    );
+    await _dispatchPrint(pdf, 'Supplement_${orderId}_${DateTime.now().millisecondsSinceEpoch}');
   }
 }

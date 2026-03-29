@@ -131,11 +131,12 @@ class Order {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     try {
-      // Parsing sécurisé des produits
+      // Parsing sécurisé des produits (Vérifier plusieurs clés possibles de l'API)
       List<OrderItem>? produits;
-      if (json['produits'] != null && json['produits'] is List) {
+      final dynamic rawProduits = json['produits'] ?? json['items'] ?? json['produit_commande'];
+      if (rawProduits != null && rawProduits is List) {
         try {
-          produits = (json['produits'] as List)
+          produits = rawProduits
               .map((p) {
                 try {
                   if (p is! Map) return null;

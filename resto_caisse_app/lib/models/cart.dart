@@ -40,20 +40,26 @@ class Cart extends ChangeNotifier {
   bool get hasNewItems => _items.any((item) => item.isNew);
 
   void setTable(int tableId, {String? tableNumero}) {
+    if (_tableId != tableId) {
+      _items.clear();
+      _activeOrder = null;
+    }
     _tableId = tableId;
     _tableNumero = tableNumero;
     notifyListeners();
   }
 
   void addProduct(Product product, {int quantite = 1}) {
-    final existingIndex = _items.indexWhere(
-      (item) => item.product.id == product.id,
+    // On cherche d'abord s'il y a déjà cet article en mode "NOUVEAU" (pas encore envoyé)
+    final existingNewIndex = _items.indexWhere(
+      (item) => item.product.id == product.id && item.isNew,
     );
 
-    if (existingIndex >= 0) {
-      _items[existingIndex].quantite += quantite;
+    if (existingNewIndex >= 0) {
+      _items[existingNewIndex].quantite += quantite;
     } else {
-      _items.add(CartItem(product: product, quantite: quantite));
+      // Si on n'a pas trouvé d'article "NOUVEAU", on en crée un, même si l'article existe déjà en mode "DÉJÀ ENVOYÉ"
+      _items.add(CartItem(product: product, quantite: quantite, isNew: true));
     }
     notifyListeners();
   }

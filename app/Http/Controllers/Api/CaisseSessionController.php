@@ -97,6 +97,14 @@ class CaisseSessionController extends Controller
             ->get();
 
         $totalAttendu = $totaux->sum('total');
+        
+        // Détails des points de fidélité utilisés
+        $pointsDetails = Paiement::where('caisse_session_id', $session->id)
+            ->where('statut', 'valide')
+            ->where('moyen_paiement', 'points_fidelite')
+            ->with(['client:id,nom,prenom', 'commande.table:id,nom'])
+            ->select('id', 'client_id', 'montant', 'points_utilises', 'commande_id')
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -104,7 +112,8 @@ class CaisseSessionController extends Controller
                 'session' => $session,
                 'repartition' => $totaux,
                 'total_ventes' => $totalAttendu,
-                'total_attendu_caisse' => $session->solde_ouverture + $totalAttendu
+                'total_attendu_caisse' => $session->solde_ouverture + $totalAttendu,
+                'points_details' => $pointsDetails
             ]
         ]);
     }
