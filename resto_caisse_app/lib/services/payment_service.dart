@@ -10,9 +10,7 @@ class PaymentService {
   // Lancer une commande (changer statut vers "preparation")
   Future<Map<String, dynamic>> launchOrder(int orderId) async {
     try {
-      final response = await _apiService.post(
-        ApiConfig.launchOrder(orderId),
-      );
+      final response = await _apiService.post(ApiConfig.launchOrder(orderId));
 
       if (response.statusCode == 200) {
         return {
@@ -23,7 +21,9 @@ class PaymentService {
       } else {
         return {
           'success': false,
-          'message': response.data['message'] ?? 'Erreur lors du lancement de la commande',
+          'message':
+              response.data['message'] ??
+              'Erreur lors du lancement de la commande',
         };
       }
     } on DioException catch (e) {
@@ -34,10 +34,7 @@ class PaymentService {
           message = data['message'] as String;
         }
       }
-      return {
-        'success': false,
-        'message': message,
-      };
+      return {'success': false, 'message': message};
     } catch (e) {
       return {
         'success': false,
@@ -65,7 +62,8 @@ class PaymentService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data as Map<String, dynamic>?;
-        final message = data?['message'] as String? ?? 'Paiement en points enregistré.';
+        final message =
+            data?['message'] as String? ?? 'Paiement en points enregistré.';
         final dataContent = data?['data'];
         double? resteAPayer;
         if (data?['reste_a_payer'] case final num r) {
@@ -73,7 +71,9 @@ class PaymentService {
         }
         if (dataContent is Map) {
           try {
-            final payment = Payment.fromJson(dataContent as Map<String, dynamic>);
+            final payment = Payment.fromJson(
+              dataContent as Map<String, dynamic>,
+            );
             return {
               'success': true,
               'message': message,
@@ -118,7 +118,8 @@ class PaymentService {
       final body = <String, dynamic>{
         'commande_id': commandeId,
         'moyen_paiement': moyenPaiement.value,
-        if (transactionId != null && transactionId.isNotEmpty) 'transaction_id': transactionId,
+        if (transactionId != null && transactionId.isNotEmpty)
+          'transaction_id': transactionId,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
       };
       if (pointsUtilises != null && pointsUtilises > 0) {
@@ -148,10 +149,7 @@ class PaymentService {
             paymentData = data as Map<String, dynamic>;
           }
         } else {
-          return {
-            'success': false,
-            'message': 'Format de réponse invalide',
-          };
+          return {'success': false, 'message': 'Format de réponse invalide'};
         }
 
         try {
@@ -187,14 +185,12 @@ class PaymentService {
           if (data is Map && data['message'] != null) {
             message = data['message'] as String;
           } else {
-            message = 'Action non autorisée. Vérifiez si votre session de caisse est ouverte.';
+            message =
+                'Action non autorisée. Vérifiez si votre session de caisse est ouverte.';
           }
         }
       }
-      return {
-        'success': false,
-        'message': message,
-      };
+      return {'success': false, 'message': message};
     } catch (e) {
       return {
         'success': false,
@@ -211,9 +207,7 @@ class PaymentService {
     try {
       final response = await _apiService.post(
         ApiConfig.confirmPayment(paymentId),
-        data: {
-          'transaction_id': transactionId,
-        },
+        data: {'transaction_id': transactionId},
       );
 
       if (response.statusCode == 200) {
@@ -234,10 +228,7 @@ class PaymentService {
             paymentData = data as Map<String, dynamic>;
           }
         } else {
-          return {
-            'success': false,
-            'message': 'Format de réponse invalide',
-          };
+          return {'success': false, 'message': 'Format de réponse invalide'};
         }
 
         try {
@@ -269,10 +260,7 @@ class PaymentService {
           message = data['message'] as String;
         }
       }
-      return {
-        'success': false,
-        'message': message,
-      };
+      return {'success': false, 'message': message};
     } catch (e) {
       return {
         'success': false,
@@ -295,8 +283,9 @@ class PaymentService {
         data: {
           'commande_id': commandeId,
           'montant_recu': montantRecu,
-          if (clientId != null) 'client_id': clientId,
-          if (pointsUtilises != null && pointsUtilises > 0) 'points_utilises': pointsUtilises,
+          'client_id': ?clientId,
+          if (pointsUtilises != null && pointsUtilises > 0)
+            'points_utilises': pointsUtilises,
           if (notes != null && notes.isNotEmpty) 'notes': notes,
         },
       );
@@ -325,22 +314,17 @@ class PaymentService {
               }
             }
           } else {
-            return {
-              'success': false,
-              'message': 'Format de réponse invalide',
-            };
+            return {'success': false, 'message': 'Format de réponse invalide'};
           }
         } else {
-          return {
-            'success': false,
-            'message': 'Format de réponse invalide',
-          };
+          return {'success': false, 'message': 'Format de réponse invalide'};
         }
 
         try {
           return {
             'success': true,
-            'message': (data['message']) ?? 'Paiement espèces effectué avec succès',
+            'message':
+                (data['message']) ?? 'Paiement espèces effectué avec succès',
             'data': Payment.fromJson(paymentData),
             'monnaie_rendue': monnaieRendue,
           };
@@ -366,16 +350,16 @@ class PaymentService {
         if (data is Map && data['message'] != null) {
           message = data['message'] as String;
         }
-        if (e.response?.statusCode == 422 && data is Map && data.containsKey('data')) {
+        if (e.response?.statusCode == 422 &&
+            data is Map &&
+            data.containsKey('data')) {
           // Erreur de montant insuffisant
           final errorData = data['data'] as Map<String, dynamic>;
-          message = '$message\nMontant requis: ${errorData['montant_requis']} FCFA\nManquant: ${errorData['manquant']} FCFA';
+          message =
+              '$message\nMontant requis: ${errorData['montant_requis']} FCFA\nManquant: ${errorData['manquant']} FCFA';
         }
       }
-      return {
-        'success': false,
-        'message': message,
-      };
+      return {'success': false, 'message': message};
     } catch (e) {
       return {
         'success': false,
@@ -404,16 +388,10 @@ class PaymentService {
               paymentData = dataContent as Map<String, dynamic>;
             }
           } else {
-            return {
-              'success': false,
-              'message': 'Format de réponse invalide',
-            };
+            return {'success': false, 'message': 'Format de réponse invalide'};
           }
         } else {
-          return {
-            'success': false,
-            'message': 'Format de réponse invalide',
-          };
+          return {'success': false, 'message': 'Format de réponse invalide'};
         }
 
         try {
@@ -445,10 +423,7 @@ class PaymentService {
           message = data['message'] as String;
         }
       }
-      return {
-        'success': false,
-        'message': message,
-      };
+      return {'success': false, 'message': message};
     } catch (e) {
       return {
         'success': false,
@@ -476,17 +451,20 @@ class PaymentService {
           return [];
         }
 
-        return paymentsData.map((json) {
-          try {
-            if (json is Map<String, dynamic>) {
-              return Payment.fromJson(json);
-            }
-            return null;
-          } catch (e) {
-            debugPrint('Erreur parsing Payment: $e');
-            return null;
-          }
-        }).whereType<Payment>().toList();
+        return paymentsData
+            .map((json) {
+              try {
+                if (json is Map<String, dynamic>) {
+                  return Payment.fromJson(json);
+                }
+                return null;
+              } catch (e) {
+                debugPrint('Erreur parsing Payment: $e');
+                return null;
+              }
+            })
+            .whereType<Payment>()
+            .toList();
       }
       return [];
     } catch (e) {
