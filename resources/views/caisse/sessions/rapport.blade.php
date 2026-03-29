@@ -3,6 +3,7 @@
 @push('page-css')
 <style>
     @media print {
+        @page { size: A4; margin: 10mm; }
         .layout-menu, .layout-navbar, .footer, .no-print, .content-backdrop, .navbar-nav-right {
             display: none !important;
         }
@@ -10,10 +11,64 @@
             padding: 0 !important;
             margin: 0 !important;
         }
-        body { background: #fff !important; padding: 12mm !important; }
-        .card { border: 1px solid #ccc !important; box-shadow: none !important; }
+        .container, .container-fluid { max-width: none !important; width: 100% !important; padding: 0 !important; }
+        body { background: #fff !important; padding: 0 !important; }
+        .card { border: 1px solid #e5e7eb !important; box-shadow: none !important; }
+        .print-area { margin: 0 !important; max-width: none !important; }
     }
-    .print-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #333; }
+    .print-area { max-width: 980px; margin: 0 auto; }
+    .report-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 20px;
+        border: 1px solid rgba(67, 89, 113, 0.15);
+        border-radius: 12px;
+        background: #fff;
+        margin-bottom: 18px;
+    }
+    .report-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .report-brand img { height: 52px; width: auto; display: block; }
+    .report-title { min-width: 0; }
+    .report-title h1 { font-size: 18px; margin: 0; line-height: 1.2; }
+    .report-title .meta { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .report-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(105, 108, 255, 0.12);
+        color: #2e2f8f;
+        font-weight: 600;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .report-card { border: 1px solid rgba(67, 89, 113, 0.15); border-radius: 12px; overflow: hidden; }
+    .report-card .card-header { background: #fff; border-bottom: 1px solid rgba(67, 89, 113, 0.12); }
+    .kv { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .kv .item { padding: 10px 12px; border: 1px solid rgba(67, 89, 113, 0.12); border-radius: 10px; background: #fff; }
+    .kv .k { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
+    .kv .v { font-size: 14px; font-weight: 600; margin-top: 4px; color: #111827; }
+    .money { font-variant-numeric: tabular-nums; }
+    .table-report { width: 100%; margin: 0; }
+    .table-report th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; border-bottom: 1px solid rgba(67, 89, 113, 0.12) !important; }
+    .table-report td { border-bottom: 1px solid rgba(67, 89, 113, 0.08); vertical-align: middle; }
+    .table-report tr:last-child td { border-bottom: 0; }
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(67, 89, 113, 0.06);
+        font-weight: 600;
+        font-size: 12px;
+        color: #111827;
+    }
+    .sum-row { background: rgba(105, 108, 255, 0.07); }
+    .accent-left { border-left: 4px solid #696cff !important; }
 </style>
 @endpush
 
@@ -28,96 +83,133 @@
         </button>
     </div>
 
-    <div class="print-header">
-        <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" style="height: 64px; margin-bottom: 8px;">
-        <h1 class="h4 mb-1">Rapport de session de caisse</h1>
-        <p class="text-muted small mb-0">{{ config('app.name') }} — Imprimé le {{ now()->format('d/m/Y à H:i') }}</p>
-    </div>
+    <div class="print-area">
+        <div class="report-header">
+            <div class="report-brand">
+                <img src="{{ asset('assets/img/logo.png') }}" alt="Logo">
+                <div class="report-title">
+                    <h1>Rapport de session de caisse</h1>
+                    <div class="meta">{{ config('app.name') }} — Imprimé le {{ now()->format('d/m/Y à H:i') }}</div>
+                </div>
+            </div>
+            <div class="report-badge">
+                <i class="bx bx-check-shield"></i>
+                Session clôturée
+            </div>
+        </div>
 
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body">
-            <h2 class="h5 text-primary mb-3">Informations session</h2>
-            <div class="row g-3 small">
-                <div class="col-md-6">
-                    <span class="text-muted">Caissier</span>
-                    <div class="fw-semibold">{{ $session->user->name }}</div>
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-5">
+                <div class="card report-card shadow-sm">
+                    <div class="card-header py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="fw-semibold text-primary">Informations session</div>
+                            <span class="pill"><i class="bx bx-user"></i> {{ $session->user->name }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="kv">
+                            <div class="item">
+                                <div class="k">Ouverture</div>
+                                <div class="v">{{ $session->opened_at->format('d/m/Y à H:i') }}</div>
+                            </div>
+                            <div class="item">
+                                <div class="k">Clôture</div>
+                                <div class="v">{{ $session->closed_at?->format('d/m/Y à H:i') ?? '—' }}</div>
+                            </div>
+                            <div class="item">
+                                <div class="k">Fond de caisse</div>
+                                <div class="v money">{{ number_format($session->solde_ouverture, 0, ',', ' ') }} FCFA</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <span class="text-muted">Statut</span>
-                    <div><span class="badge bg-secondary">Clôturée</span></div>
-                </div>
-                <div class="col-md-6">
-                    <span class="text-muted">Ouverture</span>
-                    <div class="fw-semibold">{{ $session->opened_at->format('d/m/Y à H:i') }}</div>
-                </div>
-                <div class="col-md-6">
-                    <span class="text-muted">Clôture</span>
-                    <div class="fw-semibold">{{ $session->closed_at?->format('d/m/Y à H:i') ?? '—' }}</div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <div class="card report-card shadow-sm">
+                    <div class="card-header py-3">
+                        <div class="fw-semibold text-primary">Encaissements par mode de paiement</div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-report align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3">Mode</th>
+                                        <th class="px-4 py-3 text-end">Montant</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-money text-success"></i> Espèces</span></td>
+                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_especes'], 0, ',', ' ') }} FCFA</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-mobile text-info"></i> Wave</span></td>
+                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_wave'], 0, ',', ' ') }} FCFA</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-building text-warning"></i> Orange Money</span></td>
+                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_orange_money'], 0, ',', ' ') }} FCFA</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-credit-card text-primary"></i> Carte bancaire</span></td>
+                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_carte'], 0, ',', ' ') }} FCFA</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3"><span class="pill"><i class="bx bx-star text-secondary"></i> Points fidélité</span></td>
+                                        <td class="px-4 py-3 text-end fw-semibold money">{{ number_format($details['total_points'], 0, ',', ' ') }} FCFA</td>
+                                    </tr>
+                                    <tr class="sum-row">
+                                        <td class="px-4 py-3 fw-semibold">Total ventes encaissées</td>
+                                        <td class="px-4 py-3 text-end fw-bold text-primary money">{{ number_format($details['total_ventes'], 0, ',', ' ') }} FCFA</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white border-0 py-3">
-            <h3 class="h6 mb-0 text-primary">Encaissements par mode de paiement</h3>
-        </div>
-        <div class="card-body p-0">
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="bx bx-money text-success me-2"></i> Espèces</span>
-                    <strong>{{ number_format($details['total_especes'], 0, ',', ' ') }} FCFA</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="bx bx-mobile text-info me-2"></i> Wave</span>
-                    <strong>{{ number_format($details['total_wave'], 0, ',', ' ') }} FCFA</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="bx bx-building text-warning me-2"></i> Orange Money</span>
-                    <strong>{{ number_format($details['total_orange_money'], 0, ',', ' ') }} FCFA</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="bx bx-credit-card text-primary me-2"></i> Carte bancaire</span>
-                    <strong>{{ number_format($details['total_carte'], 0, ',', ' ') }} FCFA</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="bx bx-star text-secondary me-2"></i> Points fidélité</span>
-                    <strong>{{ number_format($details['total_points'], 0, ',', ' ') }} FCFA</strong>
-                </li>
-            </ul>
-            <div class="card-footer bg-light d-flex justify-content-between align-items-center py-3 px-4">
-                <span class="fw-bold">Total ventes encaissées</span>
-                <span class="h5 mb-0 text-primary">{{ number_format($details['total_ventes'], 0, ',', ' ') }} FCFA</span>
+        <div class="card report-card shadow-sm accent-left">
+            <div class="card-header py-3">
+                <div class="fw-semibold text-primary">Synthèse caisse</div>
             </div>
-        </div>
-    </div>
-
-    <div class="card shadow-sm border-0 mb-4" style="border-left: 4px solid #696cff !important;">
-        <div class="card-body">
-            <h3 class="h6 text-primary mb-3">Synthèse caisse</h3>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="text-muted small">Fond de caisse à l'ouverture</div>
-                    <div class="fs-5 fw-semibold">{{ number_format($session->solde_ouverture, 0, ',', ' ') }} FCFA</div>
-                </div>
-                <div class="col-md-6">
-                    <div class="text-muted small">Total attendu en caisse</div>
-                    <div class="fs-5 fw-semibold">{{ number_format($session->total_attendu, 0, ',', ' ') }} FCFA</div>
-                </div>
-                <div class="col-md-6">
-                    <div class="text-muted small">Montant réel compté à la clôture</div>
-                    <div class="fs-5 fw-semibold text-primary">{{ number_format($session->solde_fermeture_reel, 0, ',', ' ') }} FCFA</div>
-                </div>
-                <div class="col-md-6">
-                    <div class="text-muted small">Écart</div>
-                    <div class="fs-5 fw-semibold">
-                        @if(abs($ecart) < 0.01)
-                            <span class="text-success"><i class="bx bx-check-circle me-1"></i> Correct (0)</span>
-                        @elseif($ecart > 0)
-                            <span class="text-info">+{{ number_format($ecart, 0, ',', ' ') }} FCFA</span>
-                        @else
-                            <span class="text-danger">{{ number_format($ecart, 0, ',', ' ') }} FCFA</span>
-                        @endif
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <div class="kv">
+                            <div class="item">
+                                <div class="k">Total attendu en caisse</div>
+                                <div class="v money">{{ number_format($session->total_attendu, 0, ',', ' ') }} FCFA</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="kv">
+                            <div class="item">
+                                <div class="k">Montant réel compté</div>
+                                <div class="v money text-primary">{{ number_format($session->solde_fermeture_reel, 0, ',', ' ') }} FCFA</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="kv">
+                            <div class="item">
+                                <div class="k">Écart</div>
+                                <div class="v money">
+                                    @if(abs($ecart) < 0.01)
+                                        <span class="text-success"><i class="bx bx-check-circle me-1"></i> Correct (0)</span>
+                                    @elseif($ecart > 0)
+                                        <span class="text-info">+{{ number_format($ecart, 0, ',', ' ') }} FCFA</span>
+                                    @else
+                                        <span class="text-danger">{{ number_format($ecart, 0, ',', ' ') }} FCFA</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
