@@ -391,6 +391,8 @@ class PaiementController extends Controller
         $validated = $request->validate([
             'commande_id' => 'required|exists:commandes,id',
             'montant_recu' => 'required|numeric|min:0',
+            'client_id' => 'nullable|exists:clients,id',
+            'points_utilises' => 'nullable|integer|min:0',
             'notes' => 'nullable|string',
         ]);
 
@@ -409,7 +411,7 @@ class PaiementController extends Controller
                 ], 403);
             }
 
-            $commande = Commande::with(['table', 'products'])->findOrFail($validated['commande_id']);
+            $commande = Commande::with(['table', 'produits', 'client'])->findOrFail($validated['commande_id']);
 
             // Vérifier si la commande n'est pas déjà payée
             if ($commande->paiements()->where('statut', StatutPaiement::Valide)->exists()) {
@@ -419,43 +421,103 @@ class PaiementController extends Controller
                 ], 409);
             }
 
-            // Vérifier le montant reçu
-            if ($validated['montant_recu'] < $commande->montant_total) {
+            $montantTotal = (float) $commande->montant_total;
+            $reductionFidelite = 0.0;
+            $pointsUtilises = (int) ($validated['points_utilises'] ?? 0);
+
+            // Gestion de la fidélité si demandée
+            if ($pointsUtilises > 0 && $validated['client_id']) {
+                $client = \App\Models\Client::findOrFail($validated['client_id']);
+                if ($client->points_fidelite < $pointsUtilises) {
+                    return response()->json(['success' => false, 'message' => 'Points insuffisants.'], 422);
+                }
+
+                $settings = \App\Models\FidelitySetting::get();
+                $reductionFidelite = (float) $settings->fcfaPourPoints($pointsUtilises);
+                
+                // Débiter les points
+                app(\App\Services\FidelityService::class)->debiterPoints(
+                    $client,
+                    $pointsUtilises,
+                    'Réduction fidélité sur commande #' . $commande->id,
+                    $commande->id
+                );
+                
+                // Si la réduction dépasse le montant, on plafonne
+                if ($reductionFidelite > $montantTotal) {
+                    $reductionFidelite = $montantTotal;
+                }
+            }
+
+            $netAPayer = $montantTotal - $reductionFidelite;
+
+            // Vérifier le montant reçu (comparé au net à payer)
+            if ($validated['montant_recu'] < $netAPayer) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Le montant reçu est insuffisant.',
                     'data' => [
-                        'montant_requis' => $commande->montant_total,
+                        'montant_total' => $montantTotal,
+                        'reduction' => $reductionFidelite,
+                        'net_a_payer' => $netAPayer,
                         'montant_recu' => $validated['montant_recu'],
-                        'manquant' => $commande->montant_total - $validated['montant_recu'],
+                        'manquant' => $netAPayer - $validated['montant_recu'],
                     ],
                 ], 422);
             }
 
-            // Créer le paiement
+            // Créer le paiement principal (Espèces)
             $paiement = Paiement::create([
                 'commande_id' => $commande->id,
-                'user_id' => $request->user()->id,
+                'user_id' => $user->id,
+                'client_id' => $validated['client_id'] ?? $commande->client_id,
                 'caisse_session_id' => $session->id,
-                'montant' => $commande->montant_total,
+                'montant' => $netAPayer,
                 'moyen_paiement' => MoyenPaiement::Especes,
-                'statut' => StatutPaiement::Valide, // Validé directement pour espèces
+                'statut' => StatutPaiement::Valide,
                 'montant_recu' => $validated['montant_recu'],
+                'points_utilises' => $pointsUtilises, // On log les points sur ce paiement
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            // Calculer la monnaie
+            // Si points utilisés, on peut aussi créer un paiement "virtuel" de type Points pour la traçabilité
+            if ($reductionFidelite > 0) {
+                Paiement::create([
+                    'commande_id' => $commande->id,
+                    'user_id' => $user->id,
+                    'client_id' => $validated['client_id'],
+                    'caisse_session_id' => $session->id,
+                    'montant' => $reductionFidelite,
+                    'moyen_paiement' => MoyenPaiement::PointsFidelite,
+                    'statut' => StatutPaiement::Valide,
+                    'points_utilises' => $pointsUtilises,
+                    'notes' => 'Réduction appliquée',
+                ]);
+            }
+
+            // Calculer la monnaie sur le paiement espèces
             $paiement->calculerMonnaie();
 
-            // Générer la facture
+            // Générer la facture (elle prendra en compte le montant du paiement principal + points si FactureService est bien fait)
             $facture = $this->factureService->genererFacture($commande, $paiement);
 
             // Terminer la commande
             $commande->update(['statut' => OrderStatus::Terminee]);
+            if ($validated['client_id']) {
+                $commande->update(['client_id' => $validated['client_id']]);
+            }
 
             $table = Table::find($commande->table_id);
             if ($table) {
                 $table->liberer();
+            }
+
+            // Créditer de nouveaux points sur le montant RÉELlement payé (net)
+            if ($netAPayer > 0 && ($validated['client_id'] ?? $commande->client_id)) {
+                $targetClient = \App\Models\Client::find($validated['client_id'] ?? $commande->client_id);
+                if ($targetClient) {
+                    app(\App\Services\FidelityService::class)->crediterPointsPourPaiement($commande, $netAPayer);
+                }
             }
 
             $this->fcmService->notifyClientPaymentValidated($commande, $facture);
@@ -467,6 +529,7 @@ class PaiementController extends Controller
                     'paiement' => $paiement->fresh()->load('facture'),
                     'facture' => $facture,
                     'monnaie_rendue' => $paiement->monnaie_rendue,
+                    'reduction_fidelite' => $reductionFidelite,
                 ],
             ], 201);
         });

@@ -235,6 +235,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     
     // ==========================================
+    // CLIENTS - Fidélité & Recherche
+    // ==========================================
+    Route::prefix('clients')->group(function () {
+        Route::get('/search', [App\Http\Controllers\Api\ClientController::class, 'search'])
+            ->middleware('permission:view_orders,process_payments');
+    });
+
+    // ==========================================
     // RESERVATIONS - Gestion des réservations de tables
     // ==========================================
     Route::prefix('reservations')->group(function () {
