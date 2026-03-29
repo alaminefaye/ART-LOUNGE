@@ -111,10 +111,24 @@
                             <label class="form-label mb-1">Date au</label>
                             <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control">
                         </div>
-                        <div class="col-12 col-md-3">
-                            <label class="form-label mb-1">Caissier(ère)</label>
-                            <input type="text" name="cashier" value="{{ request('cashier') }}" class="form-control" placeholder="Nom ou email">
-                        </div>
+                        @if(!empty($canViewAll) && !empty($cashiers) && $cashiers->count() > 0)
+                            <div class="col-12 col-md-3">
+                                <label class="form-label mb-1">Caissier(ère)</label>
+                                <select name="cashier_id" class="form-select">
+                                    <option value="">Tous les caissiers</option>
+                                    @foreach($cashiers as $cashier)
+                                        <option value="{{ $cashier->id }}" {{ (string) request('cashier_id') === (string) $cashier->id ? 'selected' : '' }}>
+                                            {{ $cashier->name }}{{ !empty($cashier->email) ? ' — '.$cashier->email : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @else
+                            <div class="col-12 col-md-3">
+                                <label class="form-label mb-1">Caissier(ère)</label>
+                                <input type="text" class="form-control" value="{{ auth()->user()->name ?? '—' }}" disabled>
+                            </div>
+                        @endif
                         <div class="col-12 col-md-3">
                             <label class="form-label mb-1">Par page</label>
                             <select name="per_page" class="form-select">
