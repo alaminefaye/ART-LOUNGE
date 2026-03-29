@@ -243,11 +243,35 @@ class FactureService
             ],
         ];
 
-        // Page 80 mm de large (points PostScript) : ticket aligné à gauche, pas centré sur du A4
         $mmToPt = static fn (float $mm): float => $mm * 72 / 25.4;
 
+        $charLen = static function (string $value): int {
+            return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+        };
+
+        $estimatedNameLines = 0;
+        foreach ($commande->produits as $produit) {
+            $name = (string) $produit->nom;
+            $estimatedNameLines += max(1, (int) ceil($charLen($name) / 24));
+        }
+
+        $heightMm = 95 + ($estimatedNameLines * 6);
+        if ($logoBase64) {
+            $heightMm += 18;
+        }
+        if ($clientDisplay) {
+            $heightMm += 14;
+        }
+        if ($paiement) {
+            $heightMm += 18;
+        }
+        if ($caissierName) {
+            $heightMm += 6;
+        }
+        $heightMm = max(120, min($heightMm, 500));
+
         return Pdf::loadView('factures.thermal', $data)
-            ->setPaper([0, 0, $mmToPt(80), $mmToPt(297)], 'portrait')
+            ->setPaper([0, 0, $mmToPt(80), $mmToPt($heightMm)], 'portrait')
             ->setOption('dpi', 96)
             ->setOption('defaultFont', 'DejaVu Sans')
             ->setOption('isHtml5ParserEnabled', true);

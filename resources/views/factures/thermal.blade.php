@@ -11,7 +11,7 @@
          */
         @page {
             size: 80mm auto;
-            margin: 2mm 2.5mm;
+            margin: 0;
         }
         * {
             box-sizing: border-box;
@@ -19,15 +19,15 @@
         html {
             margin: 0;
             padding: 0;
-            width: 100%;
+            width: 80mm;
         }
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 9px;
-            width: 100%;
+            width: 80mm;
             max-width: none;
             margin: 0;
-            padding: 0;
+            padding: 2mm 2.5mm;
             line-height: 1.35;
             color: #000;
             text-align: left;
@@ -40,13 +40,16 @@
         .text-right { text-align: right; }
         .bold { font-weight: bold; }
         .logo {
+            display: block;
             max-width: 100%;
+            max-height: 18mm;
+            width: auto;
             height: auto;
-            margin-bottom: 2mm;
+            margin: 0 auto 2mm;
         }
         .divider {
             border-top: 1px dashed #000;
-            margin: 2mm 0;
+            margin: 1.5mm 0;
         }
         .resto-name {
             font-size: 12px;
