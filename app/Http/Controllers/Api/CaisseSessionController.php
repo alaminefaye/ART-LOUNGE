@@ -98,7 +98,10 @@ class CaisseSessionController extends Controller
             ->groupBy('moyen_paiement')
             ->get();
 
-        $totalAttendu = $totaux->sum('total');
+        $totalVentes = $totaux->sum('total');
+        
+        // Calculer uniquement ce qui doit être physiquement en caisse (on exclut les points de fidélité)
+        $totalLiquide = $totaux->where('moyen_paiement', '!=', MoyenPaiement::PointsFidelite->value)->sum('total');
         
         // Détails des points de fidélité utilisés
         $pointsDetails = Paiement::where('caisse_session_id', $session->id)
@@ -113,8 +116,9 @@ class CaisseSessionController extends Controller
             'data' => [
                 'session' => $session,
                 'repartition' => $totaux,
-                'total_ventes' => $totalAttendu,
-                'total_attendu_caisse' => $session->solde_ouverture + $totalAttendu,
+                'total_ventes' => $totalVentes,
+                'total_liquide' => $totalLiquide,
+                'total_attendu_caisse' => $session->solde_ouverture + $totalLiquide,
                 'points_details' => $pointsDetails
             ]
         ]);
@@ -140,12 +144,13 @@ class CaisseSessionController extends Controller
             ], 422);
         }
 
-        // Calculer le total attendu
-        $totalVentes = Paiement::where('caisse_session_id', $session->id)
+        // Calculer le total liquide attendu (hors points)
+        $totalLiquide = Paiement::where('caisse_session_id', $session->id)
             ->where('statut', StatutPaiement::Valide->value)
+            ->where('moyen_paiement', '!=', MoyenPaiement::PointsFidelite->value)
             ->sum('montant');
 
-        $totalAttendu = $session->solde_ouverture + $totalVentes;
+        $totalAttendu = $session->solde_ouverture + $totalLiquide;
 
         $session->update([
             'solde_fermeture_reel' => $validated['solde_fermeture_reel'],

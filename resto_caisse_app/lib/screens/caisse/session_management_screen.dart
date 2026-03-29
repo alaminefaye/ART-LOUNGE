@@ -293,7 +293,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
           child: Column(
             children: [
               const Text(
-                'TOTAL ATTENDU EN CAISSE',
+                'TOTAL LIQUIDITÉS ATTENDU',
                 style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
               ),
               const SizedBox(height: 12),
@@ -309,7 +309,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
                 children: [
                   _buildMiniStat('Ouverture', Formatters.formatCurrency(soldeOuverture)),
                   Container(width: 1, height: 30, color: Colors.white10),
-                  _buildMiniStat('Recettes Shift', Formatters.formatCurrency(totalVentes)),
+                  _buildMiniStat('Recettes Shift', Formatters.formatCurrency(parseDouble(_bilan?['total_liquide']))),
+                  Container(width: 1, height: 30, color: Colors.white10),
+                  _buildMiniStat('Total Ventes', Formatters.formatCurrency(totalVentes)),
                 ],
               ),
             ],
@@ -364,63 +366,29 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
 
         if (pointsDetails.isNotEmpty) ...[
           const SizedBox(height: 32),
-          const Text(
-            'DÉTAILS FIDÉLITÉ',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.5),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'DÉTAILS FIDÉLITÉ',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.5),
+              ),
+              if (pointsDetails.length > 5)
+                TextButton(
+                  onPressed: () => _showFidelityDetailsDialog(pointsDetails),
+                  child: const Text('Voir plus', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
-          ...pointsDetails.map((p) {
-            final client = p['client'] ?? {};
-            final String clientName = '${client['nom'] ?? ''} ${client['prenom'] ?? ''}'.trim();
-            final int points = p['points_utilises'] ?? 0;
-            final double amount = parseDouble(p['montant']);
-            final String tableName = p['commande']?['table']?['nom'] ?? 'Table';
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          clientName.isEmpty ? 'Client inconnu' : clientName,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                        Text(
-                          '$tableName • Commande #${p['commande_id']}',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 11),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$points pts',
-                      style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 11),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    Formatters.formatCurrency(amount),
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                  ),
-                ],
-              ),
-            );
-          }),
+          ...pointsDetails.take(5).map((p) => _buildFidelityItem(p)),
+          if (pointsDetails.length > 5)
+             Center(
+               child: Text(
+                 '+ ${pointsDetails.length - 5} autres transactions',
+                 style: TextStyle(color: Colors.grey[600], fontSize: 12, fontStyle: FontStyle.italic),
+               ),
+             ),
         ],
 
         const SizedBox(height: 40),
@@ -493,6 +461,128 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
       ],
+    );
+  }
+
+  Widget _buildFidelityItem(Map<String, dynamic> p) {
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    final client = p['client'] ?? {};
+    final String clientName = '${client['nom'] ?? ''} ${client['prenom'] ?? ''}'.trim();
+    final int points = p['points_utilises'] ?? 0;
+    final double amount = parseDouble(p['montant']);
+    final String tableName = p['commande']?['table']?['numero'] != null 
+        ? 'Table ${p['commande']?['table']?['numero']}' 
+        : 'Table';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  clientName.isEmpty ? 'Client inconnu' : clientName,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                Text(
+                  '$tableName • Commande #${p['commande_id']}',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '$points pts',
+              style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 11),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            Formatters.formatCurrency(amount),
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFidelityDetailsDialog(List pointsDetails) {
+    int totalPoints = 0;
+    for (var p in pointsDetails) {
+      totalPoints += (p['points_utilises'] as int? ?? 0);
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        titlePadding: EdgeInsets.zero,
+        title: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Colors.orange,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(28), topRight: Radius.circular(28)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('TOUTES LES TRANSACTIONS', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close, color: Colors.white)),
+            ],
+          ),
+        ),
+        content: SizedBox(
+          width: 500,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.star, color: Colors.orange, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'TOTAL POINTS UTILISÉS : $totalPoints PTS',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: pointsDetails.map((p) => _buildFidelityItem(p)).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
     );
   }
 
