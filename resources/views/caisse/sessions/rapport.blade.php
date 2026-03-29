@@ -45,22 +45,23 @@
         background: #fff;
         margin-bottom: 18px;
     }
-    .report-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .report-brand img { height: 52px; width: auto; display: block; }
-    .report-title { min-width: 0; }
-    .report-title h1 { font-size: 18px; margin: 0; line-height: 1.2; }
-    .report-title .meta { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .report-brand { display: flex; align-items: center; gap: 16px; flex: 1; }
+    .report-brand img { height: 60px; width: auto; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    .report-title { flex: 1; }
+    .report-title h1 { font-size: 20px; font-weight: 800; margin: 0; line-height: 1.2; color: #1e293b; }
+    .report-title .meta { font-size: 12px; color: #64748b; margin-top: 4px; }
     .report-badge {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
+        gap: 8px;
+        padding: 8px 14px;
         border-radius: 999px;
-        background: rgba(105, 108, 255, 0.12);
-        color: #2e2f8f;
-        font-weight: 600;
-        font-size: 12px;
+        background: #ecfdf5;
+        color: #059669;
+        font-weight: 700;
+        font-size: 13px;
         white-space: nowrap;
+        border: 1px solid #b7f4d8;
     }
     .report-card { border: 1px solid rgba(67, 89, 113, 0.15); border-radius: 12px; overflow: hidden; }
     .report-card .card-header { background: #fff; border-bottom: 1px solid rgba(67, 89, 113, 0.12); }
@@ -116,8 +117,8 @@
         </div>
 
         <div class="row g-3 mb-3">
-            <div class="col-12 col-lg-5">
-                <div class="card report-card shadow-sm">
+            <div class="col-12 col-lg-4">
+                <div class="card report-card shadow-sm h-100">
                     <div class="card-header py-3">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="fw-semibold text-primary">Informations session</div>
@@ -143,6 +144,51 @@
                 </div>
             </div>
 
+            <div class="col-12 col-lg-8">
+                <div class="card report-card shadow-sm h-100">
+                    <div class="card-header py-3">
+                        <div class="fw-semibold text-primary">Répartition des encaissements</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-6 col-md-4">
+                                <div class="item p-2 border rounded-3 bg-light text-center">
+                                    <div class="k small text-muted text-uppercase mb-1" style="font-size: 9px;">ESPÈCES</div>
+                                    <div class="v fw-bold money">{{ number_format($details['total_especes'], 0, ',', ' ') }} FCFA</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="item p-2 border rounded-3 bg-light text-center">
+                                    <div class="k small text-muted text-uppercase mb-1" style="font-size: 9px;">WAVE</div>
+                                    <div class="v fw-bold money text-info">{{ number_format($details['total_wave'], 0, ',', ' ') }} FCFA</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="item p-2 border rounded-3 bg-light text-center">
+                                    <div class="k small text-muted text-uppercase mb-1" style="font-size: 9px;">ORANGE MONEY</div>
+                                    <div class="v fw-bold money text-warning">{{ number_format($details['total_orange_money'], 0, ',', ' ') }} FCFA</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="item p-2 border rounded-3 bg-light text-center">
+                                    <div class="k small text-muted text-uppercase mb-1" style="font-size: 9px;">CARTE BANC.</div>
+                                    <div class="v fw-bold money">{{ number_format($details['total_carte'], 0, ',', ' ') }} FCFA</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="item p-2 border rounded-3 bg-light text-center border-info">
+                                    <div class="k small text-info text-uppercase mb-1" style="font-size: 9px;">POINTS (FID)</div>
+                                    <div class="v fw-bold money text-info">{{ number_format($details['total_points'], 0, ',', ' ') }} FCFA</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="item p-2 border rounded-3 bg-primary text-white text-center">
+                                    <div class="k small text-white-50 text-uppercase mb-1" style="font-size: 9px;">TOTAL DES VENTES</div>
+                                    <div class="v fw-bold money">{{ number_format($details['total_ventes'], 0, ',', ' ') }} FCFA</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -173,7 +219,7 @@
                                     <a href="{{ route('commandes.show', $p->commande_id) }}" class="fw-bold">
                                         #{{ $p->commande_id }}
                                     </a>
-                                    <div class="small text-muted" style="font-size: 10px;">{{ $p->commande->table->nom ?? 'Table' }}</div>
+                                    <div class="small text-muted" style="font-size: 10px;">Table {{ $p->commande->table->numero ?? '??' }}</div>
                                 </td>
                                 <td class="py-3 text-center">
                                     <span class="badge bg-label-info">{{ $p->points_utilises }} pts</span>
