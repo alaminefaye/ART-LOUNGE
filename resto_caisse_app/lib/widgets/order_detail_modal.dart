@@ -475,7 +475,48 @@ class _OrderDetailModalState extends State<OrderDetailModal> {
                             icon: Icons.cancel_outlined,
                             color: Colors.red,
                             outlined: true,
-                            onPressed: () => _updateStatus(OrderStatus.annulee),
+                            onPressed: () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  titlePadding: EdgeInsets.zero,
+                                  title: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Icon(Icons.warning_amber_rounded, color: Colors.white, size: 28),
+                                        SizedBox(width: 10),
+                                        Text('Annuler la commande ?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                      ],
+                                    ),
+                                  ),
+                                  content: Text(
+                                    'Vous êtes sur le point d\'annuler la commande #${_order.id}.\n\nCette action est irréversible. Confirmez-vous ?',
+                                    style: const TextStyle(fontSize: 14, height: 1.5),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: const Text('NON, GARDER', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                    ElevatedButton.icon(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                                      icon: const Icon(Icons.delete_forever, size: 18),
+                                      label: const Text('OUI, ANNULER', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true) {
+                                _updateStatus(OrderStatus.annulee);
+                              }
+                            },
                           ),
 
                         // Lancer en cuisine

@@ -305,24 +305,196 @@ class _PosScreenState extends State<PosScreen> {
     );
   }
 
+  void _showChangePasswordDialog() {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool isLoading = false;
+    String? errorMessage;
+    bool obscureCurrent = true;
+    bool obscureNew = true;
+    bool obscureConfirm = true;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(
+                children: [
+                  Icon(Icons.lock_reset, color: AppTheme.brandGold),
+                  SizedBox(width: 8),
+                  Text('Modifier le mot de passe', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: SizedBox(
+                  width: 350,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (errorMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8)),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 12))),
+                            ],
+                          ),
+                        ),
+                      TextField(
+                        controller: currentPasswordController,
+                        obscureText: obscureCurrent,
+                        decoration: InputDecoration(
+                          labelText: 'Mot de passe actuel',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(obscureCurrent ? Icons.visibility_off : Icons.visibility, color: Colors.grey, size: 20),
+                            onPressed: () => setStateDialog(() => obscureCurrent = !obscureCurrent),
+                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: newPasswordController,
+                        obscureText: obscureNew,
+                        decoration: InputDecoration(
+                          labelText: 'Nouveau mot de passe',
+                          prefixIcon: const Icon(Icons.lock_reset),
+                          suffixIcon: IconButton(
+                            icon: Icon(obscureNew ? Icons.visibility_off : Icons.visibility, color: Colors.grey, size: 20),
+                            onPressed: () => setStateDialog(() => obscureNew = !obscureNew),
+                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: confirmPasswordController,
+                        obscureText: obscureConfirm,
+                        decoration: InputDecoration(
+                          labelText: 'Confirmer nouveau mot de passe',
+                          prefixIcon: const Icon(Icons.check_circle_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility, color: Colors.grey, size: 20),
+                            onPressed: () => setStateDialog(() => obscureConfirm = !obscureConfirm),
+                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.pop(ctx),
+                  child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (currentPasswordController.text.isEmpty ||
+                              newPasswordController.text.isEmpty ||
+                              confirmPasswordController.text.isEmpty) {
+                            setStateDialog(() => errorMessage = 'Veuillez remplir tous les champs');
+                            return;
+                          }
+                          if (newPasswordController.text != confirmPasswordController.text) {
+                            setStateDialog(() => errorMessage = 'Les nouveaux mots de passe ne correspondent pas');
+                            return;
+                          }
+                          if (newPasswordController.text.length < 6) {
+                            setStateDialog(() => errorMessage = 'Le mot de passe doit faire au moins 6 caractères');
+                            return;
+                          }
+
+                          setStateDialog(() {
+                            isLoading = true;
+                            errorMessage = null;
+                          });
+
+                          try {
+                            final authService = Provider.of<AuthService>(context, listen: false);
+                            final result = await authService.changePassword(
+                              currentPasswordController.text,
+                              newPasswordController.text,
+                              confirmPasswordController.text,
+                            );
+
+                            if (result['success']) {
+                              if (mounted) {
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Mot de passe modifié avec succès'), backgroundColor: Colors.green),
+                                );
+                              }
+                            } else {
+                              setStateDialog(() => errorMessage = result['message'] ?? 'Erreur lors de la modification');
+                            }
+                          } catch (e) {
+                            setStateDialog(() => errorMessage = 'Une erreur est survenue');
+                          } finally {
+                            setStateDialog(() => isLoading = false);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandGold,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Enregistrer', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildHeaderActions(BuildContext context, String userName, bool isMobile) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (!isMobile) ...[
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: AppTheme.brandGold.withValues(alpha: 0.2),
-            child: const Icon(Icons.person, color: AppTheme.brandGold, size: 20),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(userName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              Text('Session Ouverte', style: TextStyle(color: Colors.green.shade600, fontSize: 10)),
-            ],
+          GestureDetector(
+            onTap: () => _showChangePasswordDialog(),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: AppTheme.brandGold.withValues(alpha: 0.2),
+                    child: const Icon(Icons.person, color: AppTheme.brandGold, size: 20),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(userName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Session Ouverte', style: TextStyle(color: Colors.green.shade600, fontSize: 10)),
+                    ],
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.lock_outline, size: 13, color: Colors.grey),
+                ],
+              ),
+            ),
           ),
           const SizedBox(width: 16),
         ],

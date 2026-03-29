@@ -508,6 +508,44 @@ class AuthController extends Controller
     }
 
     /**
+     * Mettre à jour le mot de passe de l'utilisateur
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Le mot de passe actuel est incorrect.',
+                'errors' => ['current_password' => ['Le mot de passe actuel est incorrect.']]
+            ], 422);
+        }
+
+        try {
+            $user->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mot de passe mis à jour avec succès.'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('updatePassword error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour du mot de passe.'
+            ], 500);
+        }
+    }
+
+    /**
      * Rafraîchir le token
      * 
      * @param Request $request

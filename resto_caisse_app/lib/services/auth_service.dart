@@ -250,6 +250,32 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  // Changer de mot de passe
+  Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword, String confirmPassword) async {
+    try {
+      final response = await _apiService.put(
+        '/auth/update-password',
+        data: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+          'new_password_confirmation': confirmPassword,
+        },
+      );
+      return {'success': response.statusCode == 200, 'message': response.data['message'] ?? 'Mot de passe mis à jour'};
+    } on DioException catch (e) {
+      String message = 'Erreur lors de la modification';
+      if (e.response != null && e.response?.data != null) {
+        final data = e.response?.data;
+        if (data is Map && data['message'] != null) {
+          message = data['message'];
+        }
+      }
+      return {'success': false, 'message': message};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
   /// Suppression définitive du compte client (mot de passe requis côté API).
   Future<Map<String, dynamic>> deleteAccount(String password) async {
     final hasNetwork = await _hasConnectivity();
