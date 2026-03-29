@@ -677,7 +677,8 @@ class CommandeController extends Controller
         }
 
         $fcmService = app(\App\Services\FCMService::class);
-        $tableNumber = $commande->table ? $commande->table->numero : 'Inconnue';
+        $tableModel = $commande->table()->first();
+        $tableNumber = $tableModel ? $tableModel->numero : 'Inconnue';
 
         $fcmService->sendToTokens(
             [$client->fcm_token],
@@ -709,6 +710,7 @@ class CommandeController extends Controller
 
         return [
             'id' => $commande->id,
+            'table_id' => (int) $commande->table_id,
             'table' => $table ? [
                 'id' => $table->id,
                 'numero' => $table->numero,
@@ -783,7 +785,8 @@ class CommandeController extends Controller
                 return;
             }
 
-            $tableNumero = $commande->table ? $commande->table->numero : 'Inconnue';
+            $tableModel = $commande->table()->first();
+            $tableNumero = $tableModel ? $tableModel->numero : 'Inconnue';
             $title = ($type === 'create') 
                 ? "Nouvelle Commande - Table $tableNumero"
                 : "Mise à jour Commande - Table $tableNumero";

@@ -246,7 +246,11 @@ class Order {
 
       return Order(
         id: parseInt(json['id'], 0),
-        tableId: parseInt(json['table_id'], 0),
+        tableId: parseInt(
+          json['table_id'] ??
+              ((json['table'] is Map) ? (json['table'] as Map)['id'] : null),
+          0,
+        ),
         userId: json['user_id'] != null ? parseInt(json['user_id']) : null,
         montantTotal: parseDouble(json['montant_total'], 0.0),
         statut: OrderStatus.fromString(json['statut'] as String? ?? 'attente'),
