@@ -169,6 +169,8 @@ class _OrderDetailModalState extends State<OrderDetailModal> {
                       .toList(),
                   table: _currentOrder!.table,
                   client: _currentOrder!.client,
+                  reductionFidelite: _currentOrder!.reductionFidelite,
+                  pointsUtilises: _currentOrder!.pointsUtilises,
                 );
                 _hasChanges = true;
               });
@@ -384,32 +386,62 @@ class _OrderDetailModalState extends State<OrderDetailModal> {
 
             const Divider(height: 1),
 
-            // ── Total + save changes ─────────────────────────────────
+            // ── Total + Fidelity + Net ──────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Column(
                 children: [
-                  const Text('Total Net', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                  Row(
+                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      if (_hasChanges)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 16),
-                          child: ElevatedButton.icon(
-                            onPressed: _isLoading ? null : _saveChanges,
-                            icon: const Icon(Icons.save_alt, size: 18),
-                            label: const Text('Enregistrer'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            ),
-                          ),
-                        ),
+                      const Text('Total Articles', style: TextStyle(fontSize: 14, color: Colors.grey)),
                       Text(
                         Formatters.formatCurrency(_computedTotal),
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                      ),
+                    ],
+                  ),
+                  if (_hasChanges)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _saveChanges,
+                        icon: const Icon(Icons.save_alt, size: 18),
+                        label: const Text('Enregistrer les modifications'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 45),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  if (_order.pointsUtilises > 0) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Réduction Fidélité (${_order.pointsUtilises} pts)', 
+                          style: const TextStyle(fontSize: 14, color: Colors.green, fontWeight: FontWeight.w600)
+                        ),
+                        Text(
+                          '-${Formatters.formatCurrency(_order.reductionFidelite)}',
+                          style: const TextStyle(fontSize: 14, color: Colors.green, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  const Divider(height: 1),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('NET À PAYER', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                      Text(
+                        Formatters.formatCurrency(_computedTotal - _order.reductionFidelite),
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppTheme.brandGold),
                       ),
                     ],
                   ),

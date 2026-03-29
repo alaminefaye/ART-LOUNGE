@@ -737,6 +737,13 @@ class CommandeController extends Controller
             'statut' => $statutValue,
             'statut_display' => $commande->statut_display,
             'montant_total' => (float) $commande->montant_total,
+            'reduction_fidelite' => (float) $commande->paiements()
+                ->where('moyen_paiement', \App\Enums\MoyenPaiement::PointsFidelite)
+                ->where('statut', \App\Enums\StatutPaiement::Valide)
+                ->sum('montant'),
+            'points_utilises' => (int) $commande->paiements()
+                ->where('statut', \App\Enums\StatutPaiement::Valide)
+                ->sum('points_utilises'),
             'notes' => $commande->notes,
             'produits' => $commande->produits->map(function($produit) {
                 return [

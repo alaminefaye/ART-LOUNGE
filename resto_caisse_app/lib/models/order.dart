@@ -115,6 +115,8 @@ class Order {
   final List<OrderItem>? produits;
   final models.Table? table;
   final OrderClient? client;
+  final double reductionFidelite;
+  final int pointsUtilises;
 
   Order({
     required this.id,
@@ -127,6 +129,8 @@ class Order {
     this.produits,
     this.table,
     this.client,
+    this.reductionFidelite = 0.0,
+    this.pointsUtilises = 0,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -279,6 +283,8 @@ class Order {
         produits: produits,
         table: table,
         client: client,
+        reductionFidelite: parseDouble(json['reduction_fidelite']),
+        pointsUtilises: parseInt(json['points_utilises']),
       );
     } catch (e) {
       debugPrint('Erreur parsing Order: $e');

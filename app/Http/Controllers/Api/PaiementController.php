@@ -501,11 +501,12 @@ class PaiementController extends Controller
             // Générer la facture (elle prendra en compte le montant du paiement principal + points si FactureService est bien fait)
             $facture = $this->factureService->genererFacture($commande, $paiement);
 
-            // Terminer la commande
-            $commande->update(['statut' => OrderStatus::Terminee]);
-            if ($validated['client_id']) {
-                $commande->update(['client_id' => $validated['client_id']]);
+            // Terminer la commande et associer le client systématiquement
+            $updateData = ['statut' => OrderStatus::Terminee];
+            if ($validated['client_id'] || $commande->client_id) {
+                $updateData['client_id'] = $validated['client_id'] ?? $commande->client_id;
             }
+            $commande->update($updateData);
 
             $table = Table::find($commande->table_id);
             if ($table) {

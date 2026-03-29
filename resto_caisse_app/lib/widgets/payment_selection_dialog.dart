@@ -63,10 +63,13 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
     final res = await _clientService.searchByPhone(phone);
     setState(() {
       _isSearching = false;
-      if (res['success']) {
-        _foundClient = res['client'] as ClientFid;
-        _pointsToUse = 0; // Reset
-      } else {
+        if (res['success']) {
+          _foundClient = res['client'] as ClientFid;
+          // Auto-appliquer le max possible
+          _pointsToUse = (_baseTotal / _foundClient!.valeurFcfa1Point).floor();
+          if (_pointsToUse > _foundClient!.pointsFidelite) _pointsToUse = _foundClient!.pointsFidelite;
+          _calculateChange(_cashReceivedController.text);
+        } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'])));
         _foundClient = null;
       }
@@ -75,6 +78,23 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
 
   Future<void> _processPayment() async {
     final authService = Provider.of<AuthService>(context, listen: false);
+    
+    // Avertissement si un numéro est saisi mais pas recherché
+    if (_foundClient == null && _phoneController.text.isNotEmpty) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Client non identifié'),
+          content: const Text('Vous avez saisi un numéro mais n\'avez pas cliqué sur "ID.". Voulez-vous continuer sans points de fidélité ?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Retour')),
+            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Continuer sans points')),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
+
     setState(() => _isLoading = true);
     
     try {
