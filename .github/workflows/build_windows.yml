@@ -19,22 +19,22 @@ jobs:
 
       - name: Get Dependencies
         run: |
-          cd resto-app
+          cd resto_caisse_app
           flutter pub get
 
       - name: Build Windows
         run: |
-          cd resto-app
+          cd resto_caisse_app
           flutter build windows --release
 
       - name: Package Release
         run: |
           mkdir release-pkg
-          xcopy /E /I resto-app\build\windows\x64\runner\Release\* release-pkg\
-          powershell Compress-Archive -Path release-pkg\* -DestinationPath Windows-RestoApp.zip
+          xcopy /E /I resto_caisse_app\build\windows\x64\runner\Release\* release-pkg\
+          powershell Compress-Archive -Path release-pkg\* -DestinationPath Windows-DolceVitaPalace.zip
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Windows-RestoApp-Release
-          path: Windows-RestoApp.zip
+          name: Windows-DolceVitaPalace-Release
+          path: Windows-DolceVitaPalace.zip

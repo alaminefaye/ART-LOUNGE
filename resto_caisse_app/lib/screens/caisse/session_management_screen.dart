@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/caisse_session.dart';
 import '../../services/caisse_service.dart';
+import '../../services/auth_service.dart';
 import '../../utils/formatters.dart';
 
 class SessionManagementScreen extends StatefulWidget {
@@ -110,12 +112,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
       // Rafraîchir les données localement
       await _loadData();
 
-      // Redirection automatique
+      // Déconnexion automatique
       if (mounted) {
-        Future.delayed(const Duration(seconds: 2), () {
+        Future.delayed(const Duration(seconds: 2), () async {
           if (mounted) {
-             if (Navigator.canPop(context)) Navigator.pop(context);
-             if (widget.onSessionOpened != null) widget.onSessionOpened!();
+             await Provider.of<AuthService>(context, listen: false).logout();
           }
         });
       }
@@ -219,6 +220,20 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
                     elevation: 0,
                   ),
                   child: const Text('OUVRIR LA SESSION', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: () async {
+                  await Provider.of<AuthService>(context, listen: false).logout();
+                  if (mounted && Navigator.canPop(context)) {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  }
+                },
+                icon: const Icon(Icons.logout, color: Colors.grey),
+                label: const Text(
+                  'SE DÉCONNECTER',
+                  style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
