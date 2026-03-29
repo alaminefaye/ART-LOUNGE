@@ -58,17 +58,13 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            // Aligner la session MySQL sur le fuseau des dates Laravel (souvent UTC) : sinon les
-            // colonnes TIMESTAMP interprètent les chaînes dans le fuseau du serveur (ex. Europe/Paris)
-            // et une valeur comme 2026-03-29 02:17 peut être rejetée (trou horaire passage heure d'été).
-            'options' => extension_loaded('pdo_mysql') ? array_merge(
-                [
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone='".str_replace("'", "''", env('DB_TIMEZONE', '+00:00'))."'",
-                ],
-                array_filter([
-                    PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                ])
-            ) : [],
+            // Fuseau session MySQL (voir MySqlConnector::configureConnection). Préféré à
+            // PDO::MYSQL_ATTR_INIT_COMMAND : évite des erreurs PDO selon la version PHP, et aligne
+            // TIMESTAMP avec les dates Laravel (ex. +00:00 si l’app est en UTC — passage heure d’été).
+            'timezone' => env('DB_TIMEZONE', '+00:00'),
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
         ],
 
         'mariadb' => [
@@ -86,14 +82,10 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_merge(
-                [
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone='".str_replace("'", "''", env('DB_TIMEZONE', '+00:00'))."'",
-                ],
-                array_filter([
-                    PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                ])
-            ) : [],
+            'timezone' => env('DB_TIMEZONE', '+00:00'),
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
         ],
 
         'pgsql' => [
