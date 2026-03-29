@@ -35,6 +35,13 @@ class PrinterService {
     return prefs.getString(_kDefaultPrinterKey);
   }
 
+  // Format thermique optimisé pour imprimantes POS80 (72mm de large, DPI 203)
+  static final _thermalFormat = PdfPageFormat(
+    72 * PdfPageFormat.mm,
+    double.infinity,
+    marginAll: 4 * PdfPageFormat.mm,
+  );
+
   // Méthode générique pour imprimer (Silencieux si configuré, sinon dialogue)
   Future<void> _dispatchPrint(pw.Document pdf, String jobName) async {
     final defaultName = await getDefaultPrinterName();
@@ -46,7 +53,6 @@ class PrinterService {
       try {
         targetPrinter = printers.firstWhere((p) => p.name == defaultName);
       } catch (e) {
-        // Si l'imprimante n'est plus disponible, on retombe sur le dialogue
         targetPrinter = null;
       }
 
@@ -64,7 +70,7 @@ class PrinterService {
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
       name: jobName,
-      format: PdfPageFormat.roll80, // Forcer le format POS80 par défaut
+      format: _thermalFormat,
     );
   }
 
@@ -75,7 +81,7 @@ class PrinterService {
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.roll80,
+        pageFormat: _thermalFormat,
         build: (context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
@@ -83,30 +89,30 @@ class PrinterService {
             children: [
               if (logo != null) pw.Image(logo, width: 60, height: 60),
               pw.SizedBox(height: 10),
-              pw.Text('Teranguest Resto', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16)),
-              pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 12)),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
+              pw.Text('Dolce Vita Palace', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16, color: PdfColors.black)),
+              pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
+              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.SizedBox(height: 10),
               ...cart.items.map((item) {
                 return pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Expanded(child: pw.Text('${item.quantite}x ${item.product.nom}', style: const pw.TextStyle(fontSize: 12))),
-                    pw.Text(Formatters.formatCurrency(item.total), style: const pw.TextStyle(fontSize: 12)),
+                    pw.Expanded(child: pw.Text('${item.quantite}x ${item.product.nom}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black))),
+                    pw.Text(Formatters.formatCurrency(item.total), style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
                   ],
                 );
               }),
               pw.SizedBox(height: 10),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
+              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                  pw.Text(Formatters.formatCurrency(cart.total), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                  pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
+                  pw.Text(Formatters.formatCurrency(cart.total), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
                 ],
               ),
               pw.SizedBox(height: 10),
-              pw.Text('Merci de votre visite !', style: const pw.TextStyle(fontSize: 10)),
+              pw.Text('Merci de votre visite !', style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
               pw.SizedBox(height: 20),
             ],
           );
@@ -123,29 +129,29 @@ class PrinterService {
     
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.roll80,
+        pageFormat: _thermalFormat,
         build: (context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             mainAxisSize: pw.MainAxisSize.min,
             children: [
-              pw.Center(child: pw.Text('BON DE CUISINE', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
-              pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 12)),
-              if (order.table != null) pw.Text('Table: ${order.table?.numero}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-              pw.Text('Heure: ${order.createdAt.hour}:${order.createdAt.minute.toString().padLeft(2, '0')}', style: const pw.TextStyle(fontSize: 12)),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
+              pw.Center(child: pw.Text('BON DE CUISINE', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16, color: PdfColors.black))),
+              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
+              pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
+              if (order.table != null) pw.Text('Table: ${order.table?.numero}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+              pw.Text('Heure: ${order.createdAt.hour}:${order.createdAt.minute.toString().padLeft(2, '0')}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
+              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.SizedBox(height: 10),
               if (order.produits != null)
                 ...order.produits!.map((p) => pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('${p.quantite}x ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                    pw.Expanded(child: pw.Text(p.produitNom, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14))),
+                    pw.Text('${p.quantite}x ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
+                    pw.Expanded(child: pw.Text(p.produitNom, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black))),
                   ],
                 )),
               pw.SizedBox(height: 20),
-              pw.Divider(),
+              pw.Divider(color: PdfColors.black),
             ],
           );
         },
@@ -162,7 +168,7 @@ class PrinterService {
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.roll80,
+        pageFormat: _thermalFormat,
         build: (context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
@@ -170,36 +176,36 @@ class PrinterService {
             children: [
               if (logo != null) pw.Image(logo, width: 60, height: 60),
               pw.SizedBox(height: 10),
-              pw.Text('Teranguest Resto', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16)),
-              pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 12)),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
+              pw.Text('Dolce Vita Palace', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16, color: PdfColors.black)),
+              pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
+              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.SizedBox(height: 10),
-              pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 12)),
-              if (order.table != null) pw.Text('Table ${order.table!.numero}', style: const pw.TextStyle(fontSize: 12)),
+              pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
+              if (order.table != null) pw.Text('Table ${order.table!.numero}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
               pw.SizedBox(height: 10),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
+              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.SizedBox(height: 10),
               if (order.produits != null)
                 ...order.produits!.map((item) {
                   return pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Expanded(child: pw.Text('${item.quantite}x ${item.produitNom}', style: const pw.TextStyle(fontSize: 12))),
-                      pw.Text(Formatters.formatCurrency(item.total), style: const pw.TextStyle(fontSize: 12)),
+                      pw.Expanded(child: pw.Text('${item.quantite}x ${item.produitNom}', style: const pw.TextStyle(fontSize: 12, color: PdfColors.black))),
+                      pw.Text(Formatters.formatCurrency(item.total), style: const pw.TextStyle(fontSize: 12, color: PdfColors.black)),
                     ],
                   );
                 }),
               pw.SizedBox(height: 10),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
+              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                  pw.Text(Formatters.formatCurrency(order.montantTotal), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                  pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
+                  pw.Text(Formatters.formatCurrency(order.montantTotal), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)),
                 ],
               ),
               pw.SizedBox(height: 10),
-              pw.Text('Merci de votre visite !', style: const pw.TextStyle(fontSize: 10)),
+              pw.Text('Merci de votre visite !', style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
               pw.SizedBox(height: 20),
             ],
           );
