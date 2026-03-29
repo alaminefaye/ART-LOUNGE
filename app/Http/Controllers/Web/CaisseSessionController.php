@@ -137,7 +137,7 @@ class CaisseSessionController extends Controller
     {
         $paiements = $session->paiements()
             ->where('statut', 'valide')
-            ->with(['client:id,nom,prenom', 'commande.table:id,nom'])
+            ->with(['client:id,nom,prenom', 'commande.table:id,numero'])
             ->get();
 
         return [
