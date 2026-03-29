@@ -10,9 +10,13 @@ use Illuminate\Support\Facades\Gate;
 
 class CaisseSessionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $canViewAll = Gate::any(['manage_sessions', 'view_reports']);
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 25, 50], true)) {
+            $perPage = 10;
+        }
 
         $session_active = CaisseSession::where('user_id', Auth::id())
             ->where('statut', 'ouverte')
@@ -27,11 +31,31 @@ class CaisseSessionController extends Controller
             $historiqueQuery->where('user_id', Auth::id());
         }
 
-        $historique = $historiqueQuery->paginate(10);
+        if ($request->filled('date_from')) {
+            $historiqueQuery->whereDate('opened_at', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $historiqueQuery->whereDate('opened_at', '<=', $request->input('date_to'));
+        }
+
+        if ($request->filled('cashier')) {
+            $cashierValue = $request->string('cashier')->trim()->toString();
+            if ($cashierValue !== '') {
+                $like = '%'.addcslashes($cashierValue, '%_\\').'%';
+                $historiqueQuery->whereHas('user', function ($q) use ($like) {
+                    $q->where('name', 'like', $like)
+                        ->orWhere('email', 'like', $like);
+                });
+            }
+        }
+
+        $historique = $historiqueQuery->paginate($perPage)->withQueryString();
 
         return view('caisse.sessions.index', [
             'session_active' => $session_active,
-            'historique' => $historique
+            'historique' => $historique,
+            'perPage' => $perPage,
+            'canViewAll' => $canViewAll,
         ]);
     }
 

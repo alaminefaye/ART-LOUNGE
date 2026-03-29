@@ -99,13 +99,46 @@
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3 border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <h5 class="mb-0">Historique des sessions</h5>
-                    <small class="text-muted">10 sessions par page</small>
+                    <small class="text-muted">{{ $perPage ?? 10 }} sessions par page</small>
+                </div>
+                <div class="card-body border-0 pb-0">
+                    <form method="GET" action="{{ route('caisse.sessions.index') }}" class="row g-2 align-items-end">
+                        <div class="col-12 col-md-3">
+                            <label class="form-label mb-1">Date du</label>
+                            <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label mb-1">Date au</label>
+                            <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label mb-1">Caissier(ère)</label>
+                            <input type="text" name="cashier" value="{{ request('cashier') }}" class="form-control" placeholder="Nom ou email">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label mb-1">Par page</label>
+                            <select name="per_page" class="form-select">
+                                <option value="10" {{ (string) ($perPage ?? 10) === '10' ? 'selected' : '' }}>10</option>
+                                <option value="25" {{ (string) ($perPage ?? 10) === '25' ? 'selected' : '' }}>25</option>
+                                <option value="50" {{ (string) ($perPage ?? 10) === '50' ? 'selected' : '' }}>50</option>
+                            </select>
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bx bx-search me-1"></i> Filtrer
+                            </button>
+                            <a href="{{ route('caisse.sessions.index') }}" class="btn btn-label-secondary btn-sm">
+                                Réinitialiser
+                            </a>
+                        </div>
+                    </form>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-light">
                             <tr>
                                 <th class="ps-4 border-0">Date & Heure</th>
+                                <th class="border-0">Caissier(ère)</th>
                                 <th class="border-0 text-center">Ouverture</th>
                                 <th class="border-0 text-center">Attendu (Total)</th>
                                 <th class="border-0 text-center">Réel (Compté)</th>
@@ -124,6 +157,14 @@
                                         <div class="d-flex flex-column">
                                             <span class="font-weight-bold">{{ $sess->opened_at->format('d M Y') }}</span>
                                             <small class="text-muted">{{ $sess->opened_at->format('H:i') }} - {{ $sess->closed_at ? $sess->closed_at->format('H:i') : '...' }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-semibold">{{ $sess->user->name ?? '—' }}</span>
+                                            @if(!empty($sess->user?->email))
+                                                <small class="text-muted">{{ $sess->user->email }}</small>
+                                            @endif
                                         </div>
                                     </td>
                                     <td class="text-center">{{ number_format($sess->solde_ouverture, 0, ',', ' ') }}</td>
@@ -151,7 +192,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-5 text-muted">Aucune session clôturée pour le moment.</td>
+                                    <td colspan="8" class="text-center py-5 text-muted">Aucune session clôturée pour le moment.</td>
                                 </tr>
                             @endforelse
                         </tbody>
