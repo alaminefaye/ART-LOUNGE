@@ -21,10 +21,10 @@
 <div class="container-fluid py-4">
     <div class="no-print d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
         <a href="{{ route('caisse.sessions.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-arrow-left me-1"></i> Retour à l'historique
+            <i class="bx bx-arrow-back me-1"></i> Retour à l'historique
         </a>
         <button type="button" class="btn btn-primary" onclick="window.print()">
-            <i class="fas fa-print me-1"></i> Imprimer le rapport
+            <i class="bx bx-printer me-1"></i> Imprimer le rapport
         </button>
     </div>
 
@@ -65,23 +65,23 @@
         <div class="card-body p-0">
             <ul class="list-group list-group-flush">
                 <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="fas fa-money-bill-wave text-success me-2"></i> Espèces</span>
+                    <span><i class="bx bx-money text-success me-2"></i> Espèces</span>
                     <strong>{{ number_format($details['total_especes'], 0, ',', ' ') }} FCFA</strong>
                 </li>
                 <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="fas fa-mobile-alt text-info me-2"></i> Wave</span>
+                    <span><i class="bx bx-mobile text-info me-2"></i> Wave</span>
                     <strong>{{ number_format($details['total_wave'], 0, ',', ' ') }} FCFA</strong>
                 </li>
                 <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="fas fa-university text-warning me-2"></i> Orange Money</span>
+                    <span><i class="bx bx-building text-warning me-2"></i> Orange Money</span>
                     <strong>{{ number_format($details['total_orange_money'], 0, ',', ' ') }} FCFA</strong>
                 </li>
                 <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="fas fa-credit-card text-primary me-2"></i> Carte bancaire</span>
+                    <span><i class="bx bx-credit-card text-primary me-2"></i> Carte bancaire</span>
                     <strong>{{ number_format($details['total_carte'], 0, ',', ' ') }} FCFA</strong>
                 </li>
                 <li class="list-group-item d-flex justify-content-between py-3 px-4">
-                    <span><i class="fas fa-star text-secondary me-2"></i> Points fidélité</span>
+                    <span><i class="bx bx-star text-secondary me-2"></i> Points fidélité</span>
                     <strong>{{ number_format($details['total_points'], 0, ',', ' ') }} FCFA</strong>
                 </li>
             </ul>
@@ -112,7 +112,7 @@
                     <div class="text-muted small">Écart</div>
                     <div class="fs-5 fw-semibold">
                         @if(abs($ecart) < 0.01)
-                            <span class="text-success"><i class="fas fa-check-circle me-1"></i> Correct (0)</span>
+                            <span class="text-success"><i class="bx bx-check-circle me-1"></i> Correct (0)</span>
                         @elseif($ecart > 0)
                             <span class="text-info">+{{ number_format($ecart, 0, ',', ' ') }} FCFA</span>
                         @else

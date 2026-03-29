@@ -111,7 +111,7 @@
                                 <th class="border-0 text-center">Réel (Compté)</th>
                                 <th class="border-0 text-center">Écart</th>
                                 <th class="border-0 text-center">Statut</th>
-                                <th class="pe-4 border-0 text-end no-print" style="width: 1rem;">Actions</th>
+                                <th class="pe-4 border-0 text-end no-print" style="min-width: 8rem;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -131,7 +131,7 @@
                                     <td class="text-center font-weight-bold text-primary">{{ number_format($sess->solde_fermeture_reel, 0, ',', ' ') }}</td>
                                     <td class="text-center">
                                         @if($ecart == 0)
-                                            <span class="text-success"><i class="fas fa-check-circle me-1"></i> Correct</span>
+                                            <span class="text-success"><i class="bx bx-check-circle me-1"></i> Correct</span>
                                         @elseif($ecart > 0)
                                             <span class="text-info">+{{ number_format($ecart, 0, ',', ' ') }}</span>
                                         @else
@@ -142,9 +142,11 @@
                                         <span class="badge bg-light text-dark border px-2 py-1">Fermée</span>
                                     </td>
                                     <td class="pe-4 text-end no-print">
-                                        <a href="{{ route('caisse.sessions.rapport', $sess) }}" class="btn btn-sm btn-outline-primary" target="_blank" title="Imprimer le rapport">
-                                            <i class="fas fa-print"></i>
-                                        </a>
+                                        @canany(['manage_sessions', 'view_reports'])
+                                            <a href="{{ route('caisse.sessions.rapport', $sess) }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" title="Imprimer le rapport">
+                                                <i class="bx bx-printer me-1"></i> Rapport
+                                            </a>
+                                        @endcanany
                                     </td>
                                 </tr>
                             @empty

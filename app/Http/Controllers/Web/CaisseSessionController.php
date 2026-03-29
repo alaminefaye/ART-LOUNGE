@@ -6,20 +6,28 @@ use App\Http\Controllers\Controller;
 use App\Models\CaisseSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Gate;
 
 class CaisseSessionController extends Controller
 {
     public function index()
     {
+        $canViewAll = Gate::any(['manage_sessions', 'view_reports']);
+
         $session_active = CaisseSession::where('user_id', Auth::id())
             ->where('statut', 'ouverte')
             ->first();
 
-        $historique = CaisseSession::where('user_id', Auth::id())
+        $historiqueQuery = CaisseSession::query()
             ->where('statut', 'fermee')
-            ->orderByDesc('closed_at')
-            ->paginate(10);
+            ->with('user')
+            ->orderByDesc('closed_at');
+
+        if (! $canViewAll) {
+            $historiqueQuery->where('user_id', Auth::id());
+        }
+
+        $historique = $historiqueQuery->paginate(10);
 
         return view('caisse.sessions.index', [
             'session_active' => $session_active,
@@ -68,7 +76,9 @@ class CaisseSessionController extends Controller
      */
     public function rapport(CaisseSession $session)
     {
-        if ($session->user_id !== Auth::id()) {
+        $canViewAll = Gate::any(['manage_sessions', 'view_reports']);
+
+        if ($session->user_id !== Auth::id() && ! $canViewAll) {
             abort(403);
         }
 
