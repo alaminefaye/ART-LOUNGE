@@ -248,16 +248,19 @@ class _PrinterScreenState extends State<PrinterScreen> {
             children: [
               const Icon(Icons.receipt_long, color: AppTheme.brandGold),
               const SizedBox(width: 8),
-              Text(
-                widget.newItems != null
-                    ? 'Articles envoyés en cuisine'
-                    : 'Commande #${order.id}',
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  widget.newItems != null
+                      ? 'Articles envoyés en cuisine'
+                      : 'Commande #${order.id}',
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               if (order.table != null)
                 Container(
                   padding: const EdgeInsets.symmetric(

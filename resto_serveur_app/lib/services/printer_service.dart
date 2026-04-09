@@ -68,7 +68,7 @@ class PrinterService {
 
     bytes += generator.feed(1);
     bytes += generator.text(
-      'BON DE COMMANDE',
+      'BON DE CUISINE',
       styles: const PosStyles(
         align: PosAlign.center,
         bold: true,
@@ -76,15 +76,11 @@ class PrinterService {
         width: PosTextSize.size2,
       ),
     );
-    bytes += generator.text(
-      Formatters.sanitizeThermalText(AppBrand.displayName),
-      styles: const PosStyles(align: PosAlign.center, bold: true),
-    );
     bytes += generator.hr();
-
+    bytes += generator.text('Commande #${order.id}');
     if (order.table != null) {
       bytes += generator.text(
-        'TABLE: ${order.table!.numero}',
+        'Table: ${order.table!.numero}',
         styles: const PosStyles(
           bold: true,
           height: PosTextSize.size2,
@@ -92,11 +88,8 @@ class PrinterService {
         ),
       );
     }
-    bytes += generator.text('Commande #${order.id}');
     bytes += generator.text(
-      Formatters.sanitizeThermalText(
-        Formatters.formatDateTime(order.createdAt),
-      ),
+      'Heure: ${order.createdAt.hour.toString().padLeft(2, '0')}:${order.createdAt.minute.toString().padLeft(2, '0')}',
     );
     if (serveurName != null && serveurName.isNotEmpty) {
       bytes += generator.text(
@@ -104,8 +97,6 @@ class PrinterService {
       );
     }
     bytes += generator.hr();
-
-    bytes += generator.text('ARTICLES', styles: const PosStyles(bold: true));
     bytes += generator.feed(1);
 
     // Use newItems (just-added batch) or fallback to all order items (reprint)
@@ -113,10 +104,13 @@ class PrinterService {
     if (produits != null && produits.isNotEmpty) {
       for (final item in produits) {
         bytes += generator.text(
-          '${item.quantite} x ${Formatters.sanitizeThermalText(item.produitNom)}',
-          styles: const PosStyles(bold: true),
+          '${item.quantite}x ${Formatters.sanitizeThermalText(item.produitNom)}',
+          styles: const PosStyles(
+            bold: true,
+            height: PosTextSize.size2,
+            width: PosTextSize.size2,
+          ),
         );
-        bytes += generator.feed(1);
       }
     } else {
       bytes += generator.text(
@@ -126,10 +120,7 @@ class PrinterService {
     }
 
     bytes += generator.feed(2);
-    bytes += generator.text(
-      '--- FIN BON ---',
-      styles: const PosStyles(align: PosAlign.center),
-    );
+    bytes += generator.hr();
     bytes += generator.feed(3);
     bytes += generator.cut();
 
@@ -160,7 +151,7 @@ class PrinterService {
 
     // Header
     bytes += generator.text(
-      Formatters.sanitizeThermalText(AppBrand.displayName),
+      'Dolce Vita Palace',
       styles: const PosStyles(
         align: PosAlign.center,
         height: PosTextSize.size2,
@@ -168,33 +159,20 @@ class PrinterService {
         bold: true,
       ),
     );
-    bytes += generator.feed(1);
     bytes += generator.text(
-      'DETAIL DE LA COMMANDE',
-      styles: const PosStyles(align: PosAlign.center, bold: true),
-    );
-    bytes += generator.text(
-      Formatters.sanitizeThermalText(invoice.numeroFacture),
-      styles: const PosStyles(align: PosAlign.center),
-    );
-    bytes += generator.text(
-      Formatters.sanitizeThermalText(
-        Formatters.formatDateTime(invoice.createdAt),
-      ),
+      'Ticket de Caisse',
       styles: const PosStyles(align: PosAlign.center),
     );
     bytes += generator.hr();
-
-    // Table info
-    if (invoice.commande != null) {
-      if (invoice.commande!.table != null) {
-        bytes += generator.text(
-          'Table: ${invoice.commande!.table!.numero}',
-          styles: const PosStyles(bold: true),
-        );
-      }
-      bytes += generator.text('Commande #${invoice.commande!.id}');
+    
+    // Command Info
+    bytes += generator.text('Commande #${invoice.commande?.id ?? ''}');
+    if (invoice.commande?.table != null) {
+      bytes += generator.text('Table ${invoice.commande!.table!.numero}');
     }
+    bytes += generator.text(
+      '${invoice.createdAt.day.toString().padLeft(2, '0')}/${invoice.createdAt.month.toString().padLeft(2, '0')}/${invoice.createdAt.year}  ${invoice.createdAt.hour.toString().padLeft(2, '0')}:${invoice.createdAt.minute.toString().padLeft(2, '0')}',
+    );
     if (serveurName != null && serveurName.isNotEmpty) {
       bytes += generator.text(
         Formatters.sanitizeThermalText('Serveur: $serveurName'),
@@ -203,31 +181,12 @@ class PrinterService {
     bytes += generator.hr();
 
     // Items
-    bytes += generator.row([
-      PosColumn(text: 'Article', width: 6, styles: const PosStyles(bold: true)),
-      PosColumn(
-        text: 'Qte',
-        width: 2,
-        styles: const PosStyles(bold: true, align: PosAlign.center),
-      ),
-      PosColumn(
-        text: 'Total',
-        width: 4,
-        styles: const PosStyles(bold: true, align: PosAlign.right),
-      ),
-    ]);
-
     if (invoice.commande?.produits != null) {
       for (var item in invoice.commande!.produits!) {
         bytes += generator.row([
           PosColumn(
-            text: Formatters.sanitizeThermalText(item.produitNom),
-            width: 6,
-          ),
-          PosColumn(
-            text: '${item.quantite}',
-            width: 2,
-            styles: const PosStyles(align: PosAlign.center),
+            text: '${item.quantite}x ${Formatters.sanitizeThermalText(item.produitNom)}',
+            width: 8,
           ),
           PosColumn(
             text: Formatters.formatCurrencyThermal(item.total),
@@ -235,6 +194,7 @@ class PrinterService {
             styles: const PosStyles(align: PosAlign.right),
           ),
         ]);
+        bytes += generator.feed(1);
       }
     }
     bytes += generator.hr();
@@ -264,14 +224,21 @@ class PrinterService {
 
     bytes += generator.feed(2);
     bytes += generator.hr();
+    
+    // Footer matches caisse exactly
     bytes += generator.text(
-      'MERCI DE VOTRE VISITE',
-      styles: const PosStyles(align: PosAlign.center, bold: true),
-    );
-    bytes += generator.text(
-      'A bientot !',
+      'Merci de votre visite !',
       styles: const PosStyles(align: PosAlign.center),
     );
+    bytes += generator.text(
+      'Nimzatt Point de la Source',
+      styles: const PosStyles(align: PosAlign.center),
+    );
+    bytes += generator.text(
+      'Tel: 0708792031',
+      styles: const PosStyles(align: PosAlign.center),
+    );
+
     bytes += generator.feed(3);
     bytes += generator.cut();
 

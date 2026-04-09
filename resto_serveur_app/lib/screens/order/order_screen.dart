@@ -248,17 +248,100 @@ class _OrderScreenState extends State<OrderScreen> {
   // ── Print receipt ─────────────────────────────────────────────────────
 
   void _printReceipt() {
-    final order = _activeOrders.isNotEmpty ? _activeOrders.first : null;
-    if (order == null) {
-      _showErrorSnack('Aucune commande active pour cette table');
-      return;
-    }
+    if (_activeOrders.isEmpty) return;
+    final activeOrder = _activeOrders.first;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder:
-            (_) => PrinterScreen(order: order, serveurName: widget.serveur?.name),
+            (_) => PrinterScreen(
+              order: activeOrder,
+              serveurName: widget.serveur?.name ?? '',
+            ),
       ),
+    );
+  }
+
+  // ── Admin Actions (Cancel / Remove) ───────────────────────────────────
+
+  Future<void> _requireAdminPinAndExecute({
+    required Future<void> Function() action,
+    required String actionName,
+  }) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final result = await showDialog<Serveur>(
+      context: context,
+      builder:
+          (context) => _AdminPinDialog(
+            authService: authService,
+            actionName: actionName,
+          ),
+    );
+    if (result != null) {
+      if (result.hasRole('admin') || 
+          result.hasRole('gerant') || 
+          result.hasRole('manager') || 
+          result.hasRole('super-admin')) {
+        await action();
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Accès refusé. Droits gérant ou admin requis.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _cancelOrder() async {
+    if (_activeOrders.isEmpty) return;
+    
+    await _requireAdminPinAndExecute(
+      actionName: 'Annuler la commande #${_activeOrders.first.id}',
+      action: () async {
+        setState(() => _isSendingOrder = true);
+        final res = await _orderService.cancelOrder(_activeOrders.first.id);
+        setState(() => _isSendingOrder = false);
+        if (res['success'] == true) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Commande annulée avec succès'), backgroundColor: Colors.green),
+          );
+          Navigator.pop(context, true); // Go back, order is cancelled
+        } else {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(res['message'] ?? 'Erreur'), backgroundColor: Colors.red),
+          );
+        }
+      },
+    );
+  }
+
+  Future<void> _removeProduct(OrderItem item) async {
+    if (_activeOrders.isEmpty) return;
+
+    await _requireAdminPinAndExecute(
+      actionName: 'Supprimer: ${item.quantite}x ${item.produitNom}',
+      action: () async {
+        setState(() => _isSendingOrder = true);
+        final res = await _orderService.removeProductFromOrder(_activeOrders.first.id, item.produitId);
+        if (res['success'] == true) {
+          await _loadData();
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Produit supprimé'), backgroundColor: Colors.green),
+          );
+        } else {
+          setState(() => _isSendingOrder = false);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(res['message'] ?? 'Erreur'), backgroundColor: Colors.red),
+          );
+        }
+      },
     );
   }
 
@@ -342,13 +425,15 @@ class _OrderScreenState extends State<OrderScreen> {
           backgroundColor: AppTheme.scaffoldBg,
           appBar: _buildAppBar(),
           floatingActionButton:
-              isMobile && _cart.isNotEmpty
+              isMobile && (_cart.isNotEmpty || _activeOrders.isNotEmpty)
                   ? FloatingActionButton.extended(
                     onPressed: () => setState(() => _showTicketOnMobile = true),
                     backgroundColor: AppTheme.brandGold,
                     icon: const Icon(Icons.receipt_long, color: Colors.white),
                     label: Text(
-                      '${Formatters.formatCurrency(_cartTotal)} ($_cartCount)',
+                      _cart.isNotEmpty
+                          ? '${Formatters.formatCurrency(_cartTotal)} ($_cartCount)'
+                          : 'Voir la commande',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -423,9 +508,10 @@ class _OrderScreenState extends State<OrderScreen> {
         onPressed: () => Navigator.pop(context),
       ),
       title: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: AppTheme.brandGold.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
@@ -436,54 +522,68 @@ class _OrderScreenState extends State<OrderScreen> {
                 const Icon(
                   Icons.table_restaurant,
                   color: AppTheme.brandGold,
-                  size: 18,
+                  size: 16,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Text(
                   'Table ${widget.table.numero}',
                   style: const TextStyle(
                     color: AppTheme.brandGold,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          if (_activeOrders.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.bolt, color: Colors.orange.shade700, size: 14),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Commande en cours',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange.shade700,
+          if (_activeOrders.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Flexible(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                  border:
+                      Border.all(color: Colors.orange.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.bolt, color: Colors.orange.shade700, size: 13),
+                    const SizedBox(width: 3),
+                    Flexible(
+                      child: Text(
+                        'En cours',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange.shade700,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+          ],
         ],
       ),
       actions: [
-        if (_activeOrders.isNotEmpty)
+        if (_activeOrders.isNotEmpty) ...[
           IconButton(
             onPressed: _printReceipt,
             icon: const Icon(Icons.print_outlined, color: AppTheme.brandGold),
             tooltip: 'Imprimer le reçu',
           ),
+          IconButton(
+            onPressed: _cancelOrder,
+            icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+            tooltip: 'Annuler la commande',
+          ),
+        ],
         IconButton(
           onPressed: _loadData,
           icon: const Icon(Icons.refresh, color: Colors.black54),
@@ -851,6 +951,14 @@ class _OrderScreenState extends State<OrderScreen> {
                                   color: Colors.black45,
                                 ),
                               ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => _removeProduct(item),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: Icon(Icons.close, color: Colors.red, size: 18),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1045,29 +1153,32 @@ class _ProductCard extends StatelessWidget {
                               width: double.infinity,
                               placeholder:
                                   (_, __) => Container(
-                                    color: Colors.grey.shade100,
-                                    child: const Icon(
-                                      Icons.restaurant,
-                                      color: Colors.grey,
-                                      size: 36,
+                                    color: Colors.white,
+                                    padding: const EdgeInsets.all(12),
+                                    child: Image.asset(
+                                      'assets/logo.png',
+                                      fit: BoxFit.contain,
+                                      opacity: const AlwaysStoppedAnimation(0.4),
                                     ),
                                   ),
                               errorWidget:
                                   (_, __, ___) => Container(
-                                    color: Colors.grey.shade100,
-                                    child: const Icon(
-                                      Icons.restaurant,
-                                      color: Colors.grey,
-                                      size: 36,
+                                    color: Colors.white,
+                                    padding: const EdgeInsets.all(12),
+                                    child: Image.asset(
+                                      'assets/logo.png',
+                                      fit: BoxFit.contain,
+                                      opacity: const AlwaysStoppedAnimation(0.4),
                                     ),
                                   ),
                             )
                             : Container(
-                              color: Colors.grey.shade100,
-                              child: const Icon(
-                                Icons.restaurant,
-                                color: Colors.grey,
-                                size: 36,
+                              color: Colors.white,
+                              padding: const EdgeInsets.all(12),
+                              child: Image.asset(
+                                'assets/logo.png',
+                                fit: BoxFit.contain,
+                                opacity: const AlwaysStoppedAnimation(0.4),
                               ),
                             ),
                   ),
@@ -1450,6 +1561,126 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
                     ),
                   )
                   : const Text('Envoyer', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+}
+
+class _AdminPinDialog extends StatefulWidget {
+  final AuthService authService;
+  final String actionName;
+
+  const _AdminPinDialog({required this.authService, required this.actionName});
+
+  @override
+  State<_AdminPinDialog> createState() => _AdminPinDialogState();
+}
+
+class _AdminPinDialogState extends State<_AdminPinDialog> {
+  final _pinController = TextEditingController();
+  String? _error;
+  bool _isVerifying = false;
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _verify() async {
+    if (_pinController.text.trim().isEmpty) return;
+    setState(() {
+      _isVerifying = true;
+      _error = null;
+    });
+    final result = await widget.authService.checkPinOnly(_pinController.text.trim());
+    if (!mounted) return;
+    if (result != null) {
+      Navigator.pop(context, result);
+    } else {
+      setState(() {
+        _error = 'PIN incorrect';
+        _isVerifying = false;
+        _pinController.clear();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        children: const [
+          Icon(Icons.security, color: Colors.red),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Autorisation requise',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            widget.actionName,
+            style: const TextStyle(color: Colors.black54, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _pinController,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            autofocus: true,
+            onSubmitted: (_) => _verify(),
+            style: const TextStyle(fontSize: 20, letterSpacing: 8),
+            decoration: InputDecoration(
+              hintText: '• • • •',
+              hintStyle: TextStyle(color: Colors.grey.shade400),
+              prefixIcon: const Icon(Icons.lock_outline, color: Colors.red),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2),
+              ),
+              errorText: _error,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, null),
+          child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+        ),
+        ElevatedButton(
+          onPressed: _isVerifying ? null : _verify,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: _isVerifying
+              ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+              : const Text('Valider'),
         ),
       ],
     );

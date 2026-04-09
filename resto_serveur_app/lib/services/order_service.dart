@@ -194,4 +194,45 @@ class OrderService {
       return {'success': false, 'message': 'Erreur: $e'};
     }
   }
+
+  /// Cancel an entire order
+  Future<Map<String, dynamic>> cancelOrder(int orderId) async {
+    try {
+      final response = await _apiService.patch(
+        ApiConfig.orderStatus(orderId),
+        data: {'statut': 'annulee'},
+      );
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': 'Commande annulée avec succès'};
+      }
+      return {'success': false, 'message': response.data['message'] ?? 'Erreur lors de l\'annulation'};
+    } on DioException catch (e) {
+      String message = 'Erreur réseau';
+      if (e.response?.data is Map) {
+        message = (e.response?.data as Map)['message'] ?? message;
+      }
+      return {'success': false, 'message': message};
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur inattendue: $e'};
+    }
+  }
+
+  /// Remove a product from an order
+  Future<Map<String, dynamic>> removeProductFromOrder(int orderId, int productId) async {
+    try {
+      final response = await _apiService.delete(ApiConfig.removeProduit(orderId, productId));
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': 'Produit supprimé avec succès'};
+      }
+      return {'success': false, 'message': response.data['message'] ?? 'Erreur lors de la suppression'};
+    } on DioException catch (e) {
+      String message = 'Erreur réseau';
+      if (e.response?.data is Map) {
+        message = (e.response?.data as Map)['message'] ?? message;
+      }
+      return {'success': false, 'message': message};
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur inattendue: $e'};
+    }
+  }
 }

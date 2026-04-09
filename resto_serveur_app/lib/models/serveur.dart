@@ -59,7 +59,13 @@ class Serveur {
     );
   }
 
-  bool hasRole(String role) => roles.contains(role);
+  bool hasRole(String role) {
+    final search = role.toLowerCase().replaceAll('é', 'e');
+    return roles.any((r) {
+      final normalized = r.toLowerCase().replaceAll('é', 'e');
+      return normalized == search;
+    });
+  }
 
   String get initials {
     final parts = name.trim().split(' ');
