@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'config/app_theme.dart';
 import 'services/auth_service.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/auth/pin_screen.dart';
 import 'screens/home/home_screen.dart';
 
 void main() async {
