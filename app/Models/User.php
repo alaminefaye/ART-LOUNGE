@@ -25,6 +25,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'fcm_token',
+        'pin',
     ];
 
     /**
@@ -35,6 +36,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'pin',
     ];
 
     /**
@@ -48,6 +50,14 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Whether the user has a PIN configured
+     */
+    public function hasPin(): bool
+    {
+        return !empty($this->getAttributes()['pin']);
     }
 
     /**

@@ -11,19 +11,25 @@ final class DolceVitaMenu
     public static function categoryNames(): array
     {
         return [
-            'Entrées froides',
-            'Entrées chaudes',
+            'Tapas',
+            'Entrées',
             'Poissons & fruits de mer',
             'Viandes',
-            'Volailles & gibiers',
+            'Volailles & spécialités',
             'Brochettes',
             'Plats africains',
             'Pâtes',
             'Fast food',
             'Garnitures',
+            'Nos sauces',
             'Desserts',
             'MENU BOISSONS — Cocktails alcoolisés',
             'MENU BOISSONS — Cocktails sans alcool',
+            'MENU BOISSONS — Cocktails signature (alcoolisés)',
+            'MENU BOISSONS — Cocktails signature (sans alcool)',
+            'MENU BOISSONS — Shots classiques & tendances',
+            'MENU BOISSONS — Shots aromatisés',
+            'MENU BOISSONS — Shots signature Dolce Vita',
         ];
     }
 }

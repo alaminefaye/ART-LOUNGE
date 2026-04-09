@@ -8,6 +8,7 @@ use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -252,6 +253,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
+                'has_pin' => $user->hasPin(),
                 'roles' => $user->roles->pluck('name'),
                 'permissions' => $permissions,
             ],
@@ -345,6 +347,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
+                'has_pin' => $user->hasPin(),
                 'email_verified_at' => $user->email_verified_at,
                 'created_at' => $user->created_at,
                 'roles' => $user->roles->map(function ($role) {
@@ -543,6 +546,115 @@ class AuthController extends Controller
                 'message' => 'Erreur lors de la mise à jour du mot de passe.'
             ], 500);
         }
+    }
+
+    /**
+     * Définir ou changer le PIN de l'utilisateur connecté
+     * POST /auth/set-pin  (authentifié)
+     */
+    public function setPin(Request $request)
+    {
+        $request->validate([
+            'pin'              => 'required|string|size:4|regex:/^[0-9]{4}$/',
+            'pin_confirmation' => 'required|same:pin',
+        ]);
+
+        $user = $request->user();
+        $user->update(['pin' => Hash::make($request->pin)]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'PIN défini avec succès.',
+        ]);
+    }
+
+    /**
+     * Vérifier le PIN de l'utilisateur connecté
+     * POST /auth/verify-pin  (authentifié)
+     */
+    public function verifyPin(Request $request)
+    {
+        $request->validate([
+            'pin' => 'required|string|size:4',
+        ]);
+
+        $user = $request->user();
+
+        if (!$user->hasPin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun PIN configuré pour cet utilisateur.',
+            ]);
+        }
+
+        $valid = Hash::check($request->pin, $user->getAttributes()['pin']);
+
+        return response()->json([
+            'success' => $valid,
+            'message' => $valid ? 'PIN correct.' : 'PIN incorrect.',
+        ]);
+    }
+
+    /**
+     * Connexion par PIN (sans mot de passe)
+     * POST /auth/login-pin  (public)
+     */
+    public function loginWithPin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string',
+            'pin'   => 'required|string|size:4',
+        ]);
+
+        $identifier = $request->email;
+        $user = null;
+
+        if (str_contains($identifier, '@')) {
+            $user = User::where('email', $identifier)->first();
+        } else {
+            $client = Client::where('telephone', $identifier)->first();
+            if ($client) {
+                if ($client->email) {
+                    $user = User::where('email', $client->email)->first();
+                }
+                if (!$user) {
+                    $user = User::where('email', $identifier . '@resto.local')->first();
+                }
+            }
+        }
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Utilisateur introuvable.',
+                'errors'  => ['email' => ['Utilisateur introuvable.']],
+            ], 422);
+        }
+
+        if (!$user->hasPin() || !Hash::check($request->pin, $user->getAttributes()['pin'])) {
+            return response()->json([
+                'message' => 'Email ou PIN incorrect.',
+                'errors'  => ['pin' => ['Email ou PIN incorrect.']],
+            ], 422);
+        }
+
+        $user->load('roles.permissions');
+        $permissions = $user->getAllPermissions()->pluck('name')->toArray();
+        $token = $user->createToken('auth_token', $permissions)->plainTextToken;
+
+        return response()->json([
+            'message' => 'Connexion par PIN réussie',
+            'user' => [
+                'id'      => $user->id,
+                'name'    => $user->name,
+                'email'   => $user->email,
+                'phone'   => $user->phone,
+                'has_pin' => true,
+                'roles'   => $user->roles->pluck('name'),
+                'permissions' => $permissions,
+            ],
+            'token'      => $token,
+            'token_type' => 'Bearer',
+        ]);
     }
 
     /**

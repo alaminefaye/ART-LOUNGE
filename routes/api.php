@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login-pin', [AuthController::class, 'loginWithPin']);
 });
 
 // Endpoints publics pour le menu via QR code (accessibles sans authentification)
@@ -61,6 +62,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/fcm-token', [AuthController::class, 'updateFcmToken']);
         Route::put('/update-profile', [AuthController::class, 'updateProfile']);
         Route::put('/update-password', [AuthController::class, 'updatePassword']);
+        Route::post('/set-pin', [AuthController::class, 'setPin']);
+        Route::post('/verify-pin', [AuthController::class, 'verifyPin']);
     });
     
     // ==========================================
