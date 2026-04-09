@@ -6,8 +6,13 @@
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
         <div>
-            <h4 class="fw-bold mb-1">📊 Gestion des Tables</h4>
-            <p class="text-muted mb-0">{{ $stats['total'] }} tables au total ({{ $stats['libres'] }} libres)</p>
+            <h4 class="fw-bold mb-1">🪑 Gestion des Tables</h4>
+            <p class="text-muted mb-0">
+                {{ $stats['total'] }} tables au total ·
+                <span class="text-success fw-semibold">{{ $stats['libres'] }} libres</span> ·
+                <span class="text-danger fw-semibold">{{ $stats['occupees'] }} occupées</span> ·
+                <span class="text-warning fw-semibold">{{ $stats['reservees'] }} réservées</span>
+            </p>
         </div>
         @can('manage_tables')
         <a href="{{ route('tables.create') }}" class="btn btn-primary">
@@ -23,7 +28,7 @@
         <form method="get" action="{{ route('tables.index') }}" class="row g-3 align-items-end">
             <div class="col-md-4">
                 <label class="form-label small">Recherche</label>
-                <input type="text" name="search" class="form-control form-control-sm" placeholder="Numéro..." value="{{ request('search') }}">
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="Ex: T5, VIP2..." value="{{ request('search') }}">
             </div>
             <div class="col-md-3">
                 <label class="form-label small">Type</label>
@@ -40,6 +45,7 @@
                     <option value="">Tous les statuts</option>
                     <option value="libre" @selected(request('statut') === 'libre')>Libre</option>
                     <option value="occupee" @selected(request('statut') === 'occupee')>Occupée</option>
+                    <option value="reservee" @selected(request('statut') === 'reservee')>Réservée</option>
                 </select>
             </div>
             <div class="col-md-2 d-flex gap-2">
@@ -50,33 +56,71 @@
     </div>
 </div>
 
-<!-- Grid des Tables (4 par ligne) -->
-<div class="row">
+<!-- Grille des tables -->
+<div class="row g-3">
     @forelse($tables as $table)
-        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6 mb-4">
-            <div class="card h-100 shadow-sm border-0">
+        @php
+            $isSubTable = str_contains($table->numero, '.');
+            $isVip = $table->type->value === 'vip';
+
+            $statusColor = match($table->statut->value) {
+                'libre'       => 'success',
+                'occupee'     => 'danger',
+                'reservee'    => 'warning',
+                'en_paiement' => 'info',
+                default       => 'secondary',
+            };
+            $statusLabel = match($table->statut->value) {
+                'libre'       => 'Libre',
+                'occupee'     => 'Occupée',
+                'reservee'    => 'Réservée',
+                'en_paiement' => 'En paiement',
+                default       => ucfirst($table->statut->value),
+            };
+        @endphp
+
+        {{-- Sous-tables : plus petites, légèrement décalées --}}
+        @if($isSubTable)
+        <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6">
+            <div class="card h-100 border-0 shadow-sm" style="border-left: 3px solid var(--bs-{{ $statusColor }}) !important; opacity: 0.9; border-radius: 8px;">
+                <div class="card-body p-2 text-center">
+                    <span class="badge bg-label-secondary mb-1" style="font-size:10px;">Sous-table</span>
+                    <h5 class="mb-0 fw-bold text-primary" style="font-size:14px;">{{ $table->numero }}</h5>
+                    <p class="text-muted mb-1" style="font-size:10px;"><i class="bx bx-user"></i> {{ $table->capacite }} pl.</p>
+                    <span class="badge bg-{{ $statusColor }} w-100 py-1" style="font-size:10px;">{{ strtoupper($statusLabel) }}</span>
+                    <div class="mt-2 d-flex justify-content-center gap-1">
+                        <a href="{{ route('tables.show', $table) }}" class="btn btn-icon btn-xs btn-outline-info" title="Voir"><i class="bx bx-show" style="font-size:12px;"></i></a>
+                        @can('manage_tables')
+                        <a href="{{ route('tables.edit', $table) }}" class="btn btn-icon btn-xs btn-outline-warning" title="Modifier"><i class="bx bx-edit" style="font-size:12px;"></i></a>
+                        @endcan
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Tables principales --}}
+        @else
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card h-100 border-0 shadow" style="border-top: 4px solid var(--bs-{{ $isVip ? 'warning' : $statusColor }}) !important; border-radius: 12px;">
                 <div class="card-body text-center p-3">
                     <div class="mb-2">
-                        @switch($table->type->value)
-                            @case('simple') <span class="badge bg-label-secondary">Simple</span> @break
-                            @case('vip') <span class="badge bg-label-warning">VIP</span> @break
-                            @case('espace_jeux') <span class="badge bg-label-info">Espace Jeux</span> @break
-                        @endswitch
+                        @if($isVip)
+                            <span class="badge bg-label-warning">⭐ VIP</span>
+                        @else
+                            <span class="badge bg-label-secondary">Table</span>
+                        @endif
                     </div>
-                    
-                    <h3 class="mb-1 fw-bold text-primary">{{ $table->numero }}</h3>
+
+                    <h3 class="mb-1 fw-bold {{ $isVip ? 'text-warning' : 'text-primary' }}">{{ $table->numero }}</h3>
                     <p class="text-muted small mb-2"><i class="bx bx-user"></i> {{ $table->capacite }} places</p>
-                    
-                    <div class="mb-3">
-                        @switch($table->statut->value)
-                            @case('libre') <span class="badge bg-success w-100 py-2">LIBRE</span> @break
-                            @case('occupee') <span class="badge bg-danger w-100 py-2">OCCUPÉE</span> @break
-                            @case('reservee') <span class="badge bg-warning w-100 py-2">RÉSERVÉE</span> @break
-                            @case('en_paiement') <span class="badge bg-info w-100 py-2">EN PAIEMENT</span> @break
-                        @endswitch
-                    </div>
-                    
-                    <div class="mt-auto d-flex justify-content-center gap-1">
+
+                    <span class="badge bg-{{ $statusColor }} w-100 py-2">{{ strtoupper($statusLabel) }}</span>
+
+                    @if($isVip && $table->prix)
+                        <p class="text-muted small mt-1 mb-0">{{ number_format($table->prix, 0, ',', ' ') }} FCFA</p>
+                    @endif
+
+                    <div class="mt-3 d-flex justify-content-center gap-1">
                         <a href="{{ route('tables.show', $table) }}" class="btn btn-icon btn-sm btn-outline-info" title="Voir"><i class="bx bx-show"></i></a>
                         @can('manage_tables')
                         <a href="{{ route('tables.edit', $table) }}" class="btn btn-icon btn-sm btn-outline-warning" title="Modifier"><i class="bx bx-edit"></i></a>
@@ -89,6 +133,8 @@
                 </div>
             </div>
         </div>
+        @endif
+
     @empty
         <div class="col-12 text-center py-5">
             <div class="text-muted">Aucune table trouvée.</div>
@@ -96,7 +142,7 @@
     @endforelse
 </div>
 
-<div class="mt-2">
+<div class="mt-4">
     {{ $tables->links() }}
 </div>
 @endsection

@@ -28,7 +28,7 @@ class TableController extends Controller
             'reservees' => Table::where('statut', TableStatus::Reservee)->count(),
         ];
 
-        $query = Table::query()->orderBy('numero');
+        $query = Table::query();
 
         if ($request->filled('search')) {
             $term = $request->string('search')->trim();
@@ -41,7 +41,24 @@ class TableController extends Controller
             $query->where('statut', $request->input('statut'));
         }
 
-        $tables = $query->paginate(10)->withQueryString();
+        // Tri naturel : T1, T1.1, T1.2, T1.3, T2 ... T40.3, VIP1 ... VIP8
+        // On trie côté PHP après récupération (volume raisonnable)
+        $tables = $query->paginate(200)->withQueryString();
+
+        // Tri naturel sur le numéro
+        $sorted = $tables->getCollection()->sortBy(function ($t) {
+            $num = $t->numero;
+            if (str_starts_with($num, 'VIP')) {
+                return 'Z_' . str_pad(substr($num, 3), 4, '0', STR_PAD_LEFT);
+            }
+            // Format: T{main}[.{sub}]
+            $parts = explode('.', ltrim($num, 'T'));
+            $main = str_pad((int)($parts[0] ?? 0), 4, '0', STR_PAD_LEFT);
+            $sub  = str_pad((int)($parts[1] ?? 0), 2, '0', STR_PAD_LEFT);
+            return 'A_' . $main . '_' . $sub;
+        })->values();
+
+        $tables->setCollection($sorted);
 
         return view('tables.index', compact('tables', 'stats'));
     }
