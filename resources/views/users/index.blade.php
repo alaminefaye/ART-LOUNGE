@@ -15,6 +15,7 @@
                     <th>Nom</th>
                     <th>Email</th>
                     <th>Rôles</th>
+                    <th>🔐 PIN</th>
                     <th>Créé le</th>
                     <th>Actions</th>
                 </tr>
@@ -30,6 +31,13 @@
                                 {{ ucfirst($role->name) }}
                             </span>
                         @endforeach
+                    </td>
+                    <td>
+                        @if($user->hasPin())
+                            <span class="badge bg-success">✅</span>
+                        @else
+                            <span class="badge bg-light text-muted">—</span>
+                        @endif
                     </td>
                     <td>{{ $user->created_at->format('d/m/Y') }}</td>
                     <td>
@@ -47,7 +55,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="text-center text-muted">Aucun utilisateur trouvé</td>
+                    <td colspan="6" class="text-center text-muted">Aucun utilisateur trouvé</td>
                 </tr>
                 @endforelse
             </tbody>

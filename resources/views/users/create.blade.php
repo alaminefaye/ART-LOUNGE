@@ -39,6 +39,23 @@
                 <label class="form-label">Confirmer Mot de Passe *</label>
                 <input type="password" name="password_confirmation" class="form-control" required>
             </div>
+
+            {{-- PIN pour l'application Serveur --}}
+            <div class="mb-3">
+                <label class="form-label">🔐 Code PIN <small class="text-muted">(optionnel — 4 chiffres, pour l'application Serveur)</small></label>
+                <div class="d-flex align-items-center gap-2" style="max-width:280px">
+                    <input type="text" name="pin" id="pin_input"
+                           class="form-control @error('pin') is-invalid @enderror"
+                           maxlength="4" pattern="[0-9]{4}" placeholder="Ex: 1234"
+                           inputmode="numeric" autocomplete="off"
+                           value="{{ old('pin') }}">
+                    <button type="button" class="btn btn-outline-secondary btn-sm text-nowrap" onclick="generatePin()">
+                        <i class="bx bx-refresh"></i> Générer
+                    </button>
+                </div>
+                @error('pin')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                <div class="text-muted small mt-1">Laissez vide si le serveur créera son PIN lui-même à la première connexion.</div>
+            </div>
             
             <div class="mb-3">
                 <label class="form-label">Rôles *</label>
@@ -60,5 +77,13 @@
         </form>
     </div>
 </div>
-@endsection
 
+<script>
+function generatePin() {
+    const pin = Math.floor(1000 + Math.random() * 9000).toString();
+    document.getElementById('pin_input').value = pin;
+    document.getElementById('pin_input').style.background = '#fff3cd';
+    setTimeout(() => document.getElementById('pin_input').style.background = '', 1500);
+}
+</script>
+@endsection

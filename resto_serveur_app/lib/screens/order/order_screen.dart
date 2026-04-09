@@ -186,6 +186,10 @@ class _OrderScreenState extends State<OrderScreen>
         orderId: activeOrder.id,
         produits: produits,
       );
+      // Launch the newly-added products so they reach the kitchen (brouillon → envoye)
+      if (result['success'] == true) {
+        await _orderService.launchOrder(activeOrder.id);
+      }
     } else {
       result = await _orderService.createOrder(
         tableId: widget.table.id,
@@ -213,129 +217,18 @@ class _OrderScreenState extends State<OrderScreen>
   }
 
   Future<bool> _showPinConfirmDialog() async {
-    // Capture authService before entering async dialog context
     final authService = Provider.of<AuthService>(context, listen: false);
-    final pinController = TextEditingController();
-    bool confirmed = false;
-    bool isLoading = false;
-    String? error;
-
-    await showDialog(
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Row(
-            children: [
-              Icon(Icons.lock_outline, color: AppTheme.brandGold),
-              SizedBox(width: 8),
-              Text('Confirmer avec votre PIN'),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Serveur : ${widget.serveur?.name ?? "Inconnu"}',
-                style: const TextStyle(color: Colors.black54, fontSize: 14),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '$_cartCount article(s) — ${Formatters.formatCurrency(_cartTotal)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: pinController,
-                keyboardType: TextInputType.number,
-                maxLength: 4,
-                obscureText: true,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 24,
-                  letterSpacing: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-                decoration: InputDecoration(
-                  hintText: '____',
-                  counterText: '',
-                  errorText: error,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppTheme.brandGold,
-                      width: 2,
-                    ),
-                  ),
-                ),
-                autofocus: true,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: isLoading
-                  ? null
-                  : () async {
-                      if (pinController.text.length != 4) {
-                        setDialogState(
-                          () => error = 'Entrez un code à 4 chiffres',
-                        );
-                        return;
-                      }
-                      setDialogState(() {
-                        isLoading = true;
-                        error = null;
-                      });
-                      // Verify PIN against the backend (no local storage)
-                      final valid = await authService.checkPinOnly(
-                        pinController.text,
-                      );
-                      if (valid) {
-                        confirmed = true;
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      } else {
-                        setDialogState(() {
-                          isLoading = false;
-                          error = 'PIN incorrect';
-                          pinController.clear();
-                        });
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.brandGold,
-                foregroundColor: Colors.white,
-              ),
-              child: isLoading
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text('Valider'),
-            ),
-          ],
-        ),
+      builder: (ctx) => _PinConfirmDialog(
+        authService: authService,
+        serveurName: widget.serveur?.name ?? 'Inconnu',
+        cartCount: _cartCount,
+        cartTotal: _cartTotal,
       ),
     );
-    pinController.dispose();
-    return confirmed;
+    return result == true;
   }
 
   void _showSuccessSnack(String message) {
@@ -1226,5 +1119,299 @@ class _OrderCard extends StatelessWidget {
       case OrderStatus.annulee:
         return Colors.red;
     }
+  }
+}
+
+// ─────────────────────────── PIN CONFIRM DIALOG ───────────────────────────
+/// Full-screen PIN confirmation dialog with embedded custom keypad.
+/// No system keyboard — avoids layout overflow on small screens.
+class _PinConfirmDialog extends StatefulWidget {
+  final AuthService authService;
+  final String serveurName;
+  final int cartCount;
+  final double cartTotal;
+
+  const _PinConfirmDialog({
+    required this.authService,
+    required this.serveurName,
+    required this.cartCount,
+    required this.cartTotal,
+  });
+
+  @override
+  State<_PinConfirmDialog> createState() => _PinConfirmDialogState();
+}
+
+class _PinConfirmDialogState extends State<_PinConfirmDialog>
+    with SingleTickerProviderStateMixin {
+  String _pin = '';
+  bool _isLoading = false;
+  bool _isError = false;
+  late AnimationController _shakeCtrl;
+  late Animation<double> _shakeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _shakeAnim = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _shakeCtrl, curve: Curves.elasticIn),
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onDigit(String d) {
+    if (_pin.length >= 4 || _isLoading) return;
+    setState(() {
+      _pin += d;
+      _isError = false;
+    });
+    if (_pin.length == 4) {
+      Future.delayed(const Duration(milliseconds: 120), _verify);
+    }
+  }
+
+  void _onDelete() {
+    if (_pin.isEmpty || _isLoading) return;
+    setState(() => _pin = _pin.substring(0, _pin.length - 1));
+  }
+
+  Future<void> _verify() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    final valid = await widget.authService.checkPinOnly(_pin);
+    if (!mounted) return;
+    if (valid) {
+      Navigator.pop(context, true);
+    } else {
+      setState(() {
+        _isLoading = false;
+        _isError = true;
+        _pin = '';
+      });
+      _shakeCtrl.forward(from: 0);
+      Future.delayed(
+        const Duration(seconds: 2),
+        () { if (mounted) setState(() => _isError = false); },
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.lock_outline, color: AppTheme.brandGold, size: 22),
+                SizedBox(width: 8),
+                Text(
+                  'Confirmer avec votre PIN',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Order summary
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.brandGold.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Serveur : ${widget.serveurName}',
+                    style: const TextStyle(color: Colors.black54, fontSize: 13),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${widget.cartCount} article${widget.cartCount > 1 ? 's' : ''} — ${Formatters.formatCurrency(widget.cartTotal)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: AppTheme.brandGold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // PIN dots with shake
+            AnimatedBuilder(
+              animation: _shakeAnim,
+              builder: (_, child) {
+                final dx = _isError
+                    ? ((_shakeAnim.value * 10) % 2 - 1) * 8
+                    : 0.0;
+                return Transform.translate(offset: Offset(dx, 0), child: child);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(4, (i) {
+                  final filled = i < _pin.length;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _isError
+                          ? Colors.red
+                          : filled
+                          ? AppTheme.brandGold
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: _isError
+                            ? Colors.red
+                            : filled
+                            ? AppTheme.brandGold
+                            : Colors.grey.shade400,
+                        width: 2,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+
+            if (_isError)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Code PIN incorrect',
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ),
+
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.only(top: 10),
+                child: SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                    color: AppTheme.brandGold,
+                    strokeWidth: 2.5,
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 16),
+
+            // Custom keypad
+            _buildKeypad(),
+            const SizedBox(height: 12),
+
+            // Cancel
+            TextButton(
+              onPressed:
+                  _isLoading ? null : () => Navigator.pop(context, false),
+              child: const Text(
+                'Annuler',
+                style: TextStyle(color: Colors.black54),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKeypad() {
+    const rows = [
+      ['1', '2', '3'],
+      ['4', '5', '6'],
+      ['7', '8', '9'],
+    ];
+    return Column(
+      children: [
+        ...rows.map(
+          (row) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: row.map(_digitKey).toList(),
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _blankKey(),
+            _digitKey('0'),
+            _deleteKey(),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _digitKey(String d) {
+    return GestureDetector(
+      onTap: () => _onDigit(d),
+      child: Container(
+        width: 64,
+        height: 56,
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Center(
+          child: Text(
+            d,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _deleteKey() {
+    return GestureDetector(
+      onTap: _onDelete,
+      child: Container(
+        width: 64,
+        height: 56,
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: const Center(
+          child: Icon(Icons.backspace_outlined, size: 20, color: Colors.black54),
+        ),
+      ),
+    );
+  }
+
+  Widget _blankKey() {
+    return const SizedBox(width: 80, height: 56);
   }
 }

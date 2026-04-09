@@ -26,23 +26,25 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'roles' => 'required|array|min:1',
-            'roles.*' => 'exists:roles,name',
+            'roles'    => 'required|array|min:1',
+            'roles.*'  => 'exists:roles,name',
+            'pin'      => 'nullable|string|size:4|regex:/^[0-9]{4}$/',
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
+            'name'     => $validated['name'],
+            'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'pin'      => !empty($validated['pin']) ? Hash::make($validated['pin']) : null,
         ]);
 
         $user->syncRoles($validated['roles']);
 
         return redirect()->route('users.index')
-                        ->with('success', 'Utilisateur créé avec succès !');
+                        ->with('success', 'Utilisateur créé avec succès !' . (!empty($validated['pin']) ? ' PIN : ' . $validated['pin'] : ' (aucun PIN défini)'));
     }
 
     public function show(User $user)
@@ -60,15 +62,16 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'name'     => 'required|string|max:255',
+            'email'    => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
-            'roles' => 'required|array|min:1',
-            'roles.*' => 'exists:roles,name',
+            'roles'    => 'required|array|min:1',
+            'roles.*'  => 'exists:roles,name',
+            'pin'      => 'nullable|string|size:4|regex:/^[0-9]{4}$/',
         ]);
 
         $user->update([
-            'name' => $validated['name'],
+            'name'  => $validated['name'],
             'email' => $validated['email'],
         ]);
 
@@ -76,10 +79,15 @@ class UserController extends Controller
             $user->update(['password' => Hash::make($validated['password'])]);
         }
 
+        if (!empty($validated['pin'])) {
+            $user->update(['pin' => Hash::make($validated['pin'])]);
+        }
+
         $user->syncRoles($validated['roles']);
 
+        $pinMsg = !empty($validated['pin']) ? ' PIN mis à jour : ' . $validated['pin'] : '';
         return redirect()->route('users.index')
-                        ->with('success', 'Utilisateur modifié avec succès !');
+                        ->with('success', 'Utilisateur modifié avec succès !' . $pinMsg);
     }
 
     public function destroy(User $user)

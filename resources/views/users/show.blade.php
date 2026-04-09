@@ -37,6 +37,20 @@
                 <p>{{ $user->updated_at->format('d/m/Y à H:i') }}</p>
             </div>
         </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <strong>🔐 Code PIN (App Serveur) :</strong>
+                <p class="mt-1">
+                    @if($user->hasPin())
+                        <span class="badge bg-success">✅ PIN configuré</span>
+                    @else
+                        <span class="badge bg-secondary">❌ Aucun PIN</span>
+                        <span class="text-muted small d-block mt-1">Le serveur peut créer son PIN à la 1ère connexion sur l'app, ou l'admin peut l'assigner via Modifier.</span>
+                    @endif
+                </p>
+            </div>
+        </div>
         
         <hr>
         

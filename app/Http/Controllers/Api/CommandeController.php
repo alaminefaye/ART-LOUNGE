@@ -427,8 +427,12 @@ class CommandeController extends Controller
     }
 
     /**
-     * Ajouter un produit à une commande existante
+     * Ajouter un ou plusieurs produits à une commande existante
      * POST /api/commandes/{id}/produits
+     *
+     * Accepts two formats:
+     *   - Array:  { produits: [{produit_id, quantite, notes?}, ...] }  ← Flutter app format
+     *   - Single: { produit_id, quantite, notes? }                     ← legacy / web format
      */
     public function addProduit(Request $request, $id)
     {
@@ -441,8 +445,6 @@ class CommandeController extends Controller
             ], 404);
         }
 
-        // Vérifier que l'utilisateur est le propriétaire de la commande (pour les clients)
-        // Les admins, managers, serveurs et caissiers peuvent modifier n'importe quelle commande
         /** @var \App\Models\User $user */
         $user = $request->user();
         if ($user->hasRole('client') && $commande->user_id !== $user->id) {
@@ -459,34 +461,61 @@ class CommandeController extends Controller
             ], 400);
         }
 
-        $validator = Validator::make($request->all(), [
-            'produit_id' => 'required|exists:produits,id',
-            'quantite' => 'required|integer|min:1',
-            'notes' => 'nullable|string',
-        ]);
+        // ─── Detect format ───────────────────────────────────────────────────────
+        $isArray = $request->has('produits') && is_array($request->produits);
+
+        if ($isArray) {
+            // Validate array format
+            $validator = Validator::make($request->all(), [
+                'produits'                  => 'required|array|min:1',
+                'produits.*.produit_id'     => 'required|exists:produits,id',
+                'produits.*.quantite'       => 'required|integer|min:1',
+                'produits.*.notes'          => 'nullable|string',
+            ]);
+        } else {
+            // Validate single product format (legacy)
+            $validator = Validator::make($request->all(), [
+                'produit_id' => 'required|exists:produits,id',
+                'quantite'   => 'required|integer|min:1',
+                'notes'      => 'nullable|string',
+            ]);
+        }
 
         if ($validator->fails()) {
+            Log::error('CommandeController::addProduit - Validation error', [
+                'errors'   => $validator->errors()->toArray(),
+                'is_array' => $isArray,
+                'data'     => $request->all(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de validation',
-                'errors' => $validator->errors(),
+                'errors'  => $validator->errors(),
             ], 422);
         }
 
-        $produit = Product::find($request->produit_id);
+        // ─── Process products ────────────────────────────────────────────────────
+        $items = $isArray
+            ? $request->produits
+            : [['produit_id' => $request->produit_id, 'quantite' => $request->quantite, 'notes' => $request->notes]];
 
-        if (!$produit->isDisponible()) {
-            return response()->json([
-                'success' => false,
-                'message' => "Le produit {$produit->nom} n'est pas disponible",
-            ], 400);
+        foreach ($items as $item) {
+            $produit = Product::find($item['produit_id']);
+
+            if (!$produit || !$produit->isDisponible()) {
+                $nom = $produit ? $produit->nom : "ID {$item['produit_id']}";
+                return response()->json([
+                    'success' => false,
+                    'message' => "Le produit {$nom} n'est pas disponible",
+                ], 400);
+            }
+
+            $commande->ajouterProduit($produit, (int) $item['quantite'], $item['notes'] ?? null);
         }
-
-        $commande->ajouterProduit($produit, $request->quantite, $request->notes);
 
         return response()->json([
             'success' => true,
-            'message' => 'Produit ajouté avec succès',
+            'message' => count($items) > 1 ? 'Produits ajoutés avec succès' : 'Produit ajouté avec succès',
             'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'produits'])),
         ]);
     }

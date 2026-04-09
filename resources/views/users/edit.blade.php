@@ -36,6 +36,32 @@
                 <label class="form-label">Confirmer Nouveau Mot de Passe</label>
                 <input type="password" name="password_confirmation" class="form-control">
             </div>
+
+            {{-- PIN pour l'application Serveur --}}
+            <div class="mb-3">
+                <label class="form-label">🔐 Code PIN — Application Serveur</label>
+                <div class="mb-2">
+                    @if($user->hasPin())
+                        <span class="badge bg-success fs-6">✅ PIN défini</span>
+                        <span class="text-muted small ms-2">Le serveur a un PIN configuré.</span>
+                    @else
+                        <span class="badge bg-secondary fs-6">❌ Aucun PIN</span>
+                        <span class="text-muted small ms-2">Le serveur n'a pas encore de PIN.</span>
+                    @endif
+                </div>
+                <div class="d-flex align-items-center gap-2" style="max-width:280px">
+                    <input type="text" name="pin" id="pin_input_edit"
+                           class="form-control @error('pin') is-invalid @enderror"
+                           maxlength="4" pattern="[0-9]{4}"
+                           placeholder="{{ $user->hasPin() ? 'Nouveau PIN (remplace l\'ancien)' : 'Ex: 1234' }}"
+                           inputmode="numeric" autocomplete="off">
+                    <button type="button" class="btn btn-outline-secondary btn-sm text-nowrap" onclick="generatePinEdit()">
+                        <i class="bx bx-refresh"></i> Générer
+                    </button>
+                </div>
+                @error('pin')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                <div class="text-muted small mt-1">Laissez vide pour conserver le PIN actuel.</div>
+            </div>
             
             <div class="mb-3">
                 <label class="form-label">Rôles *</label>
@@ -57,5 +83,14 @@
         </form>
     </div>
 </div>
-@endsection
 
+<script>
+function generatePinEdit() {
+    const pin = Math.floor(1000 + Math.random() * 9000).toString();
+    const input = document.getElementById('pin_input_edit');
+    input.value = pin;
+    input.style.background = '#fff3cd';
+    setTimeout(() => input.style.background = '', 1500);
+}
+</script>
+@endsection
