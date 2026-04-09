@@ -75,8 +75,8 @@
                         <div class="mb-3">
                             <label class="form-label"><strong>Montant Reçu (FCFA) *</strong></label>
                             <input type="number" name="montant_recu" id="montantRecu" class="form-control" 
-                                   value="{{ old('montant_recu', $commande->montant_total) }}" 
-                                   min="0" step="1" onkeyup="calculateChange()">
+                                   value="{{ old('montant_recu', (int) ceil($commande->montant_total)) }}" 
+                                   min="0" step="any" oninput="calculateChange()">
                         </div>
                         
                         <div class="mb-3">
@@ -159,7 +159,7 @@ function togglePaymentFields() {
         especesFields.style.display = 'block';
         referenceFields.style.display = 'none';
         montantRecuInput.required = true;
-        montantRecuInput.min = getResteAPayer();
+        montantRecuInput.min = Math.ceil(getResteAPayer());
         calculateChange();
     } else if (moyenPaiement === 'wave' || moyenPaiement === 'orange_money' || moyenPaiement === 'carte_bancaire' || moyenPaiement === 'points_fidelite') {
         especesFields.style.display = 'none';
@@ -187,7 +187,7 @@ function calculateChange() {
 }
 
 const valeurFcfa1Point = {{ $fidelitySettings->valeur_fcfa_1_point }};
-const montantTotal = {{ $commande->montant_total }};
+const montantTotal = Math.round({{ $commande->montant_total }});
 
 function getResteAPayer() {
     const pts = parseInt(document.getElementById('pointsUtilises').value) || 0;
@@ -211,8 +211,8 @@ function updateReste() {
     const reste = montantTotal - equivalent;
     document.getElementById('equivalentFcfa').textContent = new Intl.NumberFormat('fr-FR').format(equivalent);
     document.getElementById('resteFcfa').textContent = new Intl.NumberFormat('fr-FR').format(reste);
-    document.getElementById('montantRecu').min = reste;
-    document.getElementById('montantRecu').value = reste;
+    document.getElementById('montantRecu').min = Math.ceil(reste);
+    document.getElementById('montantRecu').value = Math.ceil(reste);
     calculateChange();
     const moyenPaiement = document.getElementById('moyenPaiement').value;
     if (reste <= 0 && moyenPaiement !== 'points_fidelite') {

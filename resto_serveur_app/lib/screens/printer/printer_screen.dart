@@ -220,6 +220,14 @@ class _PrinterScreenState extends State<PrinterScreen> {
 
   Widget _buildOrderSummary() {
     final order = widget.order;
+    // When newItems is provided, show ONLY the freshly added items.
+    // Otherwise (reprint mode), show all items from the order.
+    final displayItems = (widget.newItems != null && widget.newItems!.isNotEmpty)
+        ? widget.newItems!
+        : order.produits ?? [];
+
+    final displayTotal = displayItems.fold<double>(0, (s, i) => s + i.total);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -241,7 +249,9 @@ class _PrinterScreenState extends State<PrinterScreen> {
               const Icon(Icons.receipt_long, color: AppTheme.brandGold),
               const SizedBox(width: 8),
               Text(
-                'Commande #${order.id}',
+                widget.newItems != null
+                    ? 'Articles envoyés en cuisine'
+                    : 'Commande #${order.id}',
                 style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
@@ -277,20 +287,44 @@ class _PrinterScreenState extends State<PrinterScreen> {
             ),
           ],
           const Divider(height: 20),
-          if (order.produits != null)
-            ...order.produits!.map(
+          if (displayItems.isEmpty)
+            const Text(
+              'Aucun article',
+              style: TextStyle(color: Colors.grey),
+            )
+          else
+            ...displayItems.map(
               (item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
+                padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Text(
-                      '${item.quantite}x ',
-                      style: const TextStyle(
-                        color: AppTheme.brandGold,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: 28,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandGold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${item.quantite}x',
+                        style: const TextStyle(
+                          color: AppTheme.brandGold,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
-                    Expanded(child: Text(item.produitNom)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        item.produitNom,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
                     Text(
                       _fmtCurrency(item.total),
                       style: const TextStyle(
@@ -306,12 +340,15 @@ class _PrinterScreenState extends State<PrinterScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'TOTAL',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              Text(
+                widget.newItems != null ? 'TOTAL ENVOYÉ' : 'TOTAL',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
               ),
               Text(
-                _fmtCurrency(order.montantTotal),
+                _fmtCurrency(displayTotal),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 17,
