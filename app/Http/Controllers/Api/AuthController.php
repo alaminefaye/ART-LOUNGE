@@ -591,10 +591,17 @@ class AuthController extends Controller
             }
 
             $valid = Hash::check($request->pin, $user->getAttributes()['pin']);
+            if ($valid) {
+                $user->load('roles');
+            }
             return response()->json([
                 'success' => $valid,
                 'message' => $valid ? 'PIN correct.' : 'PIN incorrect.',
-                'user'    => $valid ? ['id' => $user->id, 'name' => $user->name] : null,
+                'user'    => $valid ? [
+                    'id' => $user->id, 
+                    'name' => $user->name,
+                    'roles' => $user->roles->pluck('name')
+                ] : null,
             ]);
         }
 
@@ -605,7 +612,7 @@ class AuthController extends Controller
             ->pluck('name')
             ->toArray();
 
-        $staffWithPin = User::whereHas('roles', function ($q) use ($existingRoles) {
+        $staffWithPin = User::with('roles')->whereHas('roles', function ($q) use ($existingRoles) {
             $q->whereIn('name', $existingRoles);
         })->get()->filter(fn($u) => $u->hasPin());
 
@@ -614,7 +621,11 @@ class AuthController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'PIN correct.',
-                    'user'    => ['id' => $staffUser->id, 'name' => $staffUser->name],
+                    'user'    => [
+                        'id' => $staffUser->id, 
+                        'name' => $staffUser->name,
+                        'roles' => $staffUser->roles->pluck('name')
+                    ],
                 ]);
             }
         }
