@@ -229,6 +229,66 @@ class ProductSeeder extends Seeder
             ['categorie' => 'MENU BOISSONS — Shots signature Dolce Vita', 'nom' => 'Dolce Fire', 'description' => 'Rhum, gingembre, citron — Menu Dolce Vita Palace', 'prix' => 5000],
             ['categorie' => 'MENU BOISSONS — Shots signature Dolce Vita', 'nom' => 'Shot Flambé', 'description' => 'Cointreau, rhum rouge, sucre — Menu Dolce Vita Palace', 'prix' => 7000],
             ['categorie' => 'MENU BOISSONS — Shots signature Dolce Vita', 'nom' => 'Dolce Vita Signature', 'description' => 'Jack Daniel\'s, miel, gingembre — Menu Dolce Vita Palace', 'prix' => 8000],
+
+            // ——— Champagnes & vins mousseux ———
+            ['categorie' => 'Champagnes & vins mousseux', 'nom' => 'Moët & Chandon Brut', 'description' => 'Champagne — Menu Dolce Vita Palace', 'prix' => 50000],
+            ['categorie' => 'Champagnes & vins mousseux', 'nom' => 'Moët Nectar', 'description' => 'Champagne — Menu Dolce Vita Palace', 'prix' => 70000],
+            ['categorie' => 'Champagnes & vins mousseux', 'nom' => 'Veuve Clicquot', 'description' => 'Champagne — Menu Dolce Vita Palace', 'prix' => 70000],
+            ['categorie' => 'Champagnes & vins mousseux', 'nom' => 'LP Harmony Demi-sec', 'description' => 'Champagne — Menu Dolce Vita Palace', 'prix' => 50000],
+            ['categorie' => 'Champagnes & vins mousseux', 'nom' => 'Ruinart Blanc de Blanc', 'description' => 'Champagne — Menu Dolce Vita Palace', 'prix' => 150000],
+
+            // ——— Vins rouges ———
+            ['categorie' => 'Vins rouges', 'nom' => 'Castel Cabernet Sauvignon - Pays d\'Oc', 'description' => 'Vin rouge bouteille — Menu Dolce Vita Palace', 'prix' => 15000],
+            ['categorie' => 'Vins rouges', 'nom' => 'Castel Merlot - Pays d\'Oc', 'description' => 'Vin rouge bouteille — Menu Dolce Vita Palace', 'prix' => 15000],
+            ['categorie' => 'Vins rouges', 'nom' => 'Calvet Conversation Bordeaux', 'description' => 'Vin rouge bouteille — Menu Dolce Vita Palace', 'prix' => 15000],
+            ['categorie' => 'Vins rouges', 'nom' => 'Calvet Réserve Bordeaux Supérieur', 'description' => 'Vin rouge bouteille — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Vins rouges', 'nom' => 'Calvet Grande Réserve Bordeaux Supérieur', 'description' => 'Vin rouge bouteille — Menu Dolce Vita Palace', 'prix' => 25000],
+            ['categorie' => 'Vins rouges', 'nom' => 'Cavalo Branco', 'description' => 'Vin rouge bouteille — Menu Dolce Vita Palace', 'prix' => 15000],
+            ['categorie' => 'Vins rouges', 'nom' => 'Château Le Barry Bordeaux', 'description' => 'Vin rouge bouteille — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Vins rouges', 'nom' => 'Domaine La Baume', 'description' => 'Vin rouge bouteille — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Vins rouges', 'nom' => 'Chemins des Papes CDR', 'description' => 'Vin rouge Côtes-du-Rhône bouteille — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Vins rouges', 'nom' => 'E. Guigal CDR', 'description' => 'Vin rouge Côtes-du-Rhône bouteille — Menu Dolce Vita Palace', 'prix' => 25000],
+
+            // ——— Vins blancs ———
+            ['categorie' => 'Vins blancs', 'nom' => 'Castel Muscat Moelleux', 'description' => 'Vin blanc bouteille — Menu Dolce Vita Palace', 'prix' => 15000],
+            ['categorie' => 'Vins blancs', 'nom' => 'Calvet Conversation Moelleux', 'description' => 'Vin blanc bouteille — Menu Dolce Vita Palace', 'prix' => 15000],
+            ['categorie' => 'Vins blancs', 'nom' => 'Frontera Late Harvest', 'description' => 'Vin blanc bouteille — Menu Dolce Vita Palace', 'prix' => 15000],
+
+            // ——— Vins pétillants ———
+            ['categorie' => 'Vins pétillants', 'nom' => 'Baron d\'Arignac Bagatelle', 'description' => 'Vin pétillant — Menu Dolce Vita Palace', 'prix' => 10000],
+            ['categorie' => 'Vins pétillants', 'nom' => 'JP Chenet Ice', 'description' => 'Vin pétillant — Menu Dolce Vita Palace', 'prix' => 15000],
+            ['categorie' => 'Vins pétillants', 'nom' => 'JP Chenet Demi-sec', 'description' => 'Vin pétillant — Menu Dolce Vita Palace', 'prix' => 10000],
+
+            // ——— Whiskies ———
+            ['categorie' => 'Whiskies', 'nom' => 'Johnnie Walker Red Label', 'description' => 'Whisky — Menu Dolce Vita Palace', 'prix' => 25000],
+            ['categorie' => 'Whiskies', 'nom' => 'Johnnie Walker Black Label', 'description' => 'Whisky — Menu Dolce Vita Palace', 'prix' => 40000],
+            ['categorie' => 'Whiskies', 'nom' => 'Johnnie Walker Double Black', 'description' => 'Whisky — Menu Dolce Vita Palace', 'prix' => 60000],
+            ['categorie' => 'Whiskies', 'nom' => 'Jack Daniel\'s', 'description' => 'Whisky Tennessee — Menu Dolce Vita Palace', 'prix' => 35000],
+            ['categorie' => 'Whiskies', 'nom' => 'Chivas 12 ans', 'description' => 'Whisky Scotch — Menu Dolce Vita Palace', 'prix' => 40000],
+            ['categorie' => 'Whiskies', 'nom' => 'Ballantine\'s', 'description' => 'Whisky Scotch — Menu Dolce Vita Palace', 'prix' => 25000],
+
+            // ——— Cognac ———
+            ['categorie' => 'Cognac', 'nom' => 'Hennessy', 'description' => 'Cognac — Menu Dolce Vita Palace', 'prix' => 50000],
+            ['categorie' => 'Cognac', 'nom' => 'Godet', 'description' => 'Cognac — Menu Dolce Vita Palace', 'prix' => 60000],
+            ['categorie' => 'Cognac', 'nom' => 'Calvet Cognac', 'description' => 'Cognac — Menu Dolce Vita Palace', 'prix' => 50000],
+            ['categorie' => 'Cognac', 'nom' => 'JP Chenet XO', 'description' => 'Cognac — Menu Dolce Vita Palace', 'prix' => 25000],
+
+            // ——— Spiritueux divers ———
+            ['categorie' => 'Spiritueux divers', 'nom' => 'Bombay Sapphire', 'description' => 'Gin — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Spiritueux divers', 'nom' => 'Gordon\'s', 'description' => 'Gin — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Spiritueux divers', 'nom' => 'Martini Rouge', 'description' => 'Vermouth rouge — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Spiritueux divers', 'nom' => 'Martini Blanc', 'description' => 'Vermouth blanc — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Spiritueux divers', 'nom' => 'Malibu', 'description' => 'Liqueur de coco — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Spiritueux divers', 'nom' => 'Bailey\'s', 'description' => 'Crème irlandaise — Menu Dolce Vita Palace', 'prix' => 20000],
+            ['categorie' => 'Spiritueux divers', 'nom' => 'JB', 'description' => 'Whisky — Menu Dolce Vita Palace', 'prix' => 25000],
+
+            // ——— Bières ———
+            ['categorie' => 'Bières', 'nom' => 'Guinness', 'description' => 'Bière — Menu Dolce Vita Palace', 'prix' => 1000],
+            ['categorie' => 'Bières', 'nom' => 'Heineken', 'description' => 'Bière — Menu Dolce Vita Palace', 'prix' => 1000],
+            ['categorie' => 'Bières', 'nom' => 'Desperados', 'description' => 'Bière — Menu Dolce Vita Palace', 'prix' => 1000],
+            ['categorie' => 'Bières', 'nom' => 'Beaufort', 'description' => 'Bière — Menu Dolce Vita Palace', 'prix' => 1000],
+            ['categorie' => 'Bières', 'nom' => 'Budweiser', 'description' => 'Bière — Menu Dolce Vita Palace', 'prix' => 1000],
+            ['categorie' => 'Bières', 'nom' => 'Castel', 'description' => 'Bière — Menu Dolce Vita Palace', 'prix' => 1000],
         ];
 
         $allowedProductIds = [];

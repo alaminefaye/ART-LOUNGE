@@ -30,6 +30,14 @@ final class DolceVitaMenu
             'MENU BOISSONS — Shots classiques & tendances',
             'MENU BOISSONS — Shots aromatisés',
             'MENU BOISSONS — Shots signature Dolce Vita',
+            'Champagnes & vins mousseux',
+            'Vins rouges',
+            'Vins blancs',
+            'Vins pétillants',
+            'Whiskies',
+            'Cognac',
+            'Spiritueux divers',
+            'Bières',
         ];
     }
 }
