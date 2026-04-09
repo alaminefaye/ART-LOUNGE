@@ -10,7 +10,16 @@ class PrinterScreen extends StatefulWidget {
   final Order order;
   final String? serveurName;
 
-  const PrinterScreen({super.key, required this.order, this.serveurName});
+  /// When set, the kitchen ticket prints ONLY these items (newly added).
+  /// When null, all order items are printed (reprint mode).
+  final List<OrderItem>? newItems;
+
+  const PrinterScreen({
+    super.key,
+    required this.order,
+    this.serveurName,
+    this.newItems,
+  });
 
   @override
   State<PrinterScreen> createState() => _PrinterScreenState();
@@ -125,6 +134,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
       await _printerService.printKitchenOrder(
         widget.order,
         serveurName: widget.serveurName,
+        newItems: widget.newItems,
       );
       if (mounted) {
         setState(() {
@@ -364,7 +374,6 @@ class _PrinterScreenState extends State<PrinterScreen> {
             ],
           ),
           const SizedBox(height: 14),
-
           if (_isLoadingDevices)
             const Center(
               child: Padding(
@@ -441,9 +450,8 @@ class _PrinterScreenState extends State<PrinterScreen> {
                     ),
                     label: Text(_isConnected ? 'Connectée' : 'Connecter'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _isConnected
-                          ? Colors.green
-                          : AppTheme.brandGold,
+                      backgroundColor:
+                          _isConnected ? Colors.green : AppTheme.brandGold,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -506,8 +514,8 @@ class _PrinterScreenState extends State<PrinterScreen> {
             subtitle: _isLoadingInvoice
                 ? 'Chargement de la facture...'
                 : _invoice != null
-                ? 'Total : ${_fmtCurrency(_invoice!.montantTotal)}'
-                : 'Facture non disponible',
+                    ? 'Total : ${_fmtCurrency(_invoice!.montantTotal)}'
+                    : 'Facture non disponible',
             enabled: !_isPrinting && !_isLoadingInvoice && _invoice != null,
             color: AppTheme.brandGold,
             onTap: _printReceipt,

@@ -11,6 +11,7 @@ class ApiConfig {
   static const String me = '/auth/me';
   static const String setPin = '/auth/set-pin';
   static const String verifyPin = '/auth/verify-pin';
+  static const String waiters = '/auth/waiters';
 
   // Tables
   static const String tables = '/tables';

@@ -19,15 +19,29 @@ class TableSeeder extends Seeder
 
         $tables = [];
 
-        // Tables simples (30 tables)
+        // Tables simples (30 tables) + sous-tables (.1, .2, .3)
         for ($i = 1; $i <= 30; $i++) {
+            $capacite = $i <= 10 ? 2 : ($i <= 25 ? 4 : 6);
+
+            // Table principale
             $tables[] = [
                 'numero' => 'T' . $i,
                 'type' => TableType::Simple->value,
-                'capacite' => $i <= 10 ? 2 : ($i <= 25 ? 4 : 6),
+                'capacite' => $capacite,
                 'statut' => TableStatus::Libre->value,
                 'actif' => true,
             ];
+
+            // Sous-tables
+            for ($j = 1; $j <= 3; $j++) {
+                $tables[] = [
+                    'numero' => 'T' . $i . '.' . $j,
+                    'type' => TableType::Simple->value,
+                    'capacite' => $capacite,
+                    'statut' => TableStatus::Libre->value,
+                    'actif' => true,
+                ];
+            }
         }
 
         // Tables VIP (3 tables)
@@ -66,7 +80,8 @@ class TableSeeder extends Seeder
         Table::whereNotIn('numero', $numerosAcceptes)->delete();
 
         $this->command->info("✓ " . count($tables) . " tables configurées avec succès!");
-        $this->command->info("  - 30 tables simples (T1 à T30)");
+        $this->command->info("  - 30 tables simples principales (T1 à T30)");
+        $this->command->info("  - 90 sous-tables (T1.1, T1.2, ..., T30.3)");
         $this->command->info("  - 3 tables VIP (VIP1 à VIP3)");
     }
 }

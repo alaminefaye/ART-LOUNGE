@@ -571,16 +571,25 @@ class AuthController extends Controller
     /**
      * Vérifier le PIN de l'utilisateur connecté
      * POST /auth/verify-pin  (authentifié)
+     *
+     * If a `user_id` is provided, verifies the PIN for that specific user.
+     * This allows a shared-device flow where any waiter confirms with their own PIN.
      */
     public function verifyPin(Request $request)
     {
         $request->validate([
-            'pin' => 'required|string|size:4',
+            'pin'     => 'required|string|size:4',
+            'user_id' => 'nullable|integer|exists:users,id',
         ]);
 
-        $user = $request->user();
+        // If user_id supplied, verify against that specific user (shared tablet)
+        if ($request->filled('user_id')) {
+            $user = User::find($request->user_id);
+        } else {
+            $user = $request->user();
+        }
 
-        if (!$user->hasPin()) {
+        if (!$user || !$user->hasPin()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Aucun PIN configuré pour cet utilisateur.',
@@ -592,7 +601,37 @@ class AuthController extends Controller
         return response()->json([
             'success' => $valid,
             'message' => $valid ? 'PIN correct.' : 'PIN incorrect.',
+            'user'    => $valid ? ['id' => $user->id, 'name' => $user->name] : null,
         ]);
+    }
+
+    /**
+     * GET /auth/waiters  (authentifié)
+     * Returns the list of waiters/managers for the PIN confirmation selector.
+     */
+    public function getWaiters(Request $request)
+    {
+        $roles = ['serveur', 'manager', 'admin', 'superadmin'];
+
+        $existingRoles = \Spatie\Permission\Models\Role::whereIn('name', $roles)
+            ->where('guard_name', 'web')
+            ->pluck('name')
+            ->toArray();
+
+        $waiters = User::whereHas('roles', function ($q) use ($existingRoles) {
+            $q->whereIn('name', $existingRoles);
+        })
+        ->orderBy('name')
+        ->get()
+        ->map(function (User $u) {
+            return [
+                'id'      => $u->id,
+                'name'    => $u->name,
+                'has_pin' => $u->hasPin(),
+            ];
+        });
+
+        return response()->json(['success' => true, 'data' => $waiters]);
     }
 
     /**

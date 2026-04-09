@@ -98,12 +98,7 @@ class _AppWrapperState extends State<_AppWrapper>
           return const LoginScreen();
         }
 
-        // Authenticated but no active serveur (PIN not entered) → PIN screen
-        if (authService.activeServeur == null) {
-          return const PinScreen();
-        }
-
-        // Fully authenticated → Home
+        // Authenticated → Home (shared tablet, no PIN lock screen)
         return const HomeScreen();
       },
     );

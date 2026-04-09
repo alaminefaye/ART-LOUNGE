@@ -179,21 +179,39 @@ class AuthService extends ChangeNotifier {
   // -------------------------------------------------------------------
   // PIN — verify only (in-app confirmation dialogs, no state change)
   // Calls POST /auth/verify-pin.
+  // If userId is provided, verifies that specific user's PIN (shared-tablet flow).
   // -------------------------------------------------------------------
-  Future<bool> checkPinOnly(String pin) async {
-    if (_currentUser == null || _token == null) return false;
+  Future<bool> checkPinOnly(String pin, {int? userId}) async {
+    if (_token == null) return false;
     try {
-      final response = await _apiService.post(
-        ApiConfig.verifyPin,
-        data: {'pin': pin},
-      );
+      final data = <String, dynamic>{'pin': pin};
+      if (userId != null) data['user_id'] = userId;
+      final response = await _apiService.post(ApiConfig.verifyPin, data: data);
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        return data['success'] == true;
+        final resp = response.data as Map<String, dynamic>;
+        return resp['success'] == true;
       }
       return false;
     } catch (_) {
       return false;
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // WAITERS — fetch list of staff for PIN confirmation selector
+  // Returns list of { id, name, has_pin }
+  // -------------------------------------------------------------------
+  Future<List<Serveur>> getWaiters() async {
+    try {
+      final response = await _apiService.get(ApiConfig.waiters);
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final list = data['data'] as List? ?? [];
+        return list.map((e) => Serveur.fromJson(e as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
     }
   }
 

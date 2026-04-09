@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/update-password', [AuthController::class, 'updatePassword']);
         Route::post('/set-pin', [AuthController::class, 'setPin']);
         Route::post('/verify-pin', [AuthController::class, 'verifyPin']);
+        Route::get('/waiters', [AuthController::class, 'getWaiters']);
     });
     
     // ==========================================

@@ -53,7 +53,13 @@ class PrinterService {
   }
 
   /// Print a pre-order ticket for the kitchen (table + items)
-  Future<void> printKitchenOrder(Order order, {String? serveurName}) async {
+  /// [newItems]: when provided, only those items are printed (newly added batch).
+  /// When null, all items in the order are printed (reprint mode).
+  Future<void> printKitchenOrder(
+    Order order, {
+    String? serveurName,
+    List<OrderItem>? newItems,
+  }) async {
     await _ensurePrinterConnected();
 
     final profile = await CapabilityProfile.load();
@@ -102,7 +108,8 @@ class PrinterService {
     bytes += generator.text('ARTICLES', styles: const PosStyles(bold: true));
     bytes += generator.feed(1);
 
-    final produits = order.produits;
+    // Use newItems (just-added batch) or fallback to all order items (reprint)
+    final produits = newItems ?? order.produits;
     if (produits != null && produits.isNotEmpty) {
       for (final item in produits) {
         bytes += generator.text(
