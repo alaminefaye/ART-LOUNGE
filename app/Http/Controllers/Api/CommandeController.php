@@ -43,7 +43,12 @@ class CommandeController extends Controller
         // Filtre spécial pour "Mes commandes" (current) : toutes les commandes non terminées
         // (sans filtre de date : tant qu'une commande n'est pas payée, elle reste visible)
         if ($request->has('filter') && $request->filter === 'current') {
-            $query->where('statut', '!=', OrderStatus::Terminee);
+            $query->whereNotIn('statut', [OrderStatus::Terminee, OrderStatus::Annulee]);
+
+            // ✅ Appliquer aussi le filtre table_id si fourni
+            if ($request->has('table_id')) {
+                $query->where('table_id', $request->table_id);
+            }
         }
         // Filtre spécial pour "Historique" (history) : commandes terminées uniquement
         elseif ($request->has('filter') && $request->filter === 'history') {
