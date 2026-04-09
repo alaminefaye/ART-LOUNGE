@@ -168,32 +168,36 @@ class AuthService extends ChangeNotifier {
   // On success sets _activeServeur.
   // -------------------------------------------------------------------
   Future<bool> verifyPin(String pin) async {
-    final ok = await checkPinOnly(pin);
-    if (ok) {
+    final matched = await checkPinOnly(pin);
+    if (matched != null) {
       _activeServeur = _currentUser;
       notifyListeners();
     }
-    return ok;
+    return matched != null;
   }
 
   // -------------------------------------------------------------------
   // PIN — verify only (in-app confirmation dialogs, no state change)
   // Calls POST /auth/verify-pin.
-  // If userId is provided, verifies that specific user's PIN (shared-tablet flow).
+  // If userId is provided, verifies that specific user's PIN.
+  // If no userId, the backend tries ALL staff PINs and returns the matched user.
+  // Returns the matched Serveur on success, null on failure.
   // -------------------------------------------------------------------
-  Future<bool> checkPinOnly(String pin, {int? userId}) async {
-    if (_token == null) return false;
+  Future<Serveur?> checkPinOnly(String pin, {int? userId}) async {
+    if (_token == null) return null;
     try {
       final data = <String, dynamic>{'pin': pin};
       if (userId != null) data['user_id'] = userId;
       final response = await _apiService.post(ApiConfig.verifyPin, data: data);
       if (response.statusCode == 200) {
         final resp = response.data as Map<String, dynamic>;
-        return resp['success'] == true;
+        if (resp['success'] == true && resp['user'] != null) {
+          return Serveur.fromJson(resp['user'] as Map<String, dynamic>);
+        }
       }
-      return false;
+      return null;
     } catch (_) {
-      return false;
+      return null;
     }
   }
 

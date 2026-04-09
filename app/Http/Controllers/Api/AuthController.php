@@ -585,24 +585,41 @@ class AuthController extends Controller
         // If user_id supplied, verify against that specific user (shared tablet)
         if ($request->filled('user_id')) {
             $user = User::find($request->user_id);
-        } else {
-            $user = $request->user();
-        }
 
-        if (!$user || !$user->hasPin()) {
+            if (!$user || !$user->hasPin()) {
+                return response()->json(['success' => false, 'message' => 'Aucun PIN configuré pour cet utilisateur.']);
+            }
+
+            $valid = Hash::check($request->pin, $user->getAttributes()['pin']);
             return response()->json([
-                'success' => false,
-                'message' => 'Aucun PIN configuré pour cet utilisateur.',
+                'success' => $valid,
+                'message' => $valid ? 'PIN correct.' : 'PIN incorrect.',
+                'user'    => $valid ? ['id' => $user->id, 'name' => $user->name] : null,
             ]);
         }
 
-        $valid = Hash::check($request->pin, $user->getAttributes()['pin']);
+        // No user_id — try PIN against ALL staff (shared-tablet flow, no selection)
+        $roles = ['serveur', 'manager', 'admin', 'superadmin'];
+        $existingRoles = \Spatie\Permission\Models\Role::whereIn('name', $roles)
+            ->where('guard_name', 'web')
+            ->pluck('name')
+            ->toArray();
 
-        return response()->json([
-            'success' => $valid,
-            'message' => $valid ? 'PIN correct.' : 'PIN incorrect.',
-            'user'    => $valid ? ['id' => $user->id, 'name' => $user->name] : null,
-        ]);
+        $staffWithPin = User::whereHas('roles', function ($q) use ($existingRoles) {
+            $q->whereIn('name', $existingRoles);
+        })->get()->filter(fn($u) => $u->hasPin());
+
+        foreach ($staffWithPin as $staffUser) {
+            if (Hash::check($request->pin, $staffUser->getAttributes()['pin'])) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'PIN correct.',
+                    'user'    => ['id' => $staffUser->id, 'name' => $staffUser->name],
+                ]);
+            }
+        }
+
+        return response()->json(['success' => false, 'message' => 'PIN incorrect.', 'user' => null]);
     }
 
     /**

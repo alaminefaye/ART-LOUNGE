@@ -35,8 +35,7 @@ class OrderScreen extends StatefulWidget {
   State<OrderScreen> createState() => _OrderScreenState();
 }
 
-class _OrderScreenState extends State<OrderScreen>
-    with SingleTickerProviderStateMixin {
+class _OrderScreenState extends State<OrderScreen> {
   final MenuService _menuService = MenuService();
   final OrderService _orderService = OrderService();
 
@@ -51,14 +50,12 @@ class _OrderScreenState extends State<OrderScreen>
   bool _isSendingOrder = false;
   String? _error;
 
-  late TabController _tabController;
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _loadData();
     _searchController.addListener(() {
       setState(() => _searchQuery = _searchController.text.toLowerCase());
@@ -67,7 +64,6 @@ class _OrderScreenState extends State<OrderScreen>
 
   @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -219,7 +215,6 @@ class _OrderScreenState extends State<OrderScreen>
         await _loadOrders();
         if (mounted) {
           _showSuccessSnack('Commande envoyée en cuisine !');
-          _tabController.animateTo(1); // Switch to orders tab
           // Auto-open printer screen with ONLY the newly added items
           final sentOrder =
               _existingOrders.isNotEmpty ? _existingOrders.first : null;
@@ -308,9 +303,19 @@ class _OrderScreenState extends State<OrderScreen>
         ),
         actions: [
           if (_existingOrders.isNotEmpty)
+            Badge(
+              label: Text('${_existingOrders.length}'),
+              backgroundColor: AppTheme.brandGold,
+              child: IconButton(
+                onPressed: _showExistingOrders,
+                icon: const Icon(Icons.receipt_long_outlined),
+                tooltip: 'Commandes en cours',
+              ),
+            ),
+          if (_existingOrders.isNotEmpty)
             IconButton(
               onPressed: () => _showReceiptOptions(),
-              icon: const Icon(Icons.receipt_long_outlined),
+              icon: const Icon(Icons.receipt_outlined),
               tooltip: 'Reçu / Facture',
             ),
           IconButton(
@@ -319,26 +324,6 @@ class _OrderScreenState extends State<OrderScreen>
             tooltip: 'Actualiser',
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.brandGold,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: AppTheme.brandGold,
-          tabs: [
-            const Tab(
-              icon: Icon(Icons.restaurant_menu, size: 20),
-              text: 'Menu',
-            ),
-            Tab(
-              icon: Badge(
-                isLabelVisible: _existingOrders.isNotEmpty,
-                label: Text('${_existingOrders.length}'),
-                child: const Icon(Icons.receipt_outlined, size: 20),
-              ),
-              text: 'Commandes',
-            ),
-          ],
-        ),
       ),
       body: _isLoadingMenu
           ? const Center(
@@ -346,18 +331,48 @@ class _OrderScreenState extends State<OrderScreen>
             )
           : _error != null
               ? _buildError()
-              : TabBarView(
-                  controller: _tabController,
-                  children: [_buildMenuTab(), _buildOrdersTab()],
-                ),
+              : _buildMenuContent(),
       bottomNavigationBar: _cart.isNotEmpty ? _buildCartBar() : null,
     );
   }
 
-  Widget _buildMenuTab() {
+  // ─────────────────────── Menu content (single page, no tabs)
+  Widget _buildMenuContent() {
     return Column(
       children: [
-        // Search
+        // Info banner when table already has orders
+        if (_existingOrders.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: AppTheme.brandGold.withValues(alpha: 0.1),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, color: AppTheme.brandGold, size: 16),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Commande en cours — les nouveaux articles s’ajouteront à l’existant',
+                    style: TextStyle(fontSize: 12, color: AppTheme.brandGold),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _showExistingOrders,
+                  child: const Text(
+                    'Voir',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.brandGold,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Search bar
         Container(
           color: Colors.white,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -383,7 +398,7 @@ class _OrderScreenState extends State<OrderScreen>
           ),
         ),
 
-        // Category tabs
+        // Category chips
         Container(
           color: Colors.white,
           height: 48,
@@ -404,13 +419,9 @@ class _OrderScreenState extends State<OrderScreen>
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                   decoration: BoxDecoration(
-                    color:
-                        isSelected ? AppTheme.brandGold : Colors.grey.shade100,
+                    color: isSelected ? AppTheme.brandGold : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -459,56 +470,93 @@ class _OrderScreenState extends State<OrderScreen>
     );
   }
 
-  Widget _buildOrdersTab() {
-    if (_isLoadingOrders) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppTheme.brandGold),
-      );
-    }
-    if (_existingOrders.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+  // ─────────────────────── Existing orders bottom sheet
+  void _showExistingOrders() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.55,
+        maxChildSize: 0.9,
+        minChildSize: 0.3,
+        expand: false,
+        builder: (ctx, scrollController) => Column(
           children: [
-            const Icon(Icons.receipt_long, size: 60, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'Aucune commande en cours',
-              style: TextStyle(color: Colors.black54, fontSize: 16),
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Ajoutez des articles depuis le menu',
-              style: TextStyle(color: Colors.grey, fontSize: 13),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Row(
+                children: [
+                  const Icon(Icons.receipt_long, color: AppTheme.brandGold),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Commandes — Table ${widget.table.numero}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showReceiptOptions();
+                    },
+                    icon: const Icon(Icons.print_outlined, size: 16),
+                    label: const Text('Reçu'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => _tabController.animateTo(0),
-              icon: const Icon(Icons.add),
-              label: const Text('Aller au menu'),
-            ),
+            const Divider(height: 1),
+            if (_isLoadingOrders)
+              const Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(color: AppTheme.brandGold),
+              )
+            else
+              Expanded(
+                child: _existingOrders.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'Aucune commande en cours',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _existingOrders.length,
+                        itemBuilder: (_, i) => _OrderCard(
+                          order: _existingOrders[i],
+                          onPrintReceipt: () {
+                            Navigator.pop(ctx);
+                            _showReceiptOptions(order: _existingOrders[i]);
+                          },
+                        ),
+                      ),
+              ),
           ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadOrders,
-      color: AppTheme.brandGold,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _existingOrders.length,
-        itemBuilder: (_, i) => _OrderCard(
-          order: _existingOrders[i],
-          onPrintReceipt: () => _showReceiptOptions(order: _existingOrders[i]),
         ),
       ),
     );
   }
 
+  // ─────────────────────── Cart bottom bar
   Widget _buildCartBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -519,66 +567,113 @@ class _OrderScreenState extends State<OrderScreen>
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Cart info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$_cartCount article${_cartCount > 1 ? 's' : ''}',
-                  style: const TextStyle(fontSize: 14, color: Colors.black54),
+          // Table indicator
+          Row(
+            children: [
+              Icon(Icons.table_restaurant,
+                  size: 13, color: AppTheme.brandGold),
+              const SizedBox(width: 4),
+              Text(
+                'Table ${widget.table.numero}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.brandGold,
+                  fontWeight: FontWeight.w600,
                 ),
-                Text(
-                  Formatters.formatCurrency(_cartTotal),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+              ),
+              if (_existingOrders.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Text(
+                    'ajout à commande existante',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.orange.shade700,
+                    ),
                   ),
                 ),
               ],
-            ),
+            ],
           ),
-
-          // View cart button
-          TextButton.icon(
-            onPressed: _showCart,
-            icon: const Icon(
-              Icons.shopping_cart_outlined,
-              color: AppTheme.brandGold,
-            ),
-            label: const Text(
-              'Voir panier',
-              style: TextStyle(color: AppTheme.brandGold),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Send button
-          ElevatedButton.icon(
-            onPressed: _isSendingOrder ? null : _sendOrder,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.brandGold,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            ),
-            icon: _isSendingOrder
-                ? const SizedBox(
-                    height: 16,
-                    width: 16,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
+          const SizedBox(height: 6),
+          // Cart row
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$_cartCount article${_cartCount > 1 ? 's' : ''}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                      ),
                     ),
-                  )
-                : const Icon(Icons.send_rounded, size: 18),
-            label: Text(_isSendingOrder ? 'Envoi...' : 'Envoyer'),
+                    Text(
+                      Formatters.formatCurrency(_cartTotal),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton.icon(
+                onPressed: _showCart,
+                icon: const Icon(
+                  Icons.shopping_cart_outlined,
+                  color: AppTheme.brandGold,
+                ),
+                label: const Text(
+                  'Voir panier',
+                  style: TextStyle(color: AppTheme.brandGold),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: _isSendingOrder ? null : _sendOrder,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.brandGold,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
+                ),
+                icon: _isSendingOrder
+                    ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Icon(Icons.send_rounded, size: 18),
+                label: Text(_isSendingOrder ? 'Envoi...' : 'Envoyer'),
+              ),
+            ],
           ),
         ],
       ),
@@ -1146,8 +1241,9 @@ class _OrderCard extends StatelessWidget {
 }
 
 // ─────────────────────────── PIN CONFIRM DIALOG ───────────────────────────
-/// Two-step dialog: Step 1 — waiter selector, Step 2 — PIN keypad.
-/// Returns the confirmed [Serveur] on success, null on cancel.
+/// Simple PIN-only confirmation dialog.
+/// Any staff member enters their 4-digit PIN — the backend identifies who it is.
+/// Returns the matched [Serveur] on success, null on cancel.
 class _PinConfirmDialog extends StatefulWidget {
   final AuthService authService;
   final int cartCount;
@@ -1165,15 +1261,10 @@ class _PinConfirmDialog extends StatefulWidget {
 
 class _PinConfirmDialogState extends State<_PinConfirmDialog>
     with SingleTickerProviderStateMixin {
-  // ── State
-  List<Serveur>? _waiters;
-  bool _loadingWaiters = true;
-  Serveur? _selected;
   String _pin = '';
   bool _isLoading = false;
   bool _isError = false;
 
-  // ── Shake animation
   late AnimationController _shakeCtrl;
   late Animation<double> _shakeAnim;
 
@@ -1187,30 +1278,12 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog>
     _shakeAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _shakeCtrl, curve: Curves.elasticIn),
     );
-    _loadWaiters();
   }
 
   @override
   void dispose() {
     _shakeCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadWaiters() async {
-    final list = await widget.authService.getWaiters();
-    if (!mounted) return;
-    setState(() {
-      _waiters = list;
-      _loadingWaiters = false;
-    });
-  }
-
-  void _selectWaiter(Serveur w) {
-    setState(() {
-      _selected = w;
-      _pin = '';
-      _isError = false;
-    });
   }
 
   void _onDigit(String d) {
@@ -1229,14 +1302,17 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog>
   Future<void> _verify() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
-    final valid = await widget.authService.checkPinOnly(_pin, userId: _selected!.id);
+    // No userId — backend tries all staff PINs and returns the matched waiter
+    final matched = await widget.authService.checkPinOnly(_pin);
     if (!mounted) return;
-    if (valid) {
-      Navigator.pop(context, _selected);
+    if (matched != null) {
+      Navigator.pop(context, matched);
     } else {
       setState(() { _isLoading = false; _isError = true; _pin = ''; });
       _shakeCtrl.forward(from: 0);
-      Future.delayed(const Duration(seconds: 2), () { if (mounted) setState(() => _isError = false); });
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) setState(() => _isError = false);
+      });
     }
   }
 
@@ -1272,13 +1348,55 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog>
               child: Text(
                 '${widget.cartCount} article${widget.cartCount > 1 ? 's' : ''} — ${Formatters.formatCurrency(widget.cartTotal)}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.brandGold),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.brandGold),
               ),
             ),
             const SizedBox(height: 16),
-            // STEP 1 or STEP 2
-            if (_selected == null) ..._buildWaiterSelector(),
-            if (_selected != null) ..._buildPinStep(),
+            const Text('Entrez votre code PIN',
+                style: TextStyle(fontSize: 13, color: Colors.black54)),
+            const SizedBox(height: 16),
+            // PIN dots
+            AnimatedBuilder(
+              animation: _shakeAnim,
+              builder: (_, child) {
+                final dx = _isError ? ((_shakeAnim.value * 10) % 2 - 1) * 8 : 0.0;
+                return Transform.translate(offset: Offset(dx, 0), child: child);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(4, (i) {
+                  final filled = i < _pin.length;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    width: 18, height: 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _isError ? Colors.red : filled ? AppTheme.brandGold : Colors.transparent,
+                      border: Border.all(
+                        color: _isError ? Colors.red : filled ? AppTheme.brandGold : Colors.grey.shade400,
+                        width: 2,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+            if (_isError)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text('Code PIN incorrect',
+                    style: TextStyle(color: Colors.red, fontSize: 12)),
+              ),
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.only(top: 10),
+                child: SizedBox(height: 22, width: 22,
+                    child: CircularProgressIndicator(color: AppTheme.brandGold, strokeWidth: 2.5)),
+              ),
+            const SizedBox(height: 16),
+            _buildKeypad(),
             const SizedBox(height: 10),
             TextButton(
               onPressed: _isLoading ? null : () => Navigator.pop(context),
@@ -1288,127 +1406,6 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog>
         ),
       ),
     );
-  }
-
-  List<Widget> _buildWaiterSelector() {
-    if (_loadingWaiters) {
-      return [const SizedBox(height: 60, child: Center(child: CircularProgressIndicator(color: AppTheme.brandGold)))];
-    }
-    if (_waiters == null || _waiters!.isEmpty) {
-      return [const Text('Aucun serveur disponible', style: TextStyle(color: Colors.red))];
-    }
-    return [
-      const Text('Qui envoie cette commande ?',
-          style: TextStyle(fontSize: 13, color: Colors.black54), textAlign: TextAlign.center),
-      const SizedBox(height: 12),
-      Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        alignment: WrapAlignment.center,
-        children: _waiters!.map(_waiterCard).toList(),
-      ),
-    ];
-  }
-
-  Widget _waiterCard(Serveur w) {
-    return GestureDetector(
-      onTap: () => _selectWaiter(w),
-      child: Container(
-        width: 80,
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: AppTheme.brandGold.withValues(alpha: 0.15),
-              child: Text(w.initials,
-                  style: const TextStyle(color: AppTheme.brandGold, fontWeight: FontWeight.bold, fontSize: 16)),
-            ),
-            const SizedBox(height: 6),
-            Text(w.name.split(' ').first,
-                textAlign: TextAlign.center, maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
-            if (!w.hasPin)
-              const Text('Pas de PIN', style: TextStyle(fontSize: 9, color: Colors.orange)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildPinStep() {
-    return [
-      GestureDetector(
-        onTap: _isLoading ? null : () => setState(() { _selected = null; _pin = ''; }),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppTheme.brandGold.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.arrow_back_ios_new, size: 12, color: AppTheme.brandGold),
-              const SizedBox(width: 4),
-              Text(_selected!.name,
-                  style: const TextStyle(color: AppTheme.brandGold, fontWeight: FontWeight.bold, fontSize: 14)),
-            ],
-          ),
-        ),
-      ),
-      const SizedBox(height: 6),
-      const Text('Entrez votre code PIN',
-          style: TextStyle(fontSize: 13, color: Colors.black54), textAlign: TextAlign.center),
-      const SizedBox(height: 16),
-      // PIN dots
-      AnimatedBuilder(
-        animation: _shakeAnim,
-        builder: (_, child) {
-          final dx = _isError ? ((_shakeAnim.value * 10) % 2 - 1) * 8 : 0.0;
-          return Transform.translate(offset: Offset(dx, 0), child: child);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(4, (i) {
-            final filled = i < _pin.length;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              margin: const EdgeInsets.symmetric(horizontal: 10),
-              width: 18, height: 18,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _isError ? Colors.red : filled ? AppTheme.brandGold : Colors.transparent,
-                border: Border.all(
-                  color: _isError ? Colors.red : filled ? AppTheme.brandGold : Colors.grey.shade400,
-                  width: 2,
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-      if (_isError)
-        const Padding(
-          padding: EdgeInsets.only(top: 8),
-          child: Text('Code PIN incorrect', style: TextStyle(color: Colors.red, fontSize: 12)),
-        ),
-      if (_isLoading)
-        const Padding(
-          padding: EdgeInsets.only(top: 10),
-          child: SizedBox(height: 22, width: 22,
-              child: CircularProgressIndicator(color: AppTheme.brandGold, strokeWidth: 2.5)),
-        ),
-      const SizedBox(height: 16),
-      _buildKeypad(),
-    ];
   }
 
   Widget _buildKeypad() {
@@ -1436,7 +1433,8 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog>
       width: 64, height: 56,
       margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(14)),
-      child: Center(child: Text(d, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.black87))),
+      child: Center(child: Text(d,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.black87))),
     ),
   );
 
