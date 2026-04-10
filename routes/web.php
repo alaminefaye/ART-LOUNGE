@@ -171,6 +171,11 @@ Route::middleware(['auth'])->group(function () {
             ->whereNumber('user')
             ->name('users.show');
     });
+
+    // Serveurs (Nouveau module distinct des Users)
+    Route::middleware(['can:view_users'])->group(function () {
+        Route::resource('serveurs', \App\Http\Controllers\Web\ServeurController::class)->except(['show']);
+    });
     
     // Clients & Fidélité (clients/create avant clients/{client} pour éviter que "create" soit pris pour un id)
     Route::middleware(['can:view_customers'])->group(function () {

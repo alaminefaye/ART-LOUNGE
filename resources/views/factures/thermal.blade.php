@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <title>Ticket #{{ $facture->numero_facture }}</title>
     <style>
-        /*
+         /*
          * Ticket 80 mm — DomPDF + impression navigateur :
-         * Le corps doit occuper 100 % de la zone @page (pas de max-width + margin:auto,
+         * Le corps doit occuper 100 % de la zone page (pas de max-width + margin:auto,
          * sinon le rendu PDF / aperçu Chrome peut rétrécir tout le bloc en « bande » à gauche).
          */
-        @page {
+        @@page {
             size: 80mm auto;
             margin: 0;
         }

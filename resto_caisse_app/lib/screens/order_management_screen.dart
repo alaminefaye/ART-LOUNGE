@@ -213,7 +213,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
           child: ListTile(
             title: Text('Commande #${order.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(
-              'Client: ${order.client?.nomComplet ?? 'Anonyme'} - Table: ${order.table?.numero ?? 'Aucune'}\n${Formatters.formatCurrency(order.montantTotal)}',
+              'Client: ${order.client?.nomComplet ?? 'Anonyme'} - Table: ${order.table?.numero ?? 'Aucune'} - Serveur: ${order.serveur?.nom ?? 'N/A'}\n${Formatters.formatCurrency(order.montantTotal)}',
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,

@@ -282,6 +282,10 @@ class _OrderDetailModalState extends State<OrderDetailModal> {
                     'Date',
                     '${_order.createdAt.hour.toString().padLeft(2,'0')}:${_order.createdAt.minute.toString().padLeft(2,'0')}',
                   ),
+                  if (_order.serveur?.nom != null) ...[
+                    const SizedBox(width: 12),
+                    _buildInfoBadge('Serveur', _order.serveur!.nom, color: Colors.purple),
+                  ],
                   const Spacer(),
                   if (_order.client?.nomComplet.isNotEmpty == true)
                     _buildInfoBadge('Client', _order.client!.nomComplet, color: Colors.blue),

@@ -20,11 +20,15 @@ class Cart extends ChangeNotifier {
   final List<CartItem> _items = [];
   int? _tableId;
   String? _tableNumero;
+  int? _serveurId;
+  String? _serveurNom;
   Order? _activeOrder;
 
   List<CartItem> get items => List.unmodifiable(_items);
   int? get tableId => _tableId;
   String? get tableNumero => _tableNumero;
+  int? get serveurId => _serveurId;
+  String? get serveurNom => _serveurNom;
   Order? get activeOrder => _activeOrder;
 
   double get total {
@@ -39,13 +43,15 @@ class Cart extends ChangeNotifier {
   bool get isNotEmpty => _items.isNotEmpty;
   bool get hasNewItems => _items.any((item) => item.isNew);
 
-  void setTable(int tableId, {String? tableNumero}) {
+  void setTable(int tableId, {String? tableNumero, int? serveurId, String? serveurNom}) {
     if (_tableId != tableId) {
       _items.clear();
       _activeOrder = null;
     }
     _tableId = tableId;
     _tableNumero = tableNumero;
+    _serveurId = serveurId;
+    _serveurNom = serveurNom;
     notifyListeners();
   }
 
@@ -87,6 +93,8 @@ class Cart extends ChangeNotifier {
     _items.clear();
     _tableId = null;
     _tableNumero = null;
+    _serveurId = null;
+    _serveurNom = null;
     _activeOrder = null;
     notifyListeners();
   }
@@ -95,6 +103,8 @@ class Cart extends ChangeNotifier {
     _items.clear();
     _tableId = order.tableId;
     _tableNumero = order.table?.numero;
+    _serveurId = order.serveur?.id;
+    _serveurNom = order.serveur != null ? (order.serveur!.nom + (order.serveur!.prenom != null ? ' ${order.serveur!.prenom}' : '')) : null;
     _activeOrder = order;
 
     if (order.produits != null) {

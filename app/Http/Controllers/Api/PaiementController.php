@@ -165,7 +165,7 @@ class PaiementController extends Controller
 
                 $totalPaye = (float) $commande->paiements()->where('statut', StatutPaiement::Valide)->sum('montant');
                 if ($totalPaye >= (float) $commande->montant_total) {
-                    $commande->update(['statut' => OrderStatus::Terminee]);
+                    $commande->update(['statut' => OrderStatus::Terminee->value]);
                     $commande->table->liberer();
                     $montantReel = app(\App\Services\FidelityService::class)->montantPayeReel($commande);
                     if ($montantReel > 0 && $commande->client_id) {
@@ -194,27 +194,51 @@ class PaiementController extends Controller
             }
 
             // Autres moyens (Wave, OM, etc.)
+            $isStaff = $user->hasAnyRole(['admin', 'manager', 'caissier']);
+            
             $paiement = Paiement::create([
                 'commande_id' => $commande->id,
                 'user_id' => $user->id,
                 'caisse_session_id' => $session ? $session->id : null,
                 'montant' => $commande->montant_total,
                 'moyen_paiement' => $moyenPaiement,
-                'statut' => StatutPaiement::EnAttente,
+                'statut' => $isStaff ? StatutPaiement::Valide : StatutPaiement::EnAttente,
                 'transaction_id' => $validated['transaction_id'] ?? null,
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            $table = Table::find($commande->table_id);
-            if ($table && $table->statut !== TableStatus::EnPaiement) {
-                $table->enPaiement();
-            }
+            if ($isStaff) {
+                // Le staff valide immédiatement le paiement
+                $commande->update(['statut' => OrderStatus::Terminee->value]);
+                $table = Table::find($commande->table_id);
+                if ($table) {
+                    $table->liberer();
+                }
+                
+                $facture = $this->factureService->genererFacture($commande, $paiement);
+                try {
+                    $this->fcmService->notifyClientPaymentValidated($commande, $facture);
+                } catch (\Throwable $e) {}
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Paiement initié avec succès',
-                'data' => $paiement->load(['commande', 'facture']),
-            ], 201);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Paiement effectué et validé avec succès',
+                    'data' => $paiement->load(['commande', 'facture']),
+                    'facture' => $facture,
+                ], 201);
+            } else {
+                // Le client initie, en attente de validation
+                $table = Table::find($commande->table_id);
+                if ($table && $table->statut !== TableStatus::EnPaiement) {
+                    $table->enPaiement();
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Paiement initié avec succès. En attente de validation par le gérant.',
+                    'data' => $paiement->load(['commande', 'facture']),
+                ], 201);
+            }
         });
     }
 
@@ -247,7 +271,7 @@ class PaiementController extends Controller
             $facture = $this->factureService->genererFacture($paiement->commande, $paiement);
 
             // Mettre à jour le statut de la commande
-            $paiement->commande->update(['statut' => OrderStatus::Terminee]);
+            $paiement->commande->update(['statut' => OrderStatus::Terminee->value]);
 
             $table = Table::find($paiement->commande->table_id);
             if ($table) {
@@ -502,7 +526,7 @@ class PaiementController extends Controller
             $facture = $this->factureService->genererFacture($commande, $paiement);
 
             // Terminer la commande et associer le client systématiquement
-            $updateData = ['statut' => OrderStatus::Terminee];
+            $updateData = ['statut' => OrderStatus::Terminee->value];
             if ($validated['client_id'] || $commande->client_id) {
                 $updateData['client_id'] = $validated['client_id'] ?? $commande->client_id;
             }

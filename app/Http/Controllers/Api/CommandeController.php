@@ -33,7 +33,7 @@ class CommandeController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = $request->user();
-        $query = Commande::with(['table', 'user', 'produits', 'client']);
+        $query = Commande::with(['table', 'user', 'serveur', 'produits', 'client']);
 
         // Si l'utilisateur est un client, filtrer par ses commandes uniquement
         if ($user->hasRole('client')) {
@@ -43,7 +43,7 @@ class CommandeController extends Controller
         // Filtre spécial pour "Mes commandes" (current) : toutes les commandes non terminées
         // (sans filtre de date : tant qu'une commande n'est pas payée, elle reste visible)
         if ($request->has('filter') && $request->filter === 'current') {
-            $query->whereNotIn('statut', [OrderStatus::Terminee, OrderStatus::Annulee]);
+            $query->whereNotIn('statut', [OrderStatus::Terminee->value, OrderStatus::Annulee->value]);
 
             // ✅ Appliquer aussi le filtre table_id si fourni
             if ($request->has('table_id')) {
@@ -52,7 +52,7 @@ class CommandeController extends Controller
         }
         // Filtre spécial pour "Historique" (history) : commandes terminées uniquement
         elseif ($request->has('filter') && $request->filter === 'history') {
-            $query->where('statut', OrderStatus::Terminee);
+            $query->where('statut', OrderStatus::Terminee->value);
         }
         // Toutes les commandes (dates / statuts) — tableau de bord personnel / historique complet
         elseif ($request->has('filter') && $request->filter === 'staff_all') {
@@ -138,6 +138,7 @@ class CommandeController extends Controller
 
         $validator = Validator::make($request->all(), [
             'table_id' => 'required|exists:tables,id',
+            'serveur_id' => 'required|exists:serveurs,id',
             'notes' => 'nullable|string',
             'produits' => 'required|array|min:1',
             'produits.*.produit_id' => 'required|exists:produits,id',
@@ -160,7 +161,7 @@ class CommandeController extends Controller
         try {
             // Vérifier s'il y a déjà une commande active sur cette table
             $existingOrder = Commande::where('table_id', $request->table_id)
-                ->whereNotIn('statut', [OrderStatus::Terminee, OrderStatus::Annulee])
+                ->whereNotIn('statut', [OrderStatus::Terminee->value, OrderStatus::Annulee->value])
                 ->first();
 
             if ($existingOrder) {
@@ -176,6 +177,7 @@ class CommandeController extends Controller
             $commande = Commande::create([
                 'table_id' => $request->table_id,
                 'user_id' => $user->id,
+                'serveur_id' => $request->serveur_id,
                 'client_id' => $user->client?->id,
                 'statut' => OrderStatus::Attente,
                 'notes' => $request->notes,
@@ -257,7 +259,7 @@ class CommandeController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Commande créée avec succès',
-                'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'produits'])),
+                'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits'])),
             ], 201);
 
         } catch (\Exception $e) {
@@ -282,7 +284,7 @@ class CommandeController extends Controller
      */
     public function show($id)
     {
-        $commande = Commande::with(['table', 'user', 'produits', 'paiements.facture'])->find($id);
+        $commande = Commande::with(['table', 'user', 'serveur', 'produits', 'paiements.facture'])->find($id);
 
         if (!$commande) {
             return response()->json([
@@ -427,7 +429,7 @@ class CommandeController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Commande mise à jour avec succès',
-            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'produits'])),
+            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits'])),
         ]);
     }
 
@@ -521,7 +523,7 @@ class CommandeController extends Controller
         return response()->json([
             'success' => true,
             'message' => count($items) > 1 ? 'Produits ajoutés avec succès' : 'Produit ajouté avec succès',
-            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'produits'])),
+            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits'])),
         ]);
     }
 
@@ -552,7 +554,7 @@ class CommandeController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Produit retiré avec succès',
-            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'produits'])),
+            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits'])),
         ]);
     }
 
@@ -598,7 +600,7 @@ class CommandeController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Commande lancée en cuisine !',
-            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'produits'])),
+            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits'])),
         ]);
     }
 
@@ -641,7 +643,7 @@ class CommandeController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Produits marqués comme servis. Les prochains ajouts du client apparaîtront comme nouveaux.',
-            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'produits'])),
+            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits'])),
         ]);
     }
 
@@ -688,7 +690,7 @@ class CommandeController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Statut mis à jour avec succès',
-            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'produits'])),
+            'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits'])),
         ]);
     }
 
@@ -762,6 +764,12 @@ class CommandeController extends Controller
             'user' => $user ? [
                 'id' => $user->id,
                 'name' => $user->name,
+            ] : null,
+            'serveur' => $commande->serveur ? [
+                'id' => $commande->serveur->id,
+                'nom' => $commande->serveur->nom,
+                'prenom' => $commande->serveur->prenom,
+                'telephone' => $commande->serveur->telephone,
             ] : null,
             'client' => $commande->client ? [
                 'id' => $commande->client->id,

@@ -9,12 +9,17 @@ class OrderService {
   // Créer une commande
   Future<Map<String, dynamic>> createOrder({
     required int tableId,
+    required int serveurId, // Nouveau paramètre obligatoire
     required List<Map<String, dynamic>> produits,
   }) async {
     try {
       final response = await _apiService.post(
         ApiConfig.orders,
-        data: {'table_id': tableId, 'produits': produits},
+        data: {
+          'table_id': tableId, 
+          'serveur_id': serveurId,
+          'produits': produits
+        },
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {

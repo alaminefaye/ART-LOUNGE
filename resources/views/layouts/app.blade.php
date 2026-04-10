@@ -173,11 +173,23 @@
                     
                     @can('view_users')
                     <!-- Utilisateurs -->
-                    <li class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                        <a href="{{ route('users.index') }}" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-user"></i>
-                            <div>Utilisateurs</div>
+                    <li class="menu-item {{ request()->routeIs('users.*') || request()->routeIs('serveurs.*') ? 'active open' : '' }}">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-group"></i>
+                            <div>Membres (Staff / Serveurs)</div>
                         </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                                <a href="{{ route('users.index') }}" class="menu-link">
+                                    <div>Utilisateurs (Accès Système)</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ request()->routeIs('serveurs.*') ? 'active' : '' }}">
+                                <a href="{{ route('serveurs.index') }}" class="menu-link">
+                                    <div>Serveurs (POS)</div>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endcan
                     

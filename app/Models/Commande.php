@@ -23,6 +23,7 @@ class Commande extends Model
         'table_id',
         'user_id',
         'client_id',
+        'serveur_id',
         'statut',
         'montant_total',
         'notes',
@@ -32,6 +33,7 @@ class Commande extends Model
         'statut' => OrderStatus::class,
         'table_id' => 'integer',
         'user_id' => 'integer',
+        'serveur_id' => 'integer',
         'montant_total' => 'decimal:2',
     ];
 
@@ -49,6 +51,14 @@ class Commande extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Serveur qui s'occupe de la table (optionnel)
+     */
+    public function serveur(): BelongsTo
+    {
+        return $this->belongsTo(Serveur::class);
     }
 
     /**

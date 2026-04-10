@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'table.dart' as models;
+import 'serveur.dart';
 
 enum OrderStatus {
   attente,
@@ -114,6 +115,7 @@ class Order {
   final DateTime? updatedAt;
   final List<OrderItem>? produits;
   final models.Table? table;
+  final Serveur? serveur;
   final OrderClient? client;
   final double reductionFidelite;
   final int pointsUtilises;
@@ -128,6 +130,7 @@ class Order {
     this.updatedAt,
     this.produits,
     this.table,
+    this.serveur,
     this.client,
     this.reductionFidelite = 0.0,
     this.pointsUtilises = 0,
@@ -252,13 +255,21 @@ class Order {
         return defaultValue;
       }
 
+      Serveur? serveur;
+      if (json['serveur'] != null && json['serveur'] is Map) {
+        try {
+          serveur = Serveur.fromJson(json['serveur'] as Map<String, dynamic>);
+        } catch (_) {
+          serveur = null;
+        }
+      }
+
       OrderClient? client;
       if (json['client'] != null && json['client'] is Map) {
         try {
           final c = OrderClient.fromJson(json['client'] as Map<String, dynamic>);
           final hasPhone = c.telephone != null && c.telephone!.isNotEmpty;
-          client =
-              c.nomComplet.isNotEmpty || hasPhone ? c : null;
+          client = c.nomComplet.isNotEmpty || hasPhone ? c : null;
         } catch (_) {
           client = null;
         }
@@ -282,6 +293,7 @@ class Order {
             : null,
         produits: produits,
         table: table,
+        serveur: serveur,
         client: client,
         reductionFidelite: parseDouble(json['reduction_fidelite']),
         pointsUtilises: parseInt(json['points_utilises']),

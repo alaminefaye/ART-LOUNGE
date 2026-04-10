@@ -9,6 +9,7 @@ import '../models/order.dart';
 import '../services/printer_service.dart'; // Import PrinterService
 import '../models/table.dart' as model;
 import 'payment_selection_dialog.dart';
+import 'serveur_selection_dialog.dart';
 
 class CartTicket extends StatelessWidget {
   const CartTicket({super.key});
@@ -345,8 +346,22 @@ class CartTicket extends StatelessWidget {
     try {
       // 1. Si pas de commande active -> Créer
       if (cart.activeOrder == null) {
+        // Demander le serveur avant de créer la commande
+        final serveurId = await showDialog<int>(
+          context: context,
+          barrierDismissible: true,
+          builder: (ctx) => const ServeurSelectionDialog(),
+        );
+
+        if (serveurId == null) {
+          // L'utilisateur a annulé la sélection du serveur
+          return;
+        }
+
+        // On a le serveur, on crée la commande
         final res = await orderService.createOrder(
           tableId: cart.tableId!,
+          serveurId: serveurId,
           produits: cart.toJson(),
         );
         if (res['success']) {

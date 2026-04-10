@@ -258,7 +258,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
     final List repartition = _bilan?['repartition'] ?? [];
     final List transactions = _bilan?['transactions'] ?? [];
     
-    final _filteredTransactions = _transactionFilter == 'toutes' 
+    final filteredTransactions = _transactionFilter == 'toutes' 
         ? transactions 
         : transactions.where((t) => t['moyen_paiement'].toString().toLowerCase() == _transactionFilter).toList();
 
@@ -398,24 +398,24 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
             child: Row(
               children: [
                 _buildFilterChip('Toutes', 'toutes'),
-                ...repartition.map((item) => _buildFilterChip(item['moyen_paiement'].toString().toUpperCase(), item['moyen_paiement'].toString().toLowerCase())).toList(),
+                ...repartition.map((item) => _buildFilterChip(item['moyen_paiement'].toString().toUpperCase(), item['moyen_paiement'].toString().toLowerCase())),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          if (_filteredTransactions.isEmpty)
+          if (filteredTransactions.isEmpty)
             const Center(child: Padding(
               padding: EdgeInsets.all(16.0),
               child: Text("Aucune transaction pour ce moyen de paiement.", style: TextStyle(color: Colors.grey)),
             ))
           else ...[
-            ..._filteredTransactions.take(5).map((t) => _buildTransactionItem(t)),
-            if (_filteredTransactions.length > 5)
+            ...filteredTransactions.take(5).map((t) => _buildTransactionItem(t)),
+            if (filteredTransactions.length > 5)
                Center(
                  child: TextButton(
-                   onPressed: () => _showTransactionsDialog(_filteredTransactions),
+                   onPressed: () => _showTransactionsDialog(filteredTransactions),
                    child: Text(
-                     '+ ${_filteredTransactions.length - 5} autres transactions',
+                     '+ ${filteredTransactions.length - 5} autres transactions',
                      style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
                    ),
                  ),
