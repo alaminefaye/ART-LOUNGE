@@ -112,12 +112,12 @@ class CaisseSessionController extends Controller
             return strcasecmp($val, MoyenPaiement::PointsFidelite->value) === 0;
         })->sum('total');
         
-        // Détails des points de fidélité utilisés
-        $pointsDetails = Paiement::where('caisse_session_id', $session->id)
+        // Tous les détails de paiements
+        $transactions = Paiement::where('caisse_session_id', $session->id)
             ->where('statut', StatutPaiement::Valide->value)
-            ->where('moyen_paiement', MoyenPaiement::PointsFidelite->value)
             ->with(['client:id,nom,prenom', 'commande.table:id,numero'])
-            ->select('id', 'client_id', 'montant', 'points_utilises', 'commande_id')
+            ->select('id', 'client_id', 'montant', 'moyen_paiement', 'points_utilises', 'commande_id', 'created_at')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
@@ -129,7 +129,8 @@ class CaisseSessionController extends Controller
                 'total_liquide' => $totalLiquide,
                 'total_points_fidelite_montant' => $totalPointsMontant,
                 'total_attendu_caisse' => $session->solde_ouverture + $totalLiquide,
-                'points_details' => $pointsDetails
+                'points_details' => $transactions->where('moyen_paiement', MoyenPaiement::PointsFidelite->value)->values(),
+                'transactions' => $transactions
             ]
         ]);
     }

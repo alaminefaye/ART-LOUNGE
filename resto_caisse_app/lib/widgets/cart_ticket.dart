@@ -431,191 +431,248 @@ class CartTicket extends StatelessWidget {
   }
 
   void _showTableSelectionDialog(BuildContext context, Cart cart) {
+    String searchQuery = '';
+    String filterMode = 'all'; // 'all', 'libres', 'occupees'
+    final Future<List<model.Table>> tablesFuture = TableService().getTables();
+
     showDialog(
       context: context,
       builder: (dialogCtx) {
         return StatefulBuilder(
           builder: (stateCtx, setDialogState) {
             return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               title: FutureBuilder<List<model.Table>>(
-                future: TableService().getTables(),
+                future: tablesFuture,
                 builder: (futureCtx, snapshot) {
-              final tables = snapshot.data ?? [];
-              final libres = tables.where((t) => t.statut != model.TableStatus.occupee).length;
-              final occupees = tables.where((t) => t.statut == model.TableStatus.occupee).length;
-              return Row(
-                children: [
-                  const Text('Sélectionner une table', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  if (snapshot.hasData) ...[
-                    _TableBadge(count: libres, label: 'Libres', color: Colors.green),
-                    const SizedBox(width: 8),
-                    _TableBadge(count: occupees, label: 'Occupées', color: Colors.red),
-                  ],
-                ],
-              );
-            },
-          ),
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: SizedBox(
-            width: 500,
-            height: 400,
-            child: FutureBuilder<List<model.Table>>(
-              future: TableService().getTables(),
-              builder: (futureCtx, snapshot) {
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: AppTheme.brandGold));
-                }
-                if (snapshot.hasError) {
-                  return const Center(child: Text('Erreur de chargement des tables'));
-                }
-                final tables = snapshot.data ?? [];
-                if (tables.isEmpty) {
-                  return const Center(child: Text('Aucune table disponible'));
-                }
-                return GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 1.5,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                  ),
-                  itemCount: tables.length,
-                  itemBuilder: (ctx, index) {
-                    final t = tables[index];
-                    final isOccupied = t.statut == model.TableStatus.occupee;
-                    
-                    return InkWell(
-                      onTap: () async {
-                        if (isOccupied) {
-                          // Afficher un indicateur de chargement
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (loaderCtx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
-                          );
-                          
-                          try {
-                            final activeOrder = await OrderService().getActiveOrderByTable(t.id);
-                            if (activeOrder != null) {
-                              cart.syncWithOrder(activeOrder);
-                            } else {
-                              cart.setTable(t.id, tableNumero: t.numero);
-                            }
-                          } finally {
-                            // Fermer le loader (on repasse par le root navigator pour être sûr)
-                            if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
-                          }
-                        } else {
-                          cart.setTable(t.id, tableNumero: t.numero);
-                        }
-                        
-                        // Fermer le dialogue de sélection
-                        if (context.mounted) {
-                          Navigator.of(dialogCtx).pop(); 
-                        }
-                      },
-                      onLongPress: isOccupied ? () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (c) => AlertDialog(
-                            title: const Text('Libérer la table ?'),
-                            content: Text('Voulez-vous forcer la libération de la table ${t.numero} ?\nCela annulera toute commande en cours.'),
-                            actions: [
-                              TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Annuler')),
-                              TextButton(
-                                onPressed: () => Navigator.pop(c, true),
-                                child: const Text('Libérer', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                              ),
-                            ],
-                          ),
-                        );
-
-                        if (confirm == true && context.mounted) {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
-                          );
-                          
-                          try {
-                            final activeOrder = await OrderService().getActiveOrderByTable(t.id);
-                            if (activeOrder != null) {
-                              await OrderService().updateOrderStatus(activeOrder.id, OrderStatus.annulee);
-                            }
-                            // On force un rafraîchissement du dialogue
-                            setDialogState(() {});
-                          } finally {
-                            if (context.mounted) Navigator.pop(context); // Fermer le loader
-                          }
-                        }
-                      } : null,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isOccupied ? Colors.grey.shade200 : AppTheme.brandGold.withValues(alpha: 0.1),
-                          border: Border.all(color: isOccupied ? Colors.grey.shade400 : AppTheme.brandGold),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              t.numero,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: isOccupied ? Colors.grey : AppTheme.brandGold,
+                  final tables = snapshot.data ?? [];
+                  final libres = tables.where((t) => t.statut != model.TableStatus.occupee).length;
+                  final occupees = tables.where((t) => t.statut == model.TableStatus.occupee).length;
+                  
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          const Text('Sélectionner une table', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const Spacer(),
+                          if (snapshot.hasData) ...[
+                            InkWell(
+                              onTap: () => setDialogState(() => filterMode = filterMode == 'libres' ? 'all' : 'libres'),
+                              borderRadius: BorderRadius.circular(20),
+                              child: _TableBadge(
+                                count: libres, 
+                                label: 'Libres', 
+                                color: filterMode == 'libres' ? Colors.green : Colors.grey,
+                                isSelected: filterMode == 'libres',
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              isOccupied ? 'Occupée' : 'Libre',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isOccupied ? Colors.red : Colors.green,
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () => setDialogState(() => filterMode = filterMode == 'occupees' ? 'all' : 'occupees'),
+                              borderRadius: BorderRadius.circular(20),
+                              child: _TableBadge(
+                                count: occupees, 
+                                label: 'Occupées', 
+                                color: filterMode == 'occupees' ? Colors.red : Colors.grey,
+                                isSelected: filterMode == 'occupees',
                               ),
                             ),
                           ],
-                        ),
+                        ],
                       ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Rechercher une table...',
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        ),
+                        onChanged: (val) {
+                          setDialogState(() {
+                            searchQuery = val.toLowerCase();
+                          });
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
+              content: SizedBox(
+                width: 500,
+                height: 400,
+                child: FutureBuilder<List<model.Table>>(
+                  future: tablesFuture,
+                  builder: (futureCtx, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator(color: AppTheme.brandGold));
+                    }
+                    if (snapshot.hasError) {
+                      return const Center(child: Text('Erreur de chargement des tables'));
+                    }
+                    
+                    List<model.Table> displayTables = snapshot.data ?? [];
+                    
+                    // Appliquer le filtre de statut
+                    if (filterMode == 'libres') {
+                      displayTables = displayTables.where((t) => t.statut != model.TableStatus.occupee).toList();
+                    } else if (filterMode == 'occupees') {
+                      displayTables = displayTables.where((t) => t.statut == model.TableStatus.occupee).toList();
+                    }
+                    
+                    // Appliquer la recherche
+                    if (searchQuery.isNotEmpty) {
+                      displayTables = displayTables.where((t) => t.numero.toLowerCase().contains(searchQuery)).toList();
+                    }
+
+                    if (displayTables.isEmpty) {
+                      return const Center(child: Text('Aucune table trouvée'));
+                    }
+                    
+                    return GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        childAspectRatio: 1.5,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemCount: displayTables.length,
+                      itemBuilder: (ctx, index) {
+                        final t = displayTables[index];
+                        final isOccupied = t.statut == model.TableStatus.occupee;
+                        
+                        return InkWell(
+                          onTap: () async {
+                            if (isOccupied) {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (loaderCtx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
+                              );
+                              
+                              try {
+                                final activeOrder = await OrderService().getActiveOrderByTable(t.id);
+                                if (activeOrder != null) {
+                                  cart.syncWithOrder(activeOrder);
+                                } else {
+                                  cart.setTable(t.id, tableNumero: t.numero);
+                                }
+                              } finally {
+                                if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+                              }
+                            } else {
+                              cart.setTable(t.id, tableNumero: t.numero);
+                            }
+                            
+                            if (context.mounted) Navigator.of(dialogCtx).pop(); 
+                          },
+                          onLongPress: isOccupied ? () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (c) => AlertDialog(
+                                title: const Text('Libérer la table ?'),
+                                content: Text('Voulez-vous forcer la libération de la table ${t.numero} ?\nCela annulera toute commande en cours.'),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Annuler')),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, true),
+                                    child: const Text('Libérer', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true && context.mounted) {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
+                              );
+                              
+                              try {
+                                final activeOrder = await OrderService().getActiveOrderByTable(t.id);
+                                if (activeOrder != null) {
+                                  await OrderService().updateOrderStatus(activeOrder.id, OrderStatus.annulee);
+                                }
+                                setDialogState(() {});
+                              } finally {
+                                if (context.mounted) Navigator.pop(context); // Fermer le loader
+                              }
+                            }
+                          } : null,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isOccupied ? Colors.grey.shade200 : AppTheme.brandGold.withValues(alpha: 0.1),
+                              border: Border.all(color: isOccupied ? Colors.grey.shade400 : AppTheme.brandGold),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  t.numero,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: isOccupied ? Colors.grey : AppTheme.brandGold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  isOccupied ? 'Occupée' : 'Libre',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isOccupied ? Colors.red : Colors.green,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogCtx).pop(),
-              child: const Text('Fermer', style: TextStyle(color: Colors.grey)),
-            ),
-          ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogCtx).pop(),
+                  child: const Text('Fermer', style: TextStyle(color: Colors.grey)),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
-);
-}
 }
 
 class _TableBadge extends StatelessWidget {
   final int count;
   final String label;
   final Color color;
+  final bool isSelected;
 
-  const _TableBadge({required this.count, required this.label, required this.color});
+  const _TableBadge({required this.count, required this.label, required this.color, this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: isSelected ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: color.withValues(alpha: isSelected ? 1.0 : 0.4),
+          width: isSelected ? 1.5 : 1.0,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -628,7 +685,7 @@ class _TableBadge extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '$count $label',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.w600, color: color),
           ),
         ],
       ),

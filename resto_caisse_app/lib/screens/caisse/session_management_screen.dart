@@ -22,6 +22,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
 
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+  String _transactionFilter = 'toutes';
 
   @override
   void initState() {
@@ -255,7 +256,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
     final double totalVentes = parseDouble(_bilan?['total_ventes']);
     final double totalAttendu = parseDouble(_bilan?['total_attendu_caisse']);
     final List repartition = _bilan?['repartition'] ?? [];
-    final List pointsDetails = _bilan?['points_details'] ?? [];
+    final List transactions = _bilan?['transactions'] ?? [];
+    
+    final _filteredTransactions = _transactionFilter == 'toutes' 
+        ? transactions 
+        : transactions.where((t) => t['moyen_paiement'].toString().toLowerCase() == _transactionFilter).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,31 +386,41 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
           );
         }),
 
-        if (pointsDetails.isNotEmpty) ...[
+        if (transactions.isNotEmpty) ...[
           const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'DÉTAILS FIDÉLITÉ',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.5),
-              ),
-              if (pointsDetails.length > 5)
-                TextButton(
-                  onPressed: () => _showFidelityDetailsDialog(pointsDetails),
-                  child: const Text('Voir plus', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
-                ),
-            ],
+          const Text(
+            'HISTORIQUE DES TRANSACTIONS',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.5),
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip('Toutes', 'toutes'),
+                ...repartition.map((item) => _buildFilterChip(item['moyen_paiement'].toString().toUpperCase(), item['moyen_paiement'].toString().toLowerCase())).toList(),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
-          ...pointsDetails.take(5).map((p) => _buildFidelityItem(p)),
-          if (pointsDetails.length > 5)
-             Center(
-               child: Text(
-                 '+ ${pointsDetails.length - 5} autres transactions',
-                 style: TextStyle(color: Colors.grey[600], fontSize: 12, fontStyle: FontStyle.italic),
+          if (_filteredTransactions.isEmpty)
+            const Center(child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text("Aucune transaction pour ce moyen de paiement.", style: TextStyle(color: Colors.grey)),
+            ))
+          else ...[
+            ..._filteredTransactions.take(5).map((t) => _buildTransactionItem(t)),
+            if (_filteredTransactions.length > 5)
+               Center(
+                 child: TextButton(
+                   onPressed: () => _showTransactionsDialog(_filteredTransactions),
+                   child: Text(
+                     '+ ${_filteredTransactions.length - 5} autres transactions',
+                     style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                   ),
+                 ),
                ),
-             ),
+          ]
         ],
 
         const SizedBox(height: 40),
@@ -481,7 +496,27 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
     );
   }
 
-  Widget _buildFidelityItem(Map<String, dynamic> p) {
+  Widget _buildFilterChip(String label, String code) {
+    final isSelected = _transactionFilter == code;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) {
+          if (selected) setState(() => _transactionFilter = code);
+        },
+        selectedColor: Colors.orange.withValues(alpha: 0.2),
+        showCheckmark: false,
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.orange : Colors.black87,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionItem(Map<String, dynamic> p) {
     double parseDouble(dynamic value) {
       if (value == null) return 0.0;
       if (value is num) return value.toDouble();
@@ -491,11 +526,13 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
 
     final client = p['client'] ?? {};
     final String clientName = '${client['nom'] ?? ''} ${client['prenom'] ?? ''}'.trim();
-    final int points = p['points_utilises'] ?? 0;
     final double amount = parseDouble(p['montant']);
     final String tableName = p['commande']?['table']?['numero'] != null 
         ? 'Table ${p['commande']?['table']?['numero']}' 
         : 'Table';
+    final String method = p['moyen_paiement']?.toString() ?? 'inconnu';
+    final isFidelity = method.toLowerCase() == 'points_fidelite';
+    final int points = p['points_utilises'] ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -503,10 +540,12 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
+          Icon(_getIconForMethod(method), color: Colors.grey[700], size: 20),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,33 +561,30 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+          if (isFidelity) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$points pts',
+                style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 11),
+              ),
             ),
-            child: Text(
-              '$points pts',
-              style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 11),
-            ),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
+          ],
           Text(
             Formatters.formatCurrency(amount),
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Colors.orange),
           ),
         ],
       ),
     );
   }
 
-  void _showFidelityDetailsDialog(List pointsDetails) {
-    int totalPoints = 0;
-    for (var p in pointsDetails) {
-      totalPoints += (p['points_utilises'] as int? ?? 0);
-    }
-
+  void _showTransactionsDialog(List transactions) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -572,26 +608,10 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.star, color: Colors.orange, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      'TOTAL POINTS UTILISÉS : $totalPoints PTS',
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
-                    children: pointsDetails.map((p) => _buildFidelityItem(p)).toList(),
+                    children: transactions.map((t) => _buildTransactionItem(t)).toList(),
                   ),
                 ),
               ),

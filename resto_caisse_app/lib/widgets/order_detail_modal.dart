@@ -154,28 +154,29 @@ class _OrderDetailModalState extends State<OrderDetailModal> {
             child: const Text('Non'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              setState(() {
-                _localQuantities.remove(produitId);
-                _currentOrder = Order(
-                  id: _currentOrder!.id,
-                  tableId: _currentOrder!.tableId,
-                  userId: _currentOrder!.userId,
-                  montantTotal: _currentOrder!.montantTotal,
-                  statut: _currentOrder!.statut,
-                  createdAt: _currentOrder!.createdAt,
-                  updatedAt: _currentOrder!.updatedAt,
-                  produits: _currentOrder!.produits
-                      ?.where((p) => p.produitId != produitId)
-                      .toList(),
-                  table: _currentOrder!.table,
-                  client: _currentOrder!.client,
-                  reductionFidelite: _currentOrder!.reductionFidelite,
-                  pointsUtilises: _currentOrder!.pointsUtilises,
-                );
-                _hasChanges = true;
-              });
+              setState(() => _isLoading = true);
+              final order = _currentOrder ?? widget.order;
+              final res = await _orderService.removeProductFromOrder(order.id, produitId);
+              
+              if (res['success'] == true) {
+                widget.onOrderUpdated();
+                _showSuccess('Article retiré de la commande');
+                final refreshed = await _orderService.getOrder(order.id);
+                if (mounted && refreshed != null) {
+                  setState(() {
+                    _currentOrder = refreshed;
+                    _initLocalQuantities();
+                    _isLoading = false;
+                  });
+                } else {
+                  setState(() => _isLoading = false);
+                }
+              } else {
+                setState(() => _isLoading = false);
+                _showError(res['message'] ?? 'Erreur lors de la suppression');
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Supprimer', style: TextStyle(color: Colors.white)),
