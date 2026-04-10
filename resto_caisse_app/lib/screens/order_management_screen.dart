@@ -212,8 +212,33 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
           padding: const EdgeInsets.all(8.0),
           child: ListTile(
             title: Text('Commande #${order.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(
-              'Client: ${order.client?.nomComplet ?? 'Anonyme'} - Table: ${order.table?.numero ?? 'Aucune'} - Serveur: ${order.serveur?.nom ?? 'N/A'}\n${Formatters.formatCurrency(order.montantTotal)}',
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 4),
+                Text('Client: ${order.client?.nomComplet ?? 'Anonyme'} • Table: ${order.table?.numero ?? 'Aucune'}'),
+                Text(Formatters.formatCurrency(order.montantTotal), style: const TextStyle(color: Colors.grey)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.person, size: 14, color: Colors.green),
+                      const SizedBox(width: 4),
+                      Text(
+                        order.serveur?.nom ?? 'Serveur non assigné',
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,

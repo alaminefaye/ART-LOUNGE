@@ -149,8 +149,8 @@ class PrinterService {
                 ...order.produits!.map((p) => pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('${p.quantite}x ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black)),
-                    pw.Expanded(child: pw.Text(p.produitNom, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black))),
+                    pw.Text('${p.quantite}x ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
+                    pw.Expanded(child: pw.Text(p.produitNom, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black))),
                   ],
                 )),
               pw.SizedBox(height: 16),
@@ -317,10 +317,10 @@ class PrinterService {
                     padding: const pw.EdgeInsets.symmetric(vertical: 4),
                     child: pw.Row(children: [
                       pw.Text('${a["quantite"]}x ',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16)),
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
                       pw.Expanded(
                           child: pw.Text('${a["nom"]}',
-                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
+                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11))),
                     ]),
                   )),
               pw.SizedBox(height: 12),

@@ -11,7 +11,7 @@ class ServeurService {
       final response = await _apiService.get('/serveurs');
       
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = response.data;
         if (data['success'] == true && data['data'] != null) {
           final List<dynamic> serveursJson = data['data'];
           return serveursJson.map((json) => Serveur.fromJson(json)).toList();

@@ -12,6 +12,7 @@ import '../utils/formatters.dart';
 import '../services/auth_service.dart';
 import '../services/client_service.dart';
 import '../models/client_fid.dart';
+import 'serveur_selection_dialog.dart';
 
 class PaymentSelectionDialog extends StatefulWidget {
   final Cart? cart;
@@ -103,8 +104,23 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
       if (widget.existingOrder != null) {
         order = widget.existingOrder;
       } else {
+        int? serveurSelection = widget.cart!.serveurId;
+        if (serveurSelection == null) {
+           setState(() => _isLoading = false);
+           serveurSelection = await showDialog<int>(
+             context: context,
+             barrierDismissible: true,
+             builder: (ctx) => const ServeurSelectionDialog(),
+           );
+           if (serveurSelection == null) {
+             return; // L'utilisateur a annulé
+           }
+           setState(() => _isLoading = true);
+        }
+
         final orderRes = await _orderService.createOrder(
           tableId: widget.cart!.tableId ?? 0,
+          serveurId: serveurSelection,
           produits: widget.cart!.toJson(),
         );
         if (orderRes['success'] && orderRes['order'] != null) {
