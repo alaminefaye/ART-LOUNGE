@@ -45,6 +45,37 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  // Vérifier le PIN
+  Future<Map<String, dynamic>> verifyPin(String pin, {int? userId}) async {
+    final hasNetwork = await _hasConnectivity();
+    if (!hasNetwork) {
+      return {'success': false, 'message': 'Pas de connexion internet'};
+    }
+    try {
+      final data = {'pin': pin};
+      if (userId != null) {
+        data['user_id'] = userId.toString();
+      }
+      final response = await _apiService.post(
+        ApiConfig.verifyPin,
+        data: data,
+      );
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return {'success': true};
+      }
+      return {
+        'success': false,
+        'message': response.data['message'] ?? 'PIN incorrect'
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Erreur réseau ou PIN incorrect'
+      };
+    }
+  }
+
   // Register
   Future<Map<String, dynamic>> register({
     required String nom,

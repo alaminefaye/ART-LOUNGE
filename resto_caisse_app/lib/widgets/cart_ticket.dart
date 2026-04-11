@@ -10,6 +10,7 @@ import '../services/printer_service.dart'; // Import PrinterService
 import '../models/table.dart' as model;
 import 'payment_selection_dialog.dart';
 import 'serveur_selection_dialog.dart';
+import 'pin_verification_dialog.dart';
 
 class CartTicket extends StatelessWidget {
   const CartTicket({super.key});
@@ -129,9 +130,9 @@ class CartTicket extends StatelessWidget {
                         ),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(16),
                         itemCount: cart.items.length,
-                        separatorBuilder: (context, index) => const Divider(height: 32),
+                        separatorBuilder: (context, index) => const Divider(height: 16),
                         itemBuilder: (context, index) {
                           final cartItem = cart.items[index];
                           final productId = cartItem.product.id;
@@ -148,17 +149,17 @@ class CartTicket extends StatelessWidget {
                                 child: Column(
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.add, size: 16),
-                                      onPressed: () => cart.addProduct(cartItem.product),
+                                      icon: Icon(Icons.add, size: 14, color: cartItem.isNew ? Colors.black : Colors.grey),
+                                      onPressed: cartItem.isNew ? () => cart.addProduct(cartItem.product) : null,
                                       padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                                     ),
-                                    Text('${cartItem.quantite}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    Text('${cartItem.quantite}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: cartItem.isNew ? Colors.black : Colors.grey)),
                                     IconButton(
-                                      icon: const Icon(Icons.remove, size: 16),
-                                      onPressed: () => cart.updateQuantity(productId, cartItem.quantite - 1),
+                                      icon: Icon(Icons.remove, size: 14, color: cartItem.isNew ? Colors.black : Colors.grey),
+                                      onPressed: cartItem.isNew ? () => cart.updateQuantity(productId, cartItem.quantite - 1) : null,
                                       padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                                     ),
                                   ],
                                 ),
@@ -182,16 +183,16 @@ class CartTicket extends StatelessWidget {
                                         Expanded(
                                           child: Text(
                                             cartItem.product.nom,
-                                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 4),
                                     Text(
                                       Formatters.formatCurrency(cartItem.product.prix),
-                                      style: TextStyle(color: Colors.grey.shade600),
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                                     ),
                                   ],
                                 ),
@@ -200,29 +201,24 @@ class CartTicket extends StatelessWidget {
                               // Total per item
                               Text(
                                 Formatters.formatCurrency(cartItem.total),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.brandGold),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.brandGold),
                               ),
                               
                               // Delete button
                               IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                                 onPressed: () async {
                                   if (cartItem.isNew) {
                                     cart.removeProduct(productId);
                                   } else if (cart.activeOrder != null) {
-                                    // Demander confirmation pour suppression sur le serveur
+                                    // Demander PIN Admin pour suppression sur le serveur
                                     final confirmed = await showDialog<bool>(
                                       context: context,
-                                      builder: (ctx) => AlertDialog(
-                                        title: const Text('Confirmation'),
-                                        content: Text('Voulez-vous supprimer "${cartItem.product.nom}" de cette commande (déjà en cuisine) ?'),
-                                        actions: [
-                                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(ctx, true), 
-                                            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
-                                          ),
-                                        ],
+                                      builder: (ctx) => PinVerificationDialog(
+                                        title: 'Autorisation requise pour annuler "${cartItem.product.nom}"',
+                                        requireAdmin: true,
                                       ),
                                     );
 
@@ -291,6 +287,25 @@ class CartTicket extends StatelessWidget {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           child: const Icon(Icons.delete_outline),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Imprimer Facture
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: cart.activeOrder == null ? null : () {
+                              PrinterService().printOrderReceipt(cart.activeOrder!);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade50,
+                              foregroundColor: Colors.blue,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text('FACTURE', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         
@@ -590,16 +605,9 @@ class CartTicket extends StatelessWidget {
                           onLongPress: isOccupied ? () async {
                             final confirm = await showDialog<bool>(
                               context: context,
-                              builder: (c) => AlertDialog(
-                                title: const Text('Libérer la table ?'),
-                                content: Text('Voulez-vous forcer la libération de la table ${t.numero} ?\nCela annulera toute commande en cours.'),
-                                actions: [
-                                  TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Annuler')),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(c, true),
-                                    child: const Text('Libérer', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                                  ),
-                                ],
+                              builder: (c) => PinVerificationDialog(
+                                title: 'Autorisation requise pour libérer la table ${t.numero}',
+                                requireAdmin: true,
                               ),
                             );
 

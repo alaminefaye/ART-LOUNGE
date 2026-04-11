@@ -142,6 +142,7 @@ class PrinterService {
               pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
               if (order.table != null) pw.Text('Table: ${order.table?.numero}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
+              if (order.serveur != null) pw.Text('Serveur: ${order.serveur?.prenom != null ? '${order.serveur?.prenom} ' : ''}${order.serveur?.nom}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
               pw.Text('Heure: ${order.createdAt.hour}:${order.createdAt.minute.toString().padLeft(2, '0')}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
               pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.SizedBox(height: 6),
@@ -201,6 +202,8 @@ class PrinterService {
               pw.Text('Commande #${order.id}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
               if (order.table != null)
                 pw.Text('Table ${order.table!.numero}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+              if (order.serveur != null)
+                pw.Text('Serveur: ${order.serveur!.prenom != null ? '${order.serveur!.prenom} ' : ''}${order.serveur!.nom}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
               pw.Text(
                 '${order.createdAt.day.toString().padLeft(2,'0')}/${order.createdAt.month.toString().padLeft(2,'0')}/${order.createdAt.year}  ${order.createdAt.hour.toString().padLeft(2,'0')}:${order.createdAt.minute.toString().padLeft(2,'0')}',
                 style: const pw.TextStyle(fontSize: 8, color: PdfColors.black),
