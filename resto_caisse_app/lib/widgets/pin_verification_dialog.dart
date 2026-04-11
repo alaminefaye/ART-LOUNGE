@@ -6,8 +6,14 @@ import '../services/auth_service.dart';
 class PinVerificationDialog extends StatefulWidget {
   final String title;
   final bool requireAdmin;
+  final String? serveurNom;
 
-  const PinVerificationDialog({super.key, required this.title, this.requireAdmin = false});
+  const PinVerificationDialog({
+    super.key,
+    required this.title,
+    this.requireAdmin = false,
+    this.serveurNom,
+  });
 
   @override
   State<PinVerificationDialog> createState() => _PinVerificationDialogState();
@@ -34,7 +40,9 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
   void onBackspace() {
     if (isLoading) return;
     if (currentInput.isNotEmpty) {
-      setState(() => currentInput = currentInput.substring(0, currentInput.length - 1));
+      setState(
+        () => currentInput = currentInput.substring(0, currentInput.length - 1),
+      );
     }
   }
 
@@ -50,8 +58,15 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
 
     if (result['success']) {
       if (widget.requireAdmin) {
-        final currentUser = authService.currentUser;
-        if (currentUser == null || (!currentUser.hasRole('admin') && !currentUser.hasRole('superadmin') && !currentUser.hasRole('manager'))) {
+        // Check roles of the user who entered the PIN (not the logged-in caissier)
+        final userData = result['user'] as Map<String, dynamic>?;
+        final rawRoles = userData?['roles'] as List? ?? [];
+        final roles = rawRoles.map((r) => r.toString().toLowerCase()).toList();
+        final isAdmin =
+            roles.contains('admin') ||
+            roles.contains('superadmin') ||
+            roles.contains('manager');
+        if (!isAdmin) {
           setState(() {
             isLoading = false;
             errorMessage = 'Droits administrateur requis';
@@ -75,17 +90,24 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(40),
       child: Container(
-        width: 64,
-        height: 64,
+        width: 52,
+        height: 52,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: AppTheme.backgroundColor,
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 3)),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
           ],
         ),
         child: Center(
-          child: Text(label, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
     );
@@ -96,34 +118,66 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white,
-      contentPadding: const EdgeInsets.all(32),
+      contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
       content: SizedBox(
-        width: 320,
+        width: 300,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.lock_outline, size: 48, color: AppTheme.brandGold),
-            const SizedBox(height: 16),
+            const Icon(Icons.lock_outline, size: 32, color: AppTheme.brandGold),
+            const SizedBox(height: 10),
             Text(
               widget.title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             const Text(
-              'Veuillez saisir votre code PIN pour confirmer cette action.',
-              style: TextStyle(color: Colors.grey),
+              'Veuillez saisir votre code PIN pour confirmer.',
+              style: TextStyle(color: Colors.grey, fontSize: 11),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            if (widget.serveurNom != null) ...[
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.brandGold.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.person_outline,
+                      size: 13,
+                      color: AppTheme.brandGold,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Serveur : ${widget.serveurNom}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.brandGold,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(4, (i) {
                 final filled = i < currentInput.length;
                 return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
-                  width: 20,
-                  height: 20,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  width: 16,
+                  height: 16,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: filled ? AppTheme.brandGold : Colors.transparent,
@@ -136,45 +190,68 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
               }),
             ),
             if (errorMessage != null) ...[
-              const SizedBox(height: 16),
-              Text(errorMessage!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Text(
+                errorMessage!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
             ],
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
             if (isLoading)
               const CircularProgressIndicator(color: AppTheme.brandGold)
             else
               Column(
                 children: [
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                    buildKeypadBtn('1', () => onKeyTap('1')),
-                    buildKeypadBtn('2', () => onKeyTap('2')),
-                    buildKeypadBtn('3', () => onKeyTap('3')),
-                  ]),
-                  const SizedBox(height: 12),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                    buildKeypadBtn('4', () => onKeyTap('4')),
-                    buildKeypadBtn('5', () => onKeyTap('5')),
-                    buildKeypadBtn('6', () => onKeyTap('6')),
-                  ]),
-                  const SizedBox(height: 12),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                    buildKeypadBtn('7', () => onKeyTap('7')),
-                    buildKeypadBtn('8', () => onKeyTap('8')),
-                    buildKeypadBtn('9', () => onKeyTap('9')),
-                  ]),
-                  const SizedBox(height: 12),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                    const SizedBox(width: 64),
-                    buildKeypadBtn('0', () => onKeyTap('0')),
-                    SizedBox(
-                      width: 64,
-                      height: 64,
-                      child: IconButton(
-                        onPressed: onBackspace,
-                        icon: const Icon(Icons.backspace_outlined, size: 26, color: Colors.grey),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      buildKeypadBtn('1', () => onKeyTap('1')),
+                      buildKeypadBtn('2', () => onKeyTap('2')),
+                      buildKeypadBtn('3', () => onKeyTap('3')),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      buildKeypadBtn('4', () => onKeyTap('4')),
+                      buildKeypadBtn('5', () => onKeyTap('5')),
+                      buildKeypadBtn('6', () => onKeyTap('6')),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      buildKeypadBtn('7', () => onKeyTap('7')),
+                      buildKeypadBtn('8', () => onKeyTap('8')),
+                      buildKeypadBtn('9', () => onKeyTap('9')),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const SizedBox(width: 52),
+                      buildKeypadBtn('0', () => onKeyTap('0')),
+                      SizedBox(
+                        width: 52,
+                        height: 52,
+                        child: IconButton(
+                          onPressed: onBackspace,
+                          icon: const Icon(
+                            Icons.backspace_outlined,
+                            size: 22,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ],
               ),
           ],
@@ -184,7 +261,7 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
         TextButton(
           onPressed: isLoading ? null : () => Navigator.pop(context, false),
           child: const Text('Fermer', style: TextStyle(color: Colors.grey)),
-        )
+        ),
       ],
     );
   }

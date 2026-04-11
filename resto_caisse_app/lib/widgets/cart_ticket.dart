@@ -25,7 +25,7 @@ class CartTicket extends StatelessWidget {
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(-2, 0),
-          )
+          ),
         ],
       ),
       child: Consumer<Cart>(
@@ -48,7 +48,9 @@ class CartTicket extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          cart.activeOrder != null ? 'Commande #${cart.activeOrder!.id}' : 'Commande en cours',
+                          cart.activeOrder != null
+                              ? 'Commande #${cart.activeOrder!.id}'
+                              : 'Commande en cours',
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -58,7 +60,11 @@ class CartTicket extends StatelessWidget {
                         if (cart.activeOrder != null)
                           const Text(
                             'Modification en cours',
-                            style: TextStyle(fontSize: 12, color: AppTheme.brandGold, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.brandGold,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                       ],
                     ),
@@ -67,7 +73,10 @@ class CartTicket extends StatelessWidget {
                         if (cart.isNotEmpty)
                           IconButton(
                             onPressed: () => cart.clear(),
-                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
                             tooltip: 'Vider le chariot',
                           ),
                         const SizedBox(width: 8),
@@ -96,7 +105,10 @@ class CartTicket extends StatelessWidget {
 
               // Table Selection Widget
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 child: InkWell(
                   onTap: () => _showTableSelectionDialog(context, cart),
                   borderRadius: BorderRadius.circular(12),
@@ -104,19 +116,32 @@ class CartTicket extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
-                      border: Border.all(color: cart.tableId == null ? Colors.red.shade200 : AppTheme.brandGold.withValues(alpha: 0.5)),
+                      border: Border.all(
+                        color: cart.tableId == null
+                            ? Colors.red.shade200
+                            : AppTheme.brandGold.withValues(alpha: 0.5),
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.table_restaurant, color: cart.tableId == null ? Colors.red : AppTheme.brandGold),
+                        Icon(
+                          Icons.table_restaurant,
+                          color: cart.tableId == null
+                              ? Colors.red
+                              : AppTheme.brandGold,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            cart.tableId == null ? 'Veuillez sélectionner une table' : 'Table ${cart.tableNumero}',
+                            cart.tableId == null
+                                ? 'Veuillez sélectionner une table'
+                                : 'Table ${cart.tableNumero}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: cart.tableId == null ? Colors.red : Colors.black87,
+                              color: cart.tableId == null
+                                  ? Colors.red
+                                  : Colors.black87,
                             ),
                           ),
                         ),
@@ -134,16 +159,27 @@ class CartTicket extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.shopping_bag_outlined, size: 80, color: Colors.grey.shade300),
+                            Icon(
+                              Icons.shopping_bag_outlined,
+                              size: 80,
+                              color: Colors.grey.shade300,
+                            ),
                             const SizedBox(height: 16),
-                            Text('Le ticket est vide', style: TextStyle(color: Colors.grey.shade500, fontSize: 18)),
+                            Text(
+                              'Le ticket est vide',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 18,
+                              ),
+                            ),
                           ],
                         ),
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: cart.items.length,
-                        separatorBuilder: (context, index) => const Divider(height: 16),
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 16),
                         itemBuilder: (context, index) {
                           final cartItem = cart.items[index];
                           final productId = cartItem.product.id;
@@ -154,29 +190,67 @@ class CartTicket extends StatelessWidget {
                               // Quantity controls
                               Container(
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Column(
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.add, size: 14, color: cartItem.isNew ? Colors.black : Colors.grey),
-                                      onPressed: cartItem.isNew ? () => cart.addProduct(cartItem.product) : null,
+                                      icon: Icon(
+                                        Icons.add,
+                                        size: 14,
+                                        color: cartItem.isNew
+                                            ? Colors.black
+                                            : Colors.grey,
+                                      ),
+                                      onPressed: cartItem.isNew
+                                          ? () => cart.addProduct(
+                                              cartItem.product,
+                                            )
+                                          : null,
                                       padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 28,
+                                        minHeight: 28,
+                                      ),
                                     ),
-                                    Text('${cartItem.quantite}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: cartItem.isNew ? Colors.black : Colors.grey)),
+                                    Text(
+                                      '${cartItem.quantite}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        color: cartItem.isNew
+                                            ? Colors.black
+                                            : Colors.grey,
+                                      ),
+                                    ),
                                     IconButton(
-                                      icon: Icon(Icons.remove, size: 14, color: cartItem.isNew ? Colors.black : Colors.grey),
-                                      onPressed: cartItem.isNew ? () => cart.updateQuantity(productId, cartItem.quantite - 1) : null,
+                                      icon: Icon(
+                                        Icons.remove,
+                                        size: 14,
+                                        color: cartItem.isNew
+                                            ? Colors.black
+                                            : Colors.grey,
+                                      ),
+                                      onPressed: cartItem.isNew
+                                          ? () => cart.updateQuantity(
+                                              productId,
+                                              cartItem.quantite - 1,
+                                            )
+                                          : null,
                                       padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 28,
+                                        minHeight: 28,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              
+
                               // Product Details
                               Expanded(
                                 child: Column(
@@ -188,13 +262,21 @@ class CartTicket extends StatelessWidget {
                                           Container(
                                             width: 8,
                                             height: 8,
-                                            margin: const EdgeInsets.only(right: 8),
-                                            decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                                            margin: const EdgeInsets.only(
+                                              right: 8,
+                                            ),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.orange,
+                                              shape: BoxShape.circle,
+                                            ),
                                           ),
                                         Expanded(
                                           child: Text(
                                             cartItem.product.nom,
-                                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -202,24 +284,40 @@ class CartTicket extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      Formatters.formatCurrency(cartItem.product.prix),
-                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                                      Formatters.formatCurrency(
+                                        cartItem.product.prix,
+                                      ),
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              
+
                               // Total per item
                               Text(
                                 Formatters.formatCurrency(cartItem.total),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.brandGold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppTheme.brandGold,
+                                ),
                               ),
-                              
+
                               // Delete button
                               IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
                                 padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                constraints: const BoxConstraints(
+                                  minWidth: 32,
+                                  minHeight: 32,
+                                ),
                                 onPressed: () async {
                                   if (cartItem.isNew) {
                                     cart.removeProduct(productId);
@@ -228,24 +326,36 @@ class CartTicket extends StatelessWidget {
                                     final confirmed = await showDialog<bool>(
                                       context: context,
                                       builder: (ctx) => PinVerificationDialog(
-                                        title: 'Autorisation requise pour annuler "${cartItem.product.nom}"',
+                                        title:
+                                            'Autorisation requise pour annuler "${cartItem.product.nom}"',
                                         requireAdmin: true,
+                                        serveurNom: cart.serveurNom,
                                       ),
                                     );
 
                                     if (confirmed == true && context.mounted) {
-                                      final res = await OrderService().removeProductFromOrder(
-                                        cart.activeOrder!.id,
-                                        productId,
-                                      );
+                                      final res = await OrderService()
+                                          .removeProductFromOrder(
+                                            cart.activeOrder!.id,
+                                            productId,
+                                          );
                                       if (res['success'] == true) {
                                         // Re-sync l'ordre complet
-                                        final updated = await OrderService().getOrder(cart.activeOrder!.id);
-                                        if (updated != null) cart.syncWithOrder(updated);
+                                        final updated = await OrderService()
+                                            .getOrder(cart.activeOrder!.id);
+                                        if (updated != null)
+                                          cart.syncWithOrder(updated);
                                       } else {
                                         if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Erreur: ${res['message']}'), backgroundColor: Colors.red),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Erreur: ${res['message']}',
+                                            ),
+                                            backgroundColor: Colors.red,
+                                          ),
                                         );
                                       }
                                     }
@@ -269,7 +379,7 @@ class CartTicket extends StatelessWidget {
                       color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, -5),
-                    )
+                    ),
                   ],
                 ),
                 child: Column(
@@ -277,10 +387,17 @@ class CartTicket extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total Net', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                        const Text(
+                          'Total Net',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
                         Text(
                           Formatters.formatCurrency(cart.total),
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textDark,
+                          ),
                         ),
                       ],
                     ),
@@ -291,38 +408,60 @@ class CartTicket extends StatelessWidget {
                         Expanded(
                           flex: 2,
                           child: ElevatedButton(
-                            onPressed: (cart.activeOrder == null) ? null : () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (c) => PinVerificationDialog(
-                                  title: 'Autorisation requise pour annuler la commande #${cart.activeOrder!.id}',
-                                  requireAdmin: true,
-                                ),
-                              );
+                            onPressed: (cart.activeOrder == null)
+                                ? null
+                                : () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (c) => PinVerificationDialog(
+                                        title:
+                                            'Autorisation requise pour annuler la commande #${cart.activeOrder!.id}',
+                                        requireAdmin: true,
+                                        serveurNom: cart.serveurNom,
+                                      ),
+                                    );
 
-                              if (confirm == true && context.mounted) {
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
-                                );
-                                
-                                try {
-                                  await OrderService().updateOrderStatus(cart.activeOrder!.id, OrderStatus.annulee);
-                                  cart.clear(); // Vider l'écran après
-                                } finally {
-                                  if (context.mounted) Navigator.pop(context); // Fermer le loader
-                                }
-                              }
-                            },
+                                    if (confirm == true && context.mounted) {
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (ctx) => const Center(
+                                          child: CircularProgressIndicator(
+                                            color: AppTheme.brandGold,
+                                          ),
+                                        ),
+                                      );
+
+                                      try {
+                                        await OrderService().updateOrderStatus(
+                                          cart.activeOrder!.id,
+                                          OrderStatus.annulee,
+                                        );
+                                        cart.clear(); // Vider l'écran après
+                                      } finally {
+                                        if (context.mounted)
+                                          Navigator.pop(
+                                            context,
+                                          ); // Fermer le loader
+                                      }
+                                    }
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red.shade50,
                               foregroundColor: Colors.red,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 20),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            child: const Text('ANNULER', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'ANNULER',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -331,35 +470,58 @@ class CartTicket extends StatelessWidget {
                         Expanded(
                           flex: 2,
                           child: ElevatedButton(
-                            onPressed: cart.activeOrder == null ? null : () {
-                              PrinterService().printOrderReceipt(cart.activeOrder!);
-                            },
+                            onPressed: cart.activeOrder == null
+                                ? null
+                                : () {
+                                    PrinterService().printOrderReceipt(
+                                      cart.activeOrder!,
+                                    );
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue.shade50,
                               foregroundColor: Colors.blue,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 20),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            child: const Text('FACTURE', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'FACTURE',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        
+
                         // Lancer Cuisine / Mettre à jour
                         Expanded(
                           flex: 2,
                           child: ElevatedButton(
-                            onPressed: (cart.isEmpty || cart.tableId == null || !cart.hasNewItems) 
-                                ? null 
+                            onPressed:
+                                (cart.isEmpty ||
+                                    cart.tableId == null ||
+                                    !cart.hasNewItems)
+                                ? null
                                 : () => _lancerCuisine(context, cart),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 20),
                               backgroundColor: Colors.orange,
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            child: const Text('ENVOYER', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'ENVOYER',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -368,20 +530,28 @@ class CartTicket extends StatelessWidget {
                         Expanded(
                           flex: 2,
                           child: ElevatedButton(
-                            onPressed: (cart.isEmpty || cart.tableId == null) 
-                                ? null 
+                            onPressed: (cart.isEmpty || cart.tableId == null)
+                                ? null
                                 : () => _showPaymentDialog(context, cart),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 20),
                               backgroundColor: AppTheme.brandGold,
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            child: const Text('PAYER', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'PAYER',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -395,7 +565,7 @@ class CartTicket extends StatelessWidget {
   Future<void> _lancerCuisine(BuildContext context, Cart cart) async {
     final orderService = OrderService();
     final printerService = PrinterService(); // Instance du service d'impression
-    
+
     try {
       // 1. Si pas de commande active -> Créer
       if (cart.activeOrder == null) {
@@ -420,18 +590,25 @@ class CartTicket extends StatelessWidget {
         if (res['success']) {
           final order = res['order'] as Order;
           await orderService.launchOrder(order.id);
-          
+
           // Impression du bon de cuisine complet
           try {
             await printerService.printKitchenTicket(order);
           } catch (_) {}
-          
+
           cart.syncWithOrder(order);
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Commande envoyée en cuisine et ticket imprimé !'), backgroundColor: Colors.green));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Commande envoyée en cuisine et ticket imprimé !',
+                ),
+                backgroundColor: Colors.green,
+              ),
+            );
           }
         }
-      } 
+      }
       // 2. Si déjà une commande -> Ajouter les nouveaux produits
       else {
         final newItems = cart.items.where((i) => i.isNew).toList();
@@ -468,12 +645,19 @@ class CartTicket extends StatelessWidget {
           cart.syncWithOrder(updatedOrder);
         }
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Table mise à jour en cuisine et ticket imprimé !'), backgroundColor: Colors.orange));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Table mise à jour en cuisine et ticket imprimé !'),
+              backgroundColor: Colors.orange,
+            ),
+          );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
       }
     }
   }
@@ -491,7 +675,10 @@ class CartTicket extends StatelessWidget {
         cart.clear();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Paiement enregistré et commande validée !'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('Paiement enregistré et commande validée !'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
       }
@@ -510,41 +697,65 @@ class CartTicket extends StatelessWidget {
           builder: (stateCtx, setDialogState) {
             return AlertDialog(
               backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: FutureBuilder<List<model.Table>>(
                 future: tablesFuture,
                 builder: (futureCtx, snapshot) {
                   final tables = snapshot.data ?? [];
-                  final libres = tables.where((t) => t.statut != model.TableStatus.occupee).length;
-                  final occupees = tables.where((t) => t.statut == model.TableStatus.occupee).length;
-                  
+                  final libres = tables
+                      .where((t) => t.statut != model.TableStatus.occupee)
+                      .length;
+                  final occupees = tables
+                      .where((t) => t.statut == model.TableStatus.occupee)
+                      .length;
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         children: [
-                          const Text('Sélectionner une table', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const Text(
+                            'Sélectionner une table',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const Spacer(),
                           if (snapshot.hasData) ...[
                             InkWell(
-                              onTap: () => setDialogState(() => filterMode = filterMode == 'libres' ? 'all' : 'libres'),
+                              onTap: () => setDialogState(
+                                () => filterMode = filterMode == 'libres'
+                                    ? 'all'
+                                    : 'libres',
+                              ),
                               borderRadius: BorderRadius.circular(20),
                               child: _TableBadge(
-                                count: libres, 
-                                label: 'Libres', 
-                                color: filterMode == 'libres' ? Colors.green : Colors.grey,
+                                count: libres,
+                                label: 'Libres',
+                                color: filterMode == 'libres'
+                                    ? Colors.green
+                                    : Colors.grey,
                                 isSelected: filterMode == 'libres',
                               ),
                             ),
                             const SizedBox(width: 8),
                             InkWell(
-                              onTap: () => setDialogState(() => filterMode = filterMode == 'occupees' ? 'all' : 'occupees'),
+                              onTap: () => setDialogState(
+                                () => filterMode = filterMode == 'occupees'
+                                    ? 'all'
+                                    : 'occupees',
+                              ),
                               borderRadius: BorderRadius.circular(20),
                               child: _TableBadge(
-                                count: occupees, 
-                                label: 'Occupées', 
-                                color: filterMode == 'occupees' ? Colors.red : Colors.grey,
+                                count: occupees,
+                                label: 'Occupées',
+                                color: filterMode == 'occupees'
+                                    ? Colors.red
+                                    : Colors.grey,
                                 isSelected: filterMode == 'occupees',
                               ),
                             ),
@@ -558,8 +769,13 @@ class CartTicket extends StatelessWidget {
                           prefixIcon: const Icon(Icons.search),
                           filled: true,
                           fillColor: Colors.grey.shade100,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 0,
+                          ),
                         ),
                         onChanged: (val) {
                           setDialogState(() {
@@ -578,99 +794,144 @@ class CartTicket extends StatelessWidget {
                   future: tablesFuture,
                   builder: (futureCtx, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator(color: AppTheme.brandGold));
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.brandGold,
+                        ),
+                      );
                     }
                     if (snapshot.hasError) {
-                      return const Center(child: Text('Erreur de chargement des tables'));
+                      return const Center(
+                        child: Text('Erreur de chargement des tables'),
+                      );
                     }
-                    
+
                     List<model.Table> displayTables = snapshot.data ?? [];
-                    
+
                     // Appliquer le filtre de statut
                     if (filterMode == 'libres') {
-                      displayTables = displayTables.where((t) => t.statut != model.TableStatus.occupee).toList();
+                      displayTables = displayTables
+                          .where((t) => t.statut != model.TableStatus.occupee)
+                          .toList();
                     } else if (filterMode == 'occupees') {
-                      displayTables = displayTables.where((t) => t.statut == model.TableStatus.occupee).toList();
+                      displayTables = displayTables
+                          .where((t) => t.statut == model.TableStatus.occupee)
+                          .toList();
                     }
-                    
+
                     // Appliquer la recherche
                     if (searchQuery.isNotEmpty) {
-                      displayTables = displayTables.where((t) => t.numero.toLowerCase().contains(searchQuery)).toList();
+                      displayTables = displayTables
+                          .where(
+                            (t) => t.numero.toLowerCase().contains(searchQuery),
+                          )
+                          .toList();
                     }
 
                     if (displayTables.isEmpty) {
                       return const Center(child: Text('Aucune table trouvée'));
                     }
-                    
+
                     return GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 1.5,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 1.5,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                          ),
                       itemCount: displayTables.length,
                       itemBuilder: (ctx, index) {
                         final t = displayTables[index];
-                        final isOccupied = t.statut == model.TableStatus.occupee;
-                        
+                        final isOccupied =
+                            t.statut == model.TableStatus.occupee;
+
                         return InkWell(
                           onTap: () async {
                             if (isOccupied) {
                               showDialog(
                                 context: context,
                                 barrierDismissible: false,
-                                builder: (loaderCtx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
+                                builder: (loaderCtx) => const Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppTheme.brandGold,
+                                  ),
+                                ),
                               );
-                              
+
                               try {
-                                final activeOrder = await OrderService().getActiveOrderByTable(t.id);
+                                final activeOrder = await OrderService()
+                                    .getActiveOrderByTable(t.id);
                                 if (activeOrder != null) {
                                   cart.syncWithOrder(activeOrder);
                                 } else {
                                   cart.setTable(t.id, tableNumero: t.numero);
                                 }
                               } finally {
-                                if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+                                if (context.mounted)
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop();
                               }
                             } else {
                               cart.setTable(t.id, tableNumero: t.numero);
                             }
-                            
-                            if (context.mounted) Navigator.of(dialogCtx).pop(); 
-                          },
-                          onLongPress: isOccupied ? () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (c) => PinVerificationDialog(
-                                title: 'Autorisation requise pour libérer la table ${t.numero}',
-                                requireAdmin: true,
-                              ),
-                            );
 
-                            if (confirm == true && context.mounted) {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
-                              );
-                              
-                              try {
-                                final activeOrder = await OrderService().getActiveOrderByTable(t.id);
-                                if (activeOrder != null) {
-                                  await OrderService().updateOrderStatus(activeOrder.id, OrderStatus.annulee);
+                            if (context.mounted) Navigator.of(dialogCtx).pop();
+                          },
+                          onLongPress: isOccupied
+                              ? () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (c) => PinVerificationDialog(
+                                      title:
+                                          'Autorisation requise pour libérer la table ${t.numero}',
+                                      requireAdmin: true,
+                                    ),
+                                  );
+
+                                  if (confirm == true && context.mounted) {
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (ctx) => const Center(
+                                        child: CircularProgressIndicator(
+                                          color: AppTheme.brandGold,
+                                        ),
+                                      ),
+                                    );
+
+                                    try {
+                                      final activeOrder = await OrderService()
+                                          .getActiveOrderByTable(t.id);
+                                      if (activeOrder != null) {
+                                        await OrderService().updateOrderStatus(
+                                          activeOrder.id,
+                                          OrderStatus.annulee,
+                                        );
+                                      }
+                                      setDialogState(() {});
+                                    } finally {
+                                      if (context.mounted)
+                                        Navigator.pop(
+                                          context,
+                                        ); // Fermer le loader
+                                    }
+                                  }
                                 }
-                                setDialogState(() {});
-                              } finally {
-                                if (context.mounted) Navigator.pop(context); // Fermer le loader
-                              }
-                            }
-                          } : null,
+                              : null,
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: isOccupied ? Colors.grey.shade200 : AppTheme.brandGold.withValues(alpha: 0.1),
-                              border: Border.all(color: isOccupied ? Colors.grey.shade400 : AppTheme.brandGold),
+                              color: isOccupied
+                                  ? Colors.grey.shade200
+                                  : AppTheme.brandGold.withValues(alpha: 0.1),
+                              border: Border.all(
+                                color: isOccupied
+                                    ? Colors.grey.shade400
+                                    : AppTheme.brandGold,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
@@ -681,7 +942,9 @@ class CartTicket extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: isOccupied ? Colors.grey : AppTheme.brandGold,
+                                    color: isOccupied
+                                        ? Colors.grey
+                                        : AppTheme.brandGold,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -689,7 +952,9 @@ class CartTicket extends StatelessWidget {
                                   isOccupied ? 'Occupée' : 'Libre',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isOccupied ? Colors.red : Colors.green,
+                                    color: isOccupied
+                                        ? Colors.red
+                                        : Colors.green,
                                   ),
                                 ),
                               ],
@@ -704,7 +969,10 @@ class CartTicket extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogCtx).pop(),
-                  child: const Text('Fermer', style: TextStyle(color: Colors.grey)),
+                  child: const Text(
+                    'Fermer',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
               ],
             );
@@ -721,7 +989,12 @@ class _TableBadge extends StatelessWidget {
   final Color color;
   final bool isSelected;
 
-  const _TableBadge({required this.count, required this.label, required this.color, this.isSelected = false});
+  const _TableBadge({
+    required this.count,
+    required this.label,
+    required this.color,
+    this.isSelected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -746,7 +1019,11 @@ class _TableBadge extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '$count $label',
-            style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.w600, color: color),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+              color: color,
+            ),
           ),
         ],
       ),

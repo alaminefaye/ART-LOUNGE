@@ -3,7 +3,12 @@
 @section('content')
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">📄 Facture {{ $facture->numero_facture }}</h5>
+        <div class="d-flex align-items-center gap-3">
+            <h5 class="mb-0">📄 Facture {{ $facture->numero_facture }}</h5>
+            @if($facture->paiement && $facture->paiement->statut->value === 'valide')
+                <span class="badge bg-success fs-6 px-3 py-2" style="letter-spacing:2px;">✓ PAYÉ</span>
+            @endif
+        </div>
         <div>
             @if($facture->chemin_pdf)
                 <a href="{{ route('caisse.facture.telecharger', $facture) }}" class="btn btn-primary" target="_blank">

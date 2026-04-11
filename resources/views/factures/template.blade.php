@@ -226,6 +226,17 @@
             background: #2196f3;
             color: white;
         }
+        .paye-stamp {
+            display: inline-block;
+            border: 4px solid #27ae60;
+            color: #27ae60;
+            font-size: 26px;
+            font-weight: bold;
+            padding: 6px 20px;
+            border-radius: 6px;
+            letter-spacing: 4px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -247,6 +258,9 @@
                 <div class="facture-title">FACTURE</div>
                 <div class="facture-numero">N° {{ $facture->numero_facture }}</div>
                 <div class="facture-numero">{{ ($facture->created_at ?? $commande->created_at ?? $paiement?->created_at ?? now())->format('d/m/Y H:i') }}</div>
+                @if($paiement && $paiement->statut->value === 'valide')
+                <div style="margin-top:8px;"><span class="paye-stamp">PAYÉ</span></div>
+                @endif
             </div>
         </div>
 

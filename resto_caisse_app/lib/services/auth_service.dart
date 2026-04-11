@@ -58,7 +58,11 @@ class AuthService extends ChangeNotifier {
       final response = await _apiService.post(ApiConfig.verifyPin, data: data);
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        return {'success': true};
+        return {
+          'success': true,
+          'user': response
+              .data['user'], // user who matched the PIN (id, name, roles)
+        };
       }
       return {
         'success': false,

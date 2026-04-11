@@ -207,8 +207,12 @@
     </table>
 
     @if(isset($paiement))
+    <div class="divider"></div>
+    <div class="text-center bold" style="font-size:13px; border:2px solid #000; padding:2mm 0; margin:2mm 0; letter-spacing:3px;">
+        *** PAYÉ ***
+    </div>
     <div class="payment-block">
-        <div>Payé par : {{ $paiement->moyen_paiement->displayName() }}</div>
+        <div><strong>Mode :</strong> {{ $paiement->moyen_paiement->displayName() }}</div>
         @if($paiement->moyen_paiement->value === 'especes')
             @if($paiement->montant_recu !== null)
                 <div><strong>Montant reçu :</strong> {{ number_format((float) $paiement->montant_recu, 0, ',', ' ') }} FCFA</div>
