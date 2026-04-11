@@ -180,11 +180,35 @@ class Commande extends Model
     }
 
     /**
-     * Retirer un produit de la commande
+     * Retirer UN exemplaire d'un produit de la commande.
+     * Si quantite > 1 : décrémente de 1.
+     * Si quantite == 1 : supprime la ligne pivot.
+     * Cible en priorité la ligne la plus récente avec statut 'brouillon',
+     * puis les autres lignes (par id décroissant).
      */
     public function retirerProduit(int $produitId): void
     {
-        $this->produits()->detach($produitId);
+        $pivotRow = \Illuminate\Support\Facades\DB::table('commande_produit')
+            ->where('commande_id', $this->id)
+            ->where('produit_id', $produitId)
+            ->orderByRaw("CASE WHEN statut = 'brouillon' THEN 0 ELSE 1 END")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$pivotRow) {
+            return;
+        }
+
+        if ($pivotRow->quantite > 1) {
+            \Illuminate\Support\Facades\DB::table('commande_produit')
+                ->where('id', $pivotRow->id)
+                ->update(['quantite' => $pivotRow->quantite - 1]);
+        } else {
+            \Illuminate\Support\Facades\DB::table('commande_produit')
+                ->where('id', $pivotRow->id)
+                ->delete();
+        }
+
         $this->calculerMontantTotal();
     }
 
