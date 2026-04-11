@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ServeurController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -268,4 +269,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Annuler une réservation (client peut annuler ses propres réservations, manager/admin peuvent toutes)
         Route::patch('/{id}/annuler', [App\Http\Controllers\Api\ReservationController::class, 'annuler']);
     });
+
+    // Liste des serveurs pour le POS
+    Route::get('/serveurs', [ServeurController::class, 'index']);
 });

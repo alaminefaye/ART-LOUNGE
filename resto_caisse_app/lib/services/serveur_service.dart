@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/serveur.dart';
+import '../config/api_config.dart';
 import 'api_service.dart';
 
 class ServeurService {
@@ -7,7 +8,7 @@ class ServeurService {
 
   Future<List<Serveur>> getServeurs() async {
     try {
-      final response = await _apiService.get('/serveurs');
+      final response = await _apiService.get(ApiConfig.serveurs);
       
       if (response.statusCode == 200) {
         final data = response.data;

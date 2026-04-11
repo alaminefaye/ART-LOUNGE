@@ -28,6 +28,7 @@ class ApiConfig {
 
   // Tables
   static const String tables = '/tables';
+  static const String serveurs = '/serveurs';
 
   // Menus
   static const String categories = '/categories';
