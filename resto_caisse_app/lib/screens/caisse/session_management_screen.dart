@@ -12,7 +12,8 @@ class SessionManagementScreen extends StatefulWidget {
   const SessionManagementScreen({super.key, this.onSessionOpened});
 
   @override
-  State<SessionManagementScreen> createState() => _SessionManagementScreenState();
+  State<SessionManagementScreen> createState() =>
+      _SessionManagementScreenState();
 }
 
 class _SessionManagementScreenState extends State<SessionManagementScreen>
@@ -73,9 +74,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
 
     final amount = double.tryParse(amountText);
     if (amount == null || amount < 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Montant invalide')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Montant invalide')));
       return;
     }
 
@@ -96,7 +97,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       setState(() => _isLoading = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(res['message'] ?? 'Erreur lors de l\'ouverture')),
+        SnackBar(
+          content: Text(res['message'] ?? 'Erreur lors de l\'ouverture'),
+        ),
       );
     }
   }
@@ -105,7 +108,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
     final amountText = _amountController.text.trim();
     if (amountText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez entrer le montant réel en caisse')),
+        const SnackBar(
+          content: Text('Veuillez entrer le montant réel en caisse'),
+        ),
       );
       return;
     }
@@ -126,7 +131,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
 
       // Récupérer le bilan le plus récent (avant deconnexion)
       final bilanRes = await _caisseService.getBilan();
-      final bilan = bilanRes['success'] ? (bilanRes['data'] as Map<String, dynamic>? ?? {}) : (_bilan ?? {});
+      final bilan = bilanRes['success']
+          ? (bilanRes['data'] as Map<String, dynamic>? ?? {})
+          : (_bilan ?? {});
 
       // Récupérer le nom du caissier
       final authService = Provider.of<AuthService>(context, listen: false);
@@ -156,7 +163,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             titlePadding: EdgeInsets.zero,
             title: Container(
               padding: const EdgeInsets.all(20),
@@ -169,12 +178,20 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.white, size: 28),
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Fermeture impossible',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ],
@@ -186,7 +203,10 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                 const SizedBox(height: 8),
                 Text(
                   '$commandesActives commande(s) ne sont pas encore payée(s).',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
@@ -203,10 +223,18 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('COMPRIS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'COMPRIS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -230,7 +258,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       appBar: AppBar(
         title: const Text(
           'GESTION DE CAISSE',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 1.2),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+            letterSpacing: 1.2,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -243,7 +275,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(20),
-                child: _currentSession == null ? _buildOpenView() : _buildActiveView(),
+                child: _currentSession == null
+                    ? _buildOpenView()
+                    : _buildActiveView(),
               ),
             ),
     );
@@ -263,7 +297,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                 color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
-              )
+              ),
             ],
           ),
           child: Column(
@@ -274,12 +308,20 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                   color: Colors.orange.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.no_accounts_outlined, size: 48, color: Colors.orange),
+                child: const Icon(
+                  Icons.no_accounts_outlined,
+                  size: 48,
+                  color: Colors.orange,
+                ),
               ),
               const SizedBox(height: 24),
               const Text(
                 'AUCUNE SESSION OUVERTE',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -296,7 +338,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                   hintText: 'Ex: 10000',
                   prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
                   suffixText: 'FCFA',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   filled: true,
                   fillColor: Colors.grey[50],
                 ),
@@ -310,16 +354,24 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     elevation: 0,
                   ),
-                  child: const Text('OUVRIR LA SESSION', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'OUVRIR LA SESSION',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               TextButton.icon(
                 onPressed: () async {
-                  await Provider.of<AuthService>(context, listen: false).logout();
+                  await Provider.of<AuthService>(
+                    context,
+                    listen: false,
+                  ).logout();
                   if (mounted && Navigator.canPop(context)) {
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   }
@@ -327,7 +379,10 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                 icon: const Icon(Icons.logout, color: Colors.grey),
                 label: const Text(
                   'SE DÉCONNECTER',
-                  style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -350,10 +405,16 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
     final double totalAttendu = parseDouble(_bilan?['total_attendu_caisse']);
     final List repartition = _bilan?['repartition'] ?? [];
     final List transactions = _bilan?['transactions'] ?? [];
-    
-    final filteredTransactions = _transactionFilter == 'toutes' 
-        ? transactions 
-        : transactions.where((t) => t['moyen_paiement'].toString().toLowerCase() == _transactionFilter).toList();
+
+    final filteredTransactions = _transactionFilter == 'toutes'
+        ? transactions
+        : transactions
+              .where(
+                (t) =>
+                    t['moyen_paiement'].toString().toLowerCase() ==
+                    _transactionFilter,
+              )
+              .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,12 +433,19 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               Container(
                 width: 8,
                 height: 8,
-                decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
               ),
               const SizedBox(width: 8),
               const Text(
                 'SESSION ACTIVE',
-                style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12),
+                style: TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -400,19 +468,29 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                 color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 15,
                 offset: const Offset(0, 8),
-              )
+              ),
             ],
           ),
           child: Column(
             children: [
               const Text(
                 'TOTAL LIQUIDITÉS ATTENDU',
-                style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
                 Formatters.formatCurrency(totalAttendu),
-                style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: 1),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                ),
               ),
               const SizedBox(height: 20),
               Container(height: 1, color: Colors.white10),
@@ -420,13 +498,29 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildMiniStat('Ouverture', Formatters.formatCurrency(soldeOuverture)),
+                  _buildMiniStat(
+                    'Ouverture',
+                    Formatters.formatCurrency(soldeOuverture),
+                  ),
                   Container(width: 1, height: 30, color: Colors.white10),
-                  _buildMiniStat('Recettes Shift', Formatters.formatCurrency(parseDouble(_bilan?['total_liquide']))),
+                  _buildMiniStat(
+                    'Recettes Shift',
+                    Formatters.formatCurrency(
+                      parseDouble(_bilan?['total_liquide']),
+                    ),
+                  ),
                   Container(width: 1, height: 30, color: Colors.white10),
-                  _buildMiniStat('Paiement Points', Formatters.formatCurrency(parseDouble(_bilan?['total_points_fidelite_montant']))),
+                  _buildMiniStat(
+                    'Paiement Points',
+                    Formatters.formatCurrency(
+                      parseDouble(_bilan?['total_points_fidelite_montant']),
+                    ),
+                  ),
                   Container(width: 1, height: 30, color: Colors.white10),
-                  _buildMiniStat('Total Ventes', Formatters.formatCurrency(totalVentes)),
+                  _buildMiniStat(
+                    'Total Ventes',
+                    Formatters.formatCurrency(totalVentes),
+                  ),
                 ],
               ),
             ],
@@ -436,7 +530,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
         const SizedBox(height: 32),
         const Text(
           'DÉTAIL PAR MODE DE PAIEMENT',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.5),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+            letterSpacing: 0.5,
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -444,7 +542,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
         ...repartition.map((item) {
           final String label = item['moyen_paiement'];
           final double total = parseDouble(item['total']);
-          
+
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
@@ -461,18 +559,28 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                     color: Colors.grey[50],
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(_getIconForMethod(label), color: Colors.grey[700], size: 20),
+                  child: Icon(
+                    _getIconForMethod(label),
+                    color: Colors.grey[700],
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     label.toUpperCase(),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
                 Text(
                   Formatters.formatCurrency(total),
-                  style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.orange),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: Colors.orange,
+                  ),
                 ),
               ],
             ),
@@ -483,7 +591,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
           const SizedBox(height: 32),
           const Text(
             'HISTORIQUE DES TRANSACTIONS',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.5),
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+              letterSpacing: 0.5,
+            ),
           ),
           const SizedBox(height: 12),
           SingleChildScrollView(
@@ -491,35 +603,55 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
             child: Row(
               children: [
                 _buildFilterChip('Toutes', 'toutes'),
-                ...repartition.map((item) => _buildFilterChip(item['moyen_paiement'].toString().toUpperCase(), item['moyen_paiement'].toString().toLowerCase())),
+                ...repartition.map(
+                  (item) => _buildFilterChip(
+                    item['moyen_paiement'].toString().toUpperCase(),
+                    item['moyen_paiement'].toString().toLowerCase(),
+                  ),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 16),
           if (filteredTransactions.isEmpty)
-            const Center(child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text("Aucune transaction pour ce moyen de paiement.", style: TextStyle(color: Colors.grey)),
-            ))
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  "Aucune transaction pour ce moyen de paiement.",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            )
           else ...[
-            ...filteredTransactions.take(5).map((t) => _buildTransactionItem(t)),
+            ...filteredTransactions
+                .take(5)
+                .map((t) => _buildTransactionItem(t)),
             if (filteredTransactions.length > 5)
-               Center(
-                 child: TextButton(
-                   onPressed: () => _showTransactionsDialog(filteredTransactions),
-                   child: Text(
-                     '+ ${filteredTransactions.length - 5} autres transactions',
-                     style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-                   ),
-                 ),
-               ),
-          ]
+              Center(
+                child: TextButton(
+                  onPressed: () =>
+                      _showTransactionsDialog(filteredTransactions),
+                  child: Text(
+                    '+ ${filteredTransactions.length - 5} autres transactions',
+                    style: const TextStyle(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ],
 
         const SizedBox(height: 40),
         const Text(
           'CLÔTURER LE SHIFT',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.5),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+            letterSpacing: 0.5,
+          ),
         ),
         const SizedBox(height: 16),
         Container(
@@ -538,7 +670,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                   labelText: 'Montant réel en caisse',
                   hintText: 'Comptez l\'argent physiquement',
                   prefixIcon: const Icon(Icons.monetization_on_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   filled: true,
                   fillColor: Colors.grey[50],
                 ),
@@ -551,7 +685,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                   labelText: 'Notes / Écarts constatés',
                   hintText: 'Facultatif...',
                   prefixIcon: const Icon(Icons.note_alt_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   filled: true,
                   fillColor: Colors.grey[50],
                 ),
@@ -565,10 +701,15 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     elevation: 0,
                   ),
-                  child: const Text('FERMER LA CAISSE', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'FERMER LA CAISSE',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -584,7 +725,14 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       children: [
         Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
       ],
     );
   }
@@ -618,10 +766,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
     }
 
     final client = p['client'] ?? {};
-    final String clientName = '${client['nom'] ?? ''} ${client['prenom'] ?? ''}'.trim();
+    final String clientName = '${client['nom'] ?? ''} ${client['prenom'] ?? ''}'
+        .trim();
     final double amount = parseDouble(p['montant']);
-    final String tableName = p['commande']?['table']?['numero'] != null 
-        ? 'Table ${p['commande']?['table']?['numero']}' 
+    final String tableName = p['commande']?['table']?['numero'] != null
+        ? 'Table ${p['commande']?['table']?['numero']}'
         : 'Table';
     final String method = p['moyen_paiement']?.toString() ?? 'inconnu';
     final isFidelity = method.toLowerCase() == 'points_fidelite';
@@ -645,7 +794,10 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               children: [
                 Text(
                   clientName.isEmpty ? 'Client inconnu' : clientName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
                 Text(
                   '$tableName • Commande #${p['commande_id']}',
@@ -663,14 +815,22 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               ),
               child: Text(
                 '$points pts',
-                style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 11),
+                style: const TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
               ),
             ),
             const SizedBox(width: 12),
           ],
           Text(
             Formatters.formatCurrency(amount),
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Colors.orange),
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+              color: Colors.orange,
+            ),
           ),
         ],
       ),
@@ -686,13 +846,26 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
           padding: const EdgeInsets.all(20),
           decoration: const BoxDecoration(
             color: Colors.orange,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(28), topRight: Radius.circular(28)),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(28),
+              topRight: Radius.circular(28),
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('TOUTES LES TRANSACTIONS', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-              IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close, color: Colors.white)),
+              const Text(
+                'TOUTES LES TRANSACTIONS',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(ctx),
+                icon: const Icon(Icons.close, color: Colors.white),
+              ),
             ],
           ),
         ),
@@ -704,7 +877,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
-                    children: transactions.map((t) => _buildTransactionItem(t)).toList(),
+                    children: transactions
+                        .map((t) => _buildTransactionItem(t))
+                        .toList(),
                   ),
                 ),
               ),
@@ -718,11 +893,16 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
 
   IconData _getIconForMethod(String method) {
     switch (method.toLowerCase()) {
-      case 'especes': return Icons.money;
-      case 'wave': return Icons.waves;
-      case 'orange_money': return Icons.phone_android;
-      case 'points_fidelite': return Icons.star;
-      default: return Icons.payment;
+      case 'especes':
+        return Icons.money;
+      case 'wave':
+        return Icons.waves;
+      case 'orange_money':
+        return Icons.phone_android;
+      case 'points_fidelite':
+        return Icons.star;
+      default:
+        return Icons.payment;
     }
   }
 
@@ -731,15 +911,23 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirmer la clôture ?'),
-        content: const Text('Cette action va verrouiller vos transactions pour ce shift. Assurez-vous d\'avoir bien compté votre caisse.'),
+        content: const Text(
+          'Cette action va verrouiller vos transactions pour ce shift. Assurez-vous d\'avoir bien compté votre caisse.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('ANNULER')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('ANNULER'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               _handleCloseSession();
             },
-            child: const Text('FERMER DÉFINITIVEMENT', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'FERMER DÉFINITIVEMENT',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),

@@ -130,7 +130,7 @@ class CaisseSessionController extends Controller
             ->with([
                 'client:id,nom,prenom',
                 'commande.table:id,numero',
-                'commande.produits.produit:id,nom',
+                'commande.produits',
                 'commande.serveur:id,nom,prenom',
             ])
             ->select('id', 'client_id', 'montant', 'moyen_paiement', 'points_utilises', 'commande_id', 'created_at')
