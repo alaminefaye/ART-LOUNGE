@@ -305,15 +305,21 @@ class _PosScreenState extends State<PosScreen> {
     );
   }
 
-  void _showChangePasswordDialog() {
-    final currentPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    bool isLoading = false;
+  void _showChangePinDialog() {
+    // Step 1: saisir l'ancien PIN | Step 2: saisir le nouveau PIN | Step 3: confirmer
+    int step = 1; // 1=ancien, 2=nouveau, 3=confirmer
+    String oldPin = '';
+    String newPin = '';
+    String confirmPin = '';
+    String currentInput = '';
     String? errorMessage;
-    bool obscureCurrent = true;
-    bool obscureNew = true;
-    bool obscureConfirm = true;
+    bool isLoading = false;
+
+    final Map<int, String> stepTitles = {
+      1: 'Ancien code PIN',
+      2: 'Nouveau code PIN',
+      3: 'Confirmer le PIN',
+    };
 
     showDialog(
       context: context,
@@ -321,140 +327,218 @@ class _PosScreenState extends State<PosScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (statefulCtx, setStateDialog) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(
-                children: [
-                  Icon(Icons.lock_reset, color: AppTheme.brandGold),
-                  SizedBox(width: 8),
-                  Text('Modifier le mot de passe', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: SizedBox(
-                  width: 350,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (errorMessage != null)
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.error_outline, color: Colors.red, size: 20),
-                              const SizedBox(width: 8),
-                              Expanded(child: Text(errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 12))),
-                            ],
-                          ),
-                        ),
-                      TextField(
-                        controller: currentPasswordController,
-                        obscureText: obscureCurrent,
-                        decoration: InputDecoration(
-                          labelText: 'Mot de passe actuel',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            icon: Icon(obscureCurrent ? Icons.visibility_off : Icons.visibility, color: Colors.grey, size: 20),
-                            onPressed: () => setStateDialog(() => obscureCurrent = !obscureCurrent),
-                          ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
+            void onKeyTap(String digit) {
+              if (currentInput.length < 4) {
+                setStateDialog(() {
+                  currentInput += digit;
+                  errorMessage = null;
+                });
+                if (currentInput.length == 4) {
+                  // Auto-valider après le 4e chiffre
+                  Future.delayed(const Duration(milliseconds: 200), () {
+                    setStateDialog(() {
+                      if (step == 1) {
+                        oldPin = currentInput;
+                        currentInput = '';
+                        step = 2;
+                      } else if (step == 2) {
+                        newPin = currentInput;
+                        currentInput = '';
+                        step = 3;
+                      } else if (step == 3) {
+                        confirmPin = currentInput;
+                        if (newPin != confirmPin) {
+                          errorMessage = 'Les codes PIN ne correspondent pas';
+                          currentInput = '';
+                          step = 2;
+                          newPin = '';
+                        } else {
+                          // Soumettre
+                          isLoading = true;
+                        }
+                      }
+                    });
+
+                    if (isLoading) {
+                      final authService = Provider.of<AuthService>(context, listen: false);
+                      authService.setPin(oldPin, newPin).then((result) {
+                        if (!ctx.mounted) return;
+                        if (result['success']) {
+                          Navigator.pop(ctx);
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Code PIN modifié avec succès ✓'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          setStateDialog(() {
+                            isLoading = false;
+                            errorMessage = result['message'] ?? 'Erreur lors de la modification';
+                            currentInput = '';
+                            step = 1;
+                            oldPin = '';
+                            newPin = '';
+                          });
+                        }
+                      });
+                    }
+                  });
+                }
+              }
+            }
+
+            void onBackspace() {
+              if (currentInput.isNotEmpty) {
+                setStateDialog(() => currentInput = currentInput.substring(0, currentInput.length - 1));
+              }
+            }
+
+            Widget buildPinDots() {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(4, (i) {
+                  final filled = i < currentInput.length;
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: filled ? AppTheme.brandGold : Colors.transparent,
+                      border: Border.all(
+                        color: filled ? AppTheme.brandGold : Colors.grey.shade400,
+                        width: 2,
                       ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: newPasswordController,
-                        obscureText: obscureNew,
-                        decoration: InputDecoration(
-                          labelText: 'Nouveau mot de passe',
-                          prefixIcon: const Icon(Icons.lock_reset),
-                          suffixIcon: IconButton(
-                            icon: Icon(obscureNew ? Icons.visibility_off : Icons.visibility, color: Colors.grey, size: 20),
-                            onPressed: () => setStateDialog(() => obscureNew = !obscureNew),
-                          ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: confirmPasswordController,
-                        obscureText: obscureConfirm,
-                        decoration: InputDecoration(
-                          labelText: 'Confirmer nouveau mot de passe',
-                          prefixIcon: const Icon(Icons.check_circle_outline),
-                          suffixIcon: IconButton(
-                            icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility, color: Colors.grey, size: 20),
-                            onPressed: () => setStateDialog(() => obscureConfirm = !obscureConfirm),
-                          ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
+                    ),
+                  );
+                }),
+              );
+            }
+
+            Widget buildKeypadBtn(String label, VoidCallback onTap) {
+              return InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(40),
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.backgroundColor,
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 3)),
                     ],
                   ),
+                  child: Center(
+                    child: Text(label, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              );
+            }
+
+            Widget buildKeypad() {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                    buildKeypadBtn('1', () => onKeyTap('1')),
+                    buildKeypadBtn('2', () => onKeyTap('2')),
+                    buildKeypadBtn('3', () => onKeyTap('3')),
+                  ]),
+                  const SizedBox(height: 12),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                    buildKeypadBtn('4', () => onKeyTap('4')),
+                    buildKeypadBtn('5', () => onKeyTap('5')),
+                    buildKeypadBtn('6', () => onKeyTap('6')),
+                  ]),
+                  const SizedBox(height: 12),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                    buildKeypadBtn('7', () => onKeyTap('7')),
+                    buildKeypadBtn('8', () => onKeyTap('8')),
+                    buildKeypadBtn('9', () => onKeyTap('9')),
+                  ]),
+                  const SizedBox(height: 12),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                    const SizedBox(width: 64),
+                    buildKeypadBtn('0', () => onKeyTap('0')),
+                    SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: IconButton(
+                        onPressed: onBackspace,
+                        icon: const Icon(Icons.backspace_outlined, size: 26, color: Colors.grey),
+                      ),
+                    ),
+                  ]),
+                ],
+              );
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  const Icon(Icons.pin, color: AppTheme.brandGold),
+                  const SizedBox(width: 8),
+                  Text(
+                    stepTitles[step]!,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 300,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Étapes visuelles
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(3, (i) {
+                        final active = i + 1 == step;
+                        final done = i + 1 < step;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: 28,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(3),
+                            color: done ? AppTheme.brandGold
+                                : active ? AppTheme.brandGold.withValues(alpha: 0.5)
+                                : Colors.grey.shade300,
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 20),
+                    if (errorMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8)),
+                        child: Row(children: [
+                          const Icon(Icons.error_outline, color: Colors.red, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 12))),
+                        ]),
+                      ),
+                    isLoading
+                        ? const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: CircularProgressIndicator(color: AppTheme.brandGold),
+                          )
+                        : buildPinDots(),
+                    const SizedBox(height: 24),
+                    if (!isLoading) buildKeypad(),
+                  ],
                 ),
               ),
               actions: [
                 TextButton(
                   onPressed: isLoading ? null : () => Navigator.pop(ctx),
                   child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
-                ),
-                ElevatedButton(
-                  onPressed: isLoading
-                      ? null
-                      : () async {
-                          if (currentPasswordController.text.isEmpty ||
-                              newPasswordController.text.isEmpty ||
-                              confirmPasswordController.text.isEmpty) {
-                            setStateDialog(() => errorMessage = 'Veuillez remplir tous les champs');
-                            return;
-                          }
-                          if (newPasswordController.text != confirmPasswordController.text) {
-                            setStateDialog(() => errorMessage = 'Les nouveaux mots de passe ne correspondent pas');
-                            return;
-                          }
-                          if (newPasswordController.text.length < 6) {
-                            setStateDialog(() => errorMessage = 'Le mot de passe doit faire au moins 6 caractères');
-                            return;
-                          }
-
-                          setStateDialog(() {
-                            isLoading = true;
-                            errorMessage = null;
-                          });
-
-                          try {
-                            final authService = Provider.of<AuthService>(context, listen: false);
-                            final result = await authService.changePassword(
-                              currentPasswordController.text,
-                              newPasswordController.text,
-                              confirmPasswordController.text,
-                            );
-
-                            if (result['success']) {
-                              if (!ctx.mounted) return;
-                              Navigator.pop(ctx);
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Mot de passe modifié avec succès'), backgroundColor: Colors.green),
-                              );
-                            } else {
-                              setStateDialog(() => errorMessage = result['message'] ?? 'Erreur lors de la modification');
-                            }
-                          } catch (e) {
-                            setStateDialog(() => errorMessage = 'Une erreur est survenue');
-                          } finally {
-                            setStateDialog(() => isLoading = false);
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.brandGold,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: isLoading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Enregistrer', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -470,7 +554,7 @@ class _PosScreenState extends State<PosScreen> {
       children: [
         if (!isMobile) ...[
           GestureDetector(
-            onTap: () => _showChangePasswordDialog(),
+            onTap: () => _showChangePinDialog(),
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: Row(

@@ -161,6 +161,19 @@ class CaisseSessionController extends Controller
             ], 422);
         }
 
+        // Bloquer si des commandes actives (non payées) existent depuis l'ouverture
+        $commandesActives = \App\Models\Commande::whereNotIn('statut', ['terminee', 'annulee'])
+            ->where('created_at', '>=', $session->opened_at)
+            ->count();
+
+        if ($commandesActives > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "Impossible de fermer la caisse : $commandesActives commande(s) ne sont pas encore payée(s). Réglez toutes les commandes avant de clôturer.",
+                'commandes_actives' => $commandesActives,
+            ], 422);
+        }
+
         // Calculer le total liquide attendu (hors points)
         $totalLiquide = Paiement::where('caisse_session_id', $session->id)
             ->where('statut', StatutPaiement::Valide->value)

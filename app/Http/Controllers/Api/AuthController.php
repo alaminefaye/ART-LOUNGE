@@ -555,12 +555,23 @@ class AuthController extends Controller
     public function setPin(Request $request)
     {
         $request->validate([
-            'pin'              => 'required|string|size:4|regex:/^[0-9]{4}$/',
-            'pin_confirmation' => 'required|same:pin',
+            'old_pin' => 'nullable|string|size:4',
+            'new_pin' => 'required|string|size:4|regex:/^[0-9]{4}$/',
         ]);
 
         $user = $request->user();
-        $user->update(['pin' => Hash::make($request->pin)]);
+
+        // Si l'utilisateur a déjà un PIN, on vérifie l'ancien
+        if ($user->hasPin()) {
+            if (!$request->filled('old_pin') || !Hash::check($request->old_pin, $user->getAttributes()['pin'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'L\'ancien PIN est incorrect.',
+                ], 422);
+            }
+        }
+
+        $user->update(['pin' => Hash::make($request->new_pin)]);
 
         return response()->json([
             'success' => true,

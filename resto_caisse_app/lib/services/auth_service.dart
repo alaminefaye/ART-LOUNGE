@@ -15,6 +15,36 @@ class AuthService extends ChangeNotifier {
   String? get token => _token;
   bool get isAuthenticated => _token != null && _currentUser != null;
 
+  // Changer le PIN
+  Future<Map<String, dynamic>> setPin(String oldPin, String newPin) async {
+    final hasNetwork = await _hasConnectivity();
+    if (!hasNetwork) {
+      return {'success': false, 'message': 'Pas de connexion internet'};
+    }
+    try {
+      final response = await _apiService.post(
+        ApiConfig.setPin,
+        data: {
+          'old_pin': oldPin,
+          'new_pin': newPin,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true};
+      }
+      return {
+        'success': false,
+        'message': response.data['message'] ?? 'Erreur lors du changement de PIN'
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Erreur réseau ou PIN incorrect'
+      };
+    }
+  }
+
   // Register
   Future<Map<String, dynamic>> register({
     required String nom,
