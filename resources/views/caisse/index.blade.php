@@ -80,7 +80,13 @@
                             <div class="mb-1">
                                 <small class="text-muted">
                                     <i class="bx bx-user" style="font-size:11px;"></i>
-                                    {{ $commande->serveur->name ?? $commande->user->name ?? 'N/A' }}
+                                    @if($commande->serveur)
+                                        {{ trim($commande->serveur->nom . ' ' . $commande->serveur->prenom) }}
+                                    @elseif($commande->user)
+                                        {{ $commande->user->name }}
+                                    @else
+                                        N/A
+                                    @endif
                                 </small>
                             </div>
                             <div class="mb-2" style="min-height: 45px;">
