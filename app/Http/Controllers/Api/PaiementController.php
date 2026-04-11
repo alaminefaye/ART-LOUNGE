@@ -73,7 +73,7 @@ class PaiementController extends Controller
 
             // Si c'est un membre du staff, vérifier la session de caisse
             $session = null;
-            if ($user->hasAnyRole(['admin', 'manager', 'caissier'])) {
+            if ($user->hasAnyRole(['superadmin', 'admin', 'manager', 'caissier'])) {
                 $session = CaisseSession::where('user_id', $user->id)
                     ->where('statut', 'ouverte')
                     ->first();
@@ -194,7 +194,7 @@ class PaiementController extends Controller
             }
 
             // Autres moyens (Wave, OM, etc.)
-            $isStaff = $user->hasAnyRole(['admin', 'manager', 'caissier']);
+            $isStaff = $user->hasAnyRole(['superadmin', 'admin', 'manager', 'caissier']);
             
             $paiement = Paiement::create([
                 'commande_id' => $commande->id,
