@@ -38,7 +38,7 @@ class PaiementController extends Controller
      */
     public function caisse()
     {
-        $baseQuery = Commande::with(['table', 'user', 'produits'])
+        $baseQuery = Commande::with(['table', 'user', 'serveur', 'produits'])
             ->whereIn('statut', [OrderStatus::Servie, OrderStatus::Preparation, OrderStatus::Attente]);
 
         $statsCount = (clone $baseQuery)->count();
