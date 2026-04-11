@@ -15,7 +15,8 @@ class SessionManagementScreen extends StatefulWidget {
   State<SessionManagementScreen> createState() => _SessionManagementScreenState();
 }
 
-class _SessionManagementScreenState extends State<SessionManagementScreen> {
+class _SessionManagementScreenState extends State<SessionManagementScreen>
+    with WidgetsBindingObserver {
   final CaisseService _caisseService = CaisseService();
   bool _isLoading = true;
   CaisseSession? _currentSession;
@@ -28,7 +29,22 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Recharge le bilan quand l'app revient au premier plan
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {

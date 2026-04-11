@@ -92,29 +92,41 @@ class CaisseSessionController extends Controller
             ], 404);
         }
 
-        $totaux = Paiement::where('caisse_session_id', $session->id)
-            ->where('statut', StatutPaiement::Valide->value)
+        $sessionStart = $session->opened_at;
+        $userId       = $request->user()->id;
+
+        // Inclut les paiements liés à la session ET ceux du même utilisateur
+        // pendant la période de la session mais sans caisse_session_id (anciens / web).
+        $paymentScope = function ($q) use ($session, $sessionStart, $userId) {
+            $q->where('caisse_session_id', $session->id)
+              ->orWhere(function ($q2) use ($sessionStart, $userId) {
+                  $q2->where('user_id', $userId)
+                     ->whereNull('caisse_session_id')
+                     ->where('created_at', '>=', $sessionStart);
+              });
+        };
+
+        $totaux = Paiement::where('statut', StatutPaiement::Valide->value)
+            ->where($paymentScope)
             ->select('moyen_paiement', DB::raw('SUM(montant) as total'))
             ->groupBy('moyen_paiement')
             ->get();
 
         $totalVentes = $totaux->sum('total');
-        
-        // Calculer uniquement ce qui doit être physiquement en caisse (on exclut les points de fidélité)
-        // Correction du TypeError : Gestion robuste que $t->moyen_paiement soit un Enum ou une String
-        $totalLiquide = $totaux->filter(function($t) {
-            $val = $t->moyen_paiement instanceof MoyenPaiement ? $t->moyen_paiement->value : (string)$t->moyen_paiement;
+
+        $totalLiquide = $totaux->filter(function ($t) {
+            $val = $t->moyen_paiement instanceof MoyenPaiement ? $t->moyen_paiement->value : (string) $t->moyen_paiement;
             return strcasecmp($val, MoyenPaiement::PointsFidelite->value) !== 0;
         })->sum('total');
 
-        $totalPointsMontant = $totaux->filter(function($t) {
-            $val = $t->moyen_paiement instanceof MoyenPaiement ? $t->moyen_paiement->value : (string)$t->moyen_paiement;
+        $totalPointsMontant = $totaux->filter(function ($t) {
+            $val = $t->moyen_paiement instanceof MoyenPaiement ? $t->moyen_paiement->value : (string) $t->moyen_paiement;
             return strcasecmp($val, MoyenPaiement::PointsFidelite->value) === 0;
         })->sum('total');
-        
+
         // Tous les détails de paiements
-        $transactions = Paiement::where('caisse_session_id', $session->id)
-            ->where('statut', StatutPaiement::Valide->value)
+        $transactions = Paiement::where('statut', StatutPaiement::Valide->value)
+            ->where($paymentScope)
             ->with([
                 'client:id,nom,prenom',
                 'commande.table:id,numero',
@@ -128,15 +140,15 @@ class CaisseSessionController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'session'                     => $session,
-                'solde_ouverture'             => $session->solde_ouverture,
-                'repartition'                 => $totaux,
-                'total_ventes'                => $totalVentes,
-                'total_liquide'               => $totalLiquide,
+                'session'                       => $session,
+                'solde_ouverture'               => $session->solde_ouverture,
+                'repartition'                   => $totaux,
+                'total_ventes'                  => $totalVentes,
+                'total_liquide'                 => $totalLiquide,
                 'total_points_fidelite_montant' => $totalPointsMontant,
-                'total_attendu_caisse'         => $session->solde_ouverture + $totalLiquide,
-                'points_details'              => $transactions->where('moyen_paiement', MoyenPaiement::PointsFidelite->value)->values(),
-                'transactions'                => $transactions
+                'total_attendu_caisse'          => $session->solde_ouverture + $totalLiquide,
+                'points_details'                => $transactions->where('moyen_paiement', MoyenPaiement::PointsFidelite->value)->values(),
+                'transactions'                  => $transactions,
             ]
         ]);
     }
