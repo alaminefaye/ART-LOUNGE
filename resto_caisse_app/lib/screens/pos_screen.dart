@@ -320,7 +320,7 @@ class _PosScreenState extends State<PosScreen> {
       barrierDismissible: false,
       builder: (ctx) {
         return StatefulBuilder(
-          builder: (context, setStateDialog) {
+          builder: (statefulCtx, setStateDialog) {
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               title: const Row(
@@ -432,12 +432,12 @@ class _PosScreenState extends State<PosScreen> {
                             );
 
                             if (result['success']) {
-                              if (mounted) {
-                                Navigator.pop(ctx);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Mot de passe modifié avec succès'), backgroundColor: Colors.green),
-                                );
-                              }
+                              if (!ctx.mounted) return;
+                              Navigator.pop(ctx);
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Mot de passe modifié avec succès'), backgroundColor: Colors.green),
+                              );
                             } else {
                               setStateDialog(() => errorMessage = result['message'] ?? 'Erreur lors de la modification');
                             }
@@ -596,7 +596,7 @@ class _PosScreenState extends State<PosScreen> {
         ],
       ),
     );
-    if (confirm == true && context.mounted) {
+    if (confirm == true && mounted) {
       await Provider.of<AuthService>(context, listen: false).logout();
     }
   }

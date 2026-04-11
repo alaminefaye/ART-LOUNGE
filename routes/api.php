@@ -107,16 +107,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/{id}/regenerate-qrcode', [App\Http\Controllers\Api\TableController::class, 'regenerateQRCode']);
         });
     });
-
-    // ==========================================
-    // SERVEURS - Gestion des serveurs locaux du restaurant (staff)
-    // ==========================================
-    Route::get('/serveurs', function () {
-        return response()->json([
-            'success' => true,
-            'data' => \App\Models\Serveur::where('actif', true)->orderBy('nom')->get()
-        ]);
-    });
     
     // ==========================================
     // CATEGORIES - Gestion des catégories (CRUD protégé)

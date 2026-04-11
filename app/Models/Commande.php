@@ -103,7 +103,7 @@ class Commande extends Model
         return $this->hasOneThrough(Facture::class, Paiement::class);
     }
 
-    public function avis(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function avis(): HasMany
     {
         return $this->hasMany(Avis::class);
     }
@@ -144,7 +144,7 @@ class Commande extends Model
             return false;
         }
 
-        $this->statut = $nouveauStatut;
+        $this->statut = OrderStatus::from($nouveauStatut);
         return $this->save();
     }
 

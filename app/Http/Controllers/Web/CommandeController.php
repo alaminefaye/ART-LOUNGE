@@ -193,11 +193,19 @@ class CommandeController extends Controller
 
         $commande->update(['statut' => $validated['statut']]);
 
-        // If order is completed, free the table
-        if ($commande->statut === OrderStatus::Terminee) {
+        // Free the table when order is terminated OR cancelled, if no other active orders remain
+        $newStatut = $commande->fresh()->statut;
+        if ($newStatut === OrderStatus::Terminee || $newStatut === OrderStatus::Annulee) {
+            /** @var \App\Models\Table|null $table */
             $table = $commande->table()->first();
-            if ($table) {
-                $table->liberer();
+            if ($table && $table->statut === TableStatus::Occupee) {
+                $otherActive = $table->commandes()
+                    ->where('id', '!=', $commande->id)
+                    ->whereNotIn('statut', [OrderStatus::Terminee, OrderStatus::Annulee])
+                    ->count();
+                if ($otherActive === 0) {
+                    $table->liberer();
+                }
             }
         }
 
@@ -211,6 +219,7 @@ class CommandeController extends Controller
         }
 
         // Free the table if it was occupied only by this order
+        /** @var \App\Models\Table|null $table */
         $table = $commande->table()->first();
         if ($table && $table->statut === TableStatus::Occupee) {
             $otherActiveOrders = $table->commandes()

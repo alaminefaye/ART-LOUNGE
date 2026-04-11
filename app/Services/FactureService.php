@@ -186,6 +186,7 @@ class FactureService
         $commande->load(['table', 'produits', 'user', 'client', 'paiements.facture']);
 
         $facture = $commande->facture;
+        /** @var \App\Models\Paiement|null $paiement */
         $paiement = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)->latest()->first();
         $paiement?->loadMissing('user');
 

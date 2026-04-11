@@ -211,7 +211,9 @@ class AuthService extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         final list = data['data'] as List? ?? [];
-        return list.map((e) => Serveur.fromJson(e as Map<String, dynamic>)).toList();
+        return list
+            .map((e) => Serveur.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       return [];
     } catch (_) {

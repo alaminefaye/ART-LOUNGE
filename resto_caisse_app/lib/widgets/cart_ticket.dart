@@ -236,6 +236,7 @@ class CartTicket extends StatelessWidget {
                                         final updated = await OrderService().getOrder(cart.activeOrder!.id);
                                         if (updated != null) cart.syncWithOrder(updated);
                                       } else {
+                                        if (!context.mounted) return;
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(content: Text('Erreur: ${res['message']}'), backgroundColor: Colors.red),
                                         );

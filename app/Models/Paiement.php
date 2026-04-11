@@ -81,7 +81,7 @@ class Paiement extends Model
     public function calculerMonnaie(): void
     {
         if ($this->moyen_paiement === \App\Enums\MoyenPaiement::Especes && $this->montant_recu) {
-            $this->monnaie_rendue = $this->montant_recu - $this->montant;
+            $this->setAttribute('monnaie_rendue', $this->montant_recu - $this->montant);
             $this->save();
         }
     }

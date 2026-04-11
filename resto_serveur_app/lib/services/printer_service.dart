@@ -3,7 +3,6 @@ import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
-import '../config/app_theme.dart';
 import '../models/invoice.dart';
 import '../models/order.dart';
 import '../utils/formatters.dart';

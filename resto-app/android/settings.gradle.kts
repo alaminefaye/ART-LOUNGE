@@ -1,3 +1,5 @@
+rootProject.name = "resto_app_android"
+
 pluginManagement {
     val flutterSdkPath =
         run {

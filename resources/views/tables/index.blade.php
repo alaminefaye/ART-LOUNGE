@@ -117,7 +117,7 @@
                     <span class="badge bg-{{ $statusColor }} w-100 py-2">{{ strtoupper($statusLabel) }}</span>
 
                     @if($isVip && $table->prix)
-                        <p class="text-muted small mt-1 mb-0">{{ number_format($table->prix, 0, ',', ' ') }} FCFA</p>
+                        <p class="text-muted small mt-1 mb-0">{{ number_format((float) $table->prix, 0, ',', ' ') }} FCFA</p>
                     @endif
 
                     <div class="mt-3 d-flex justify-content-center gap-1">

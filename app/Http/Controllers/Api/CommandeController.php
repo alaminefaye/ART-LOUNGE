@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Enums\MoyenPaiement;
 use App\Enums\OrderStatus;
 use App\Enums\StatutPaiement;
+use App\Enums\TableStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -107,10 +108,10 @@ class CommandeController extends Controller
             }
         }
 
-        $sortDir = strtolower((string) $request->get('sort', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $sortDir = strtolower((string) $request->input('sort', 'desc')) === 'asc' ? 'asc' : 'desc';
         $query->orderBy('created_at', $sortDir);
 
-        $limit = min(max((int) $request->get('limit', 500), 1), 1000);
+        $limit = min(max((int) $request->input('limit', 500), 1), 1000);
         $commandes = $query->limit($limit)->get();
 
         return response()->json([
@@ -315,7 +316,8 @@ class CommandeController extends Controller
         }
 
         // Récupérer le paiement validé de la commande
-        $paiementValide = $commande->paiements()->where('statut', \App\Enums\StatutPaiement::Valide)->latest()->first();
+        /** @var \App\Models\Paiement|null $paiementValide */
+        $paiementValide = $commande->paiements()->where('statut', StatutPaiement::Valide)->latest()->first();
         $paiementValide?->loadMissing('user');
 
         if (!$paiementValide || !$paiementValide->facture) {
@@ -404,7 +406,21 @@ class CommandeController extends Controller
 
         $commande->update($validator->validated());
 
-        // Gérer l'ajout de produits en mode "Brouillon"
+        // Free the table if the order was just cancelled or terminated
+        $freshStatut = $commande->fresh()->statut;
+        if ($freshStatut === OrderStatus::Annulee || $freshStatut === OrderStatus::Terminee) {
+            $table = $commande->table()->first();
+            if ($table && $table->statut === TableStatus::Occupee) {
+                $otherActive = $table->commandes()
+                    ->where('id', '!=', $commande->id)
+                    ->whereNotIn('statut', [OrderStatus::Terminee->value, OrderStatus::Annulee->value])
+                    ->count();
+                if ($otherActive === 0) {
+                    $table->liberer();
+                }
+            }
+        }
+
         if ($request->has('produits') && is_array($request->produits)) {
              foreach ($request->produits as $item) {
                  if (isset($item['id']) && isset($item['quantite'])) {
@@ -685,7 +701,22 @@ class CommandeController extends Controller
             ], 403);
         }
 
-        $commande->update(['statut' => OrderStatus::from($validator->validated()['statut'])]);
+        $newStatut = OrderStatus::from($validator->validated()['statut']);
+        $commande->update(['statut' => $newStatut]);
+
+        // Free the table if cancelled or terminated and no other active orders remain
+        if ($newStatut === OrderStatus::Annulee || $newStatut === OrderStatus::Terminee) {
+            $table = $commande->table()->first();
+            if ($table && $table->statut === TableStatus::Occupee) {
+                $otherActive = $table->commandes()
+                    ->where('id', '!=', $commande->id)
+                    ->whereNotIn('statut', [OrderStatus::Terminee->value, OrderStatus::Annulee->value])
+                    ->count();
+                if ($otherActive === 0) {
+                    $table->liberer();
+                }
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -712,7 +743,7 @@ class CommandeController extends Controller
             return;
         }
 
-        $fcmService = app(\App\Services\FCMService::class);
+        $fcmService = app(FCMService::class);
         $tableModel = $commande->table()->first();
         $tableNumber = $tableModel ? $tableModel->numero : 'Inconnue';
 
@@ -780,11 +811,11 @@ class CommandeController extends Controller
             'statut_display' => $commande->statut_display,
             'montant_total' => (float) $commande->montant_total,
             'reduction_fidelite' => (float) $commande->paiements()
-                ->where('moyen_paiement', \App\Enums\MoyenPaiement::PointsFidelite)
-                ->where('statut', \App\Enums\StatutPaiement::Valide)
+                ->where('moyen_paiement', MoyenPaiement::PointsFidelite)
+                ->where('statut', StatutPaiement::Valide)
                 ->sum('montant'),
             'points_utilises' => (int) $commande->paiements()
-                ->where('statut', \App\Enums\StatutPaiement::Valide)
+                ->where('statut', StatutPaiement::Valide)
                 ->sum('points_utilises'),
             'notes' => $commande->notes,
             'produits' => $commande->produits->map(function($produit) {

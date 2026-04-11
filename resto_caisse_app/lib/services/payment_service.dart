@@ -119,11 +119,11 @@ class PaymentService {
       final body = <String, dynamic>{
         'commande_id': commandeId,
         'moyen_paiement': moyenPaiement.value,
-        if (transactionId != null && transactionId.isNotEmpty)
-          'transaction_id': transactionId,
-        if (notes != null && notes.isNotEmpty) 'notes': notes,
-        if (clientId != null) 'client_id': clientId,
       };
+      if (transactionId != null && transactionId.isNotEmpty) body['transaction_id'] = transactionId;
+      if (notes != null && notes.isNotEmpty) body['notes'] = notes;
+      if (clientId != null) body['client_id'] = clientId;
+      
       if (pointsUtilises != null && pointsUtilises > 0) {
         body['points_utilises'] = pointsUtilises;
       }

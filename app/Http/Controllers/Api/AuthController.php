@@ -607,7 +607,7 @@ class AuthController extends Controller
 
         // No user_id — try PIN against ALL staff (shared-tablet flow, no selection)
         $roles = ['serveur', 'manager', 'admin', 'superadmin'];
-        $existingRoles = \Spatie\Permission\Models\Role::whereIn('name', $roles)
+        $existingRoles = Role::whereIn('name', $roles)
             ->where('guard_name', 'web')
             ->pluck('name')
             ->toArray();
@@ -641,7 +641,7 @@ class AuthController extends Controller
     {
         $roles = ['serveur', 'manager', 'admin', 'superadmin'];
 
-        $existingRoles = \Spatie\Permission\Models\Role::whereIn('name', $roles)
+        $existingRoles = Role::whereIn('name', $roles)
             ->where('guard_name', 'web')
             ->pluck('name')
             ->toArray();

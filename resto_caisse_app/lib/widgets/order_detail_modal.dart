@@ -567,8 +567,9 @@ class _OrderDetailModalState extends State<OrderDetailModal> {
                                 builder: (ctx) => PaymentSelectionDialog(existingOrder: _order),
                               );
                               if (success == true) {
+                                if (!mounted) return;
                                 widget.onOrderUpdated();
-                                if (mounted) {
+                                if (context.mounted) {
                                   Navigator.pop(context);
                                 }
                               }

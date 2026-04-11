@@ -107,6 +107,7 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
         int? serveurSelection = widget.cart!.serveurId;
         if (serveurSelection == null) {
            setState(() => _isLoading = false);
+           if (!mounted) return;
            serveurSelection = await showDialog<int>(
              context: context,
              barrierDismissible: true,

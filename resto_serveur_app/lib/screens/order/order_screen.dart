@@ -19,7 +19,9 @@ class _CartItem {
   int quantity;
   String note;
 
-  _CartItem({required this.product, this.quantity = 1, this.note = ''});
+  _CartItem({required this.product})
+      : quantity = 1,
+        note = '';
 
   double get total => product.prix * quantity;
 }
@@ -88,14 +90,13 @@ class _OrderScreenState extends State<OrderScreen> {
           _categories = results[0] as List<Category>;
           _products = results[1] as List<Product>;
           // Only keep active (non-finished) orders
-          _activeOrders =
-              allOrders
-                  .where(
-                    (o) =>
-                        o.statut == OrderStatus.attente ||
-                        o.statut == OrderStatus.preparation,
-                  )
-                  .toList();
+          _activeOrders = allOrders
+              .where(
+                (o) =>
+                    o.statut == OrderStatus.attente ||
+                    o.statut == OrderStatus.preparation,
+              )
+              .toList();
           _isLoadingMenu = false;
         });
       }
@@ -152,10 +153,9 @@ class _OrderScreenState extends State<OrderScreen> {
       list = list.where((p) => p.categorieId == _selectedCategoryId).toList();
     }
     if (_searchQuery.isNotEmpty) {
-      list =
-          list
-              .where((p) => p.nom.toLowerCase().contains(_searchQuery))
-              .toList();
+      list = list
+          .where((p) => p.nom.toLowerCase().contains(_searchQuery))
+          .toList();
     }
     return list;
   }
@@ -170,30 +170,28 @@ class _OrderScreenState extends State<OrderScreen> {
 
     setState(() => _isSendingOrder = true);
 
-    final newItems =
-        _cart
-            .map(
-              (item) => OrderItem(
-                produitId: item.product.id,
-                produitNom: item.product.nom,
-                prix: item.product.prix,
-                quantite: item.quantity,
-                statut: 'envoye',
-                servi: false,
-              ),
-            )
-            .toList();
+    final newItems = _cart
+        .map(
+          (item) => OrderItem(
+            produitId: item.product.id,
+            produitNom: item.product.nom,
+            prix: item.product.prix,
+            quantite: item.quantity,
+            statut: 'envoye',
+            servi: false,
+          ),
+        )
+        .toList();
 
-    final produits =
-        _cart
-            .map(
-              (item) => {
-                'produit_id': item.product.id,
-                'quantite': item.quantity,
-                if (item.note.isNotEmpty) 'notes': item.note,
-              },
-            )
-            .toList();
+    final produits = _cart
+        .map(
+          (item) => {
+            'produit_id': item.product.id,
+            'quantite': item.quantity,
+            if (item.note.isNotEmpty) 'notes': item.note,
+          },
+        )
+        .toList();
 
     Map<String, dynamic> result;
     if (_activeOrders.isNotEmpty) {
@@ -229,12 +227,11 @@ class _OrderScreenState extends State<OrderScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder:
-                    (_) => PrinterScreen(
-                      order: sentOrder,
-                      serveurName: confirmedWaiter.name,
-                      newItems: newItems,
-                    ),
+                builder: (_) => PrinterScreen(
+                  order: sentOrder,
+                  serveurName: confirmedWaiter.name,
+                  newItems: newItems,
+                ),
               ),
             );
           }
@@ -253,11 +250,10 @@ class _OrderScreenState extends State<OrderScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (_) => PrinterScreen(
-              order: activeOrder,
-              serveurName: widget.serveur?.name ?? '',
-            ),
+        builder: (_) => PrinterScreen(
+          order: activeOrder,
+          serveurName: widget.serveur?.name ?? '',
+        ),
       ),
     );
   }
@@ -271,16 +267,15 @@ class _OrderScreenState extends State<OrderScreen> {
     final authService = Provider.of<AuthService>(context, listen: false);
     final result = await showDialog<Serveur>(
       context: context,
-      builder:
-          (context) => _AdminPinDialog(
-            authService: authService,
-            actionName: actionName,
-          ),
+      builder: (context) => _AdminPinDialog(
+        authService: authService,
+        actionName: actionName,
+      ),
     );
     if (result != null) {
-      if (result.hasRole('admin') || 
-          result.hasRole('gerant') || 
-          result.hasRole('manager') || 
+      if (result.hasRole('admin') ||
+          result.hasRole('gerant') ||
+          result.hasRole('manager') ||
           result.hasRole('super-admin')) {
         await action();
       } else {
@@ -297,7 +292,7 @@ class _OrderScreenState extends State<OrderScreen> {
 
   Future<void> _cancelOrder() async {
     if (_activeOrders.isEmpty) return;
-    
+
     await _requireAdminPinAndExecute(
       actionName: 'Annuler la commande #${_activeOrders.first.id}',
       action: () async {
@@ -307,13 +302,17 @@ class _OrderScreenState extends State<OrderScreen> {
         if (res['success'] == true) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Commande annulée avec succès'), backgroundColor: Colors.green),
+            const SnackBar(
+                content: Text('Commande annulée avec succès'),
+                backgroundColor: Colors.green),
           );
           Navigator.pop(context, true); // Go back, order is cancelled
         } else {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(res['message'] ?? 'Erreur'), backgroundColor: Colors.red),
+            SnackBar(
+                content: Text(res['message'] ?? 'Erreur'),
+                backgroundColor: Colors.red),
           );
         }
       },
@@ -327,18 +326,23 @@ class _OrderScreenState extends State<OrderScreen> {
       actionName: 'Supprimer: ${item.quantite}x ${item.produitNom}',
       action: () async {
         setState(() => _isSendingOrder = true);
-        final res = await _orderService.removeProductFromOrder(_activeOrders.first.id, item.produitId);
+        final res = await _orderService.removeProductFromOrder(
+            _activeOrders.first.id, item.produitId);
         if (res['success'] == true) {
           await _loadData();
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Produit supprimé'), backgroundColor: Colors.green),
+            const SnackBar(
+                content: Text('Produit supprimé'),
+                backgroundColor: Colors.green),
           );
         } else {
           setState(() => _isSendingOrder = false);
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(res['message'] ?? 'Erreur'), backgroundColor: Colors.red),
+            SnackBar(
+                content: Text(res['message'] ?? 'Erreur'),
+                backgroundColor: Colors.red),
           );
         }
       },
@@ -352,12 +356,11 @@ class _OrderScreenState extends State<OrderScreen> {
     return await showDialog<Serveur>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (ctx) => _PinConfirmDialog(
-            authService: authService,
-            cartCount: _cartCount,
-            cartTotal: _cartTotal,
-          ),
+      builder: (ctx) => _PinConfirmDialog(
+        authService: authService,
+        cartCount: _cartCount,
+        cartTotal: _cartTotal,
+      ),
     );
   }
 
@@ -424,23 +427,23 @@ class _OrderScreenState extends State<OrderScreen> {
         return Scaffold(
           backgroundColor: AppTheme.scaffoldBg,
           appBar: _buildAppBar(),
-          floatingActionButton:
-              isMobile && (_cart.isNotEmpty || _activeOrders.isNotEmpty)
-                  ? FloatingActionButton.extended(
-                    onPressed: () => setState(() => _showTicketOnMobile = true),
-                    backgroundColor: AppTheme.brandGold,
-                    icon: const Icon(Icons.receipt_long, color: Colors.white),
-                    label: Text(
-                      _cart.isNotEmpty
-                          ? '${Formatters.formatCurrency(_cartTotal)} ($_cartCount)'
-                          : 'Voir la commande',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+          floatingActionButton: isMobile &&
+                  (_cart.isNotEmpty || _activeOrders.isNotEmpty)
+              ? FloatingActionButton.extended(
+                  onPressed: () => setState(() => _showTicketOnMobile = true),
+                  backgroundColor: AppTheme.brandGold,
+                  icon: const Icon(Icons.receipt_long, color: Colors.white),
+                  label: Text(
+                    _cart.isNotEmpty
+                        ? '${Formatters.formatCurrency(_cartTotal)} ($_cartCount)'
+                        : 'Voir la commande',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
-                  )
-                  : null,
+                  ),
+                )
+              : null,
           body: Stack(
             children: [
               Row(
@@ -467,10 +470,9 @@ class _OrderScreenState extends State<OrderScreen> {
                       child: Row(
                         children: [
                           GestureDetector(
-                            onTap:
-                                () => setState(
-                                  () => _showTicketOnMobile = false,
-                                ),
+                            onTap: () => setState(
+                              () => _showTicketOnMobile = false,
+                            ),
                             child: Container(
                               width: 56,
                               color: Colors.transparent,
@@ -540,8 +542,7 @@ class _OrderScreenState extends State<OrderScreen> {
             const SizedBox(width: 8),
             Flexible(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.orange.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
@@ -617,13 +618,12 @@ class _OrderScreenState extends State<OrderScreen> {
               filled: true,
               fillColor: Colors.grey.shade100,
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
-              suffixIcon:
-                  _searchQuery.isNotEmpty
-                      ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () => _searchController.clear(),
-                      )
-                      : null,
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () => _searchController.clear(),
+                    )
+                  : null,
             ),
           ),
         ),
@@ -639,15 +639,13 @@ class _OrderScreenState extends State<OrderScreen> {
             itemBuilder: (_, i) {
               final isAll = i == 0;
               final cat = isAll ? null : _categories[i - 1];
-              final isSelected =
-                  isAll
-                      ? _selectedCategoryId == null
-                      : _selectedCategoryId == cat!.id;
+              final isSelected = isAll
+                  ? _selectedCategoryId == null
+                  : _selectedCategoryId == cat!.id;
               return GestureDetector(
-                onTap:
-                    () => setState(
-                      () => _selectedCategoryId = isAll ? null : cat!.id,
-                    ),
+                onTap: () => setState(
+                  () => _selectedCategoryId = isAll ? null : cat!.id,
+                ),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   margin: const EdgeInsets.only(right: 8),
@@ -657,16 +655,15 @@ class _OrderScreenState extends State<OrderScreen> {
                     color:
                         isSelected ? AppTheme.brandGold : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow:
-                        isSelected
-                            ? [
-                              BoxShadow(
-                                color: AppTheme.brandGold.withValues(alpha: 0.3),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ]
-                            : [],
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: AppTheme.brandGold.withValues(alpha: 0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : [],
                   ),
                   child: Text(
                     isAll ? 'Tous' : cat!.nom,
@@ -686,39 +683,36 @@ class _OrderScreenState extends State<OrderScreen> {
 
         // Products grid
         Expanded(
-          child:
-              _filteredProducts.isEmpty
-                  ? const Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.restaurant_menu, size: 48, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text(
-                          'Aucun plat trouvé',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  )
-                  : GridView.builder(
-                    padding: const EdgeInsets.all(12),
-                    gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 200,
-                          childAspectRatio: 0.78,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                        ),
-                    itemCount: _filteredProducts.length,
-                    itemBuilder:
-                        (_, i) => _ProductCard(
-                          product: _filteredProducts[i],
-                          quantity: _cartQtyFor(_filteredProducts[i]),
-                          onAdd: () => _addToCart(_filteredProducts[i]),
-                          onRemove: () => _removeFromCart(_filteredProducts[i]),
-                        ),
+          child: _filteredProducts.isEmpty
+              ? const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.restaurant_menu, size: 48, color: Colors.grey),
+                      SizedBox(height: 8),
+                      Text(
+                        'Aucun plat trouvé',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
                   ),
+                )
+              : GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 200,
+                    childAspectRatio: 0.78,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemCount: _filteredProducts.length,
+                  itemBuilder: (_, i) => _ProductCard(
+                    product: _filteredProducts[i],
+                    quantity: _cartQtyFor(_filteredProducts[i]),
+                    onAdd: () => _addToCart(_filteredProducts[i]),
+                    onRemove: () => _removeFromCart(_filteredProducts[i]),
+                  ),
+                ),
         ),
       ],
     );
@@ -761,7 +755,8 @@ class _OrderScreenState extends State<OrderScreen> {
       decoration: const BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Color(0x14000000), blurRadius: 20, offset: Offset(-4, 0)),
+          BoxShadow(
+              color: Color(0x14000000), blurRadius: 20, offset: Offset(-4, 0)),
         ],
       ),
       child: Column(
@@ -820,19 +815,18 @@ class _OrderScreenState extends State<OrderScreen> {
 
           // Cart items or empty state
           Expanded(
-            child:
-                _cart.isEmpty
-                    ? _buildEmptyCart()
-                    : ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: _cart.length,
-                      itemBuilder: (_, i) => _CartLineItem(
-                        item: _cart[i],
-                        onAdd: () => _addToCart(_cart[i].product),
-                        onRemove: () => _removeFromCart(_cart[i].product),
-                        onDelete: () => _removeLineFromCart(i),
-                      ),
+            child: _cart.isEmpty
+                ? _buildEmptyCart()
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: _cart.length,
+                    itemBuilder: (_, i) => _CartLineItem(
+                      item: _cart[i],
+                      onAdd: () => _addToCart(_cart[i].product),
+                      onRemove: () => _removeFromCart(_cart[i].product),
+                      onDelete: () => _removeLineFromCart(i),
                     ),
+                  ),
           ),
 
           // Existing order summary (if any)
@@ -910,60 +904,60 @@ class _OrderScreenState extends State<OrderScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
             child: Column(
-              children:
-                  items
-                      .map(
-                        (item) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 3),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 20,
-                                height: 20,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  '${item.quantite}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black54,
-                                  ),
-                                ),
+              children: items
+                  .map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 20,
+                            height: 20,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '${item.quantite}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  item.produitNom,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                Formatters.formatCurrency(item.total),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black45,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () => _removeProduct(item),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(4.0),
-                                  child: Icon(Icons.close, color: Colors.red, size: 18),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      )
-                      .toList(),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              item.produitNom,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            Formatters.formatCurrency(item.total),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black45,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => _removeProduct(item),
+                            child: const Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Icon(Icons.close,
+                                  color: Colors.red, size: 18),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ],
@@ -1017,23 +1011,22 @@ class _OrderScreenState extends State<OrderScreen> {
                 ),
                 elevation: _cart.isEmpty ? 0 : 2,
               ),
-              icon:
-                  _isSendingOrder
-                      ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                      : const Icon(Icons.send_rounded, size: 20),
+              icon: _isSendingOrder
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(Icons.send_rounded, size: 20),
               label: Text(
                 _isSendingOrder
                     ? 'Envoi en cuisine...'
                     : hasActiveOrder
-                    ? 'Ajouter à la commande'
-                    : 'Envoyer en cuisine',
+                        ? 'Ajouter à la commande'
+                        : 'Envoyer en cuisine',
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -1124,10 +1117,9 @@ class _ProductCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color:
-                  inCart
-                      ? AppTheme.brandGold.withValues(alpha: 0.15)
-                      : Colors.black.withValues(alpha: 0.04),
+              color: inCart
+                  ? AppTheme.brandGold.withValues(alpha: 0.15)
+                  : Colors.black.withValues(alpha: 0.04),
               blurRadius: inCart ? 12 : 6,
               offset: const Offset(0, 3),
             ),
@@ -1145,34 +1137,12 @@ class _ProductCard extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(12),
                     ),
-                    child:
-                        product.imageUrl.isNotEmpty
-                            ? CachedNetworkImage(
-                              imageUrl: product.imageUrl,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              placeholder:
-                                  (_, __) => Container(
-                                    color: Colors.white,
-                                    padding: const EdgeInsets.all(12),
-                                    child: Image.asset(
-                                      'assets/logo.png',
-                                      fit: BoxFit.contain,
-                                      opacity: const AlwaysStoppedAnimation(0.4),
-                                    ),
-                                  ),
-                              errorWidget:
-                                  (_, __, ___) => Container(
-                                    color: Colors.white,
-                                    padding: const EdgeInsets.all(12),
-                                    child: Image.asset(
-                                      'assets/logo.png',
-                                      fit: BoxFit.contain,
-                                      opacity: const AlwaysStoppedAnimation(0.4),
-                                    ),
-                                  ),
-                            )
-                            : Container(
+                    child: product.imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: product.imageUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            placeholder: (_, __) => Container(
                               color: Colors.white,
                               padding: const EdgeInsets.all(12),
                               child: Image.asset(
@@ -1181,6 +1151,25 @@ class _ProductCard extends StatelessWidget {
                                 opacity: const AlwaysStoppedAnimation(0.4),
                               ),
                             ),
+                            errorWidget: (_, __, ___) => Container(
+                              color: Colors.white,
+                              padding: const EdgeInsets.all(12),
+                              child: Image.asset(
+                                'assets/logo.png',
+                                fit: BoxFit.contain,
+                                opacity: const AlwaysStoppedAnimation(0.4),
+                              ),
+                            ),
+                          )
+                        : Container(
+                            color: Colors.white,
+                            padding: const EdgeInsets.all(12),
+                            child: Image.asset(
+                              'assets/logo.png',
+                              fit: BoxFit.contain,
+                              opacity: const AlwaysStoppedAnimation(0.4),
+                            ),
+                          ),
                   ),
                   if (inCart)
                     Positioned(
@@ -1294,10 +1283,12 @@ class _ProductCard extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.all(3),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.brandGold.withValues(alpha: 0.1),
+                                    color: AppTheme.brandGold
+                                        .withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: AppTheme.brandGold.withValues(alpha: 0.4),
+                                      color: AppTheme.brandGold
+                                          .withValues(alpha: 0.4),
                                     ),
                                   ),
                                   child: const Icon(
@@ -1380,7 +1371,8 @@ class _CartLineItem extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppTheme.brandGold.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
-                border: Border.all(color: AppTheme.brandGold.withValues(alpha: 0.4)),
+                border: Border.all(
+                    color: AppTheme.brandGold.withValues(alpha: 0.4)),
               ),
               child: const Icon(Icons.add, color: AppTheme.brandGold, size: 14),
             ),
@@ -1456,7 +1448,8 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
       _isVerifying = true;
       _error = null;
     });
-    final result = await widget.authService.checkPinOnly(_pinController.text.trim());
+    final result =
+        await widget.authService.checkPinOnly(_pinController.text.trim());
     if (!mounted) return;
     if (result != null) {
       Navigator.pop(context, result);
@@ -1522,14 +1515,16 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
             decoration: InputDecoration(
               hintText: '• • • •',
               hintStyle: TextStyle(color: Colors.grey.shade400),
-              prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.brandGold),
+              prefixIcon:
+                  const Icon(Icons.lock_outline, color: AppTheme.brandGold),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: AppTheme.brandGold),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.brandGold, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.brandGold, width: 2),
               ),
               errorText: _error,
             ),
@@ -1550,17 +1545,17 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          child:
-              _isVerifying
-                  ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                  : const Text('Envoyer', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: _isVerifying
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : const Text('Envoyer',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -1594,7 +1589,8 @@ class _AdminPinDialogState extends State<_AdminPinDialog> {
       _isVerifying = true;
       _error = null;
     });
-    final result = await widget.authService.checkPinOnly(_pinController.text.trim());
+    final result =
+        await widget.authService.checkPinOnly(_pinController.text.trim());
     if (!mounted) return;
     if (result != null) {
       Navigator.pop(context, result);
@@ -1673,13 +1669,13 @@ class _AdminPinDialogState extends State<_AdminPinDialog> {
           ),
           child: _isVerifying
               ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
               : const Text('Valider'),
         ),
       ],

@@ -14,7 +14,7 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $days = (int) $request->get('periode', 30);
+        $days = (int) $request->input('periode', 30);
         if (! in_array($days, [7, 30, 90], true)) {
             $days = 30;
         }
