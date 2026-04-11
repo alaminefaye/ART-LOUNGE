@@ -62,22 +62,33 @@ class CartTicket extends StatelessWidget {
                           ),
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.brandGold.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '${cart.itemCount} articles',
-                        style: const TextStyle(
-                          color: AppTheme.brandGold,
-                          fontWeight: FontWeight.w600,
+                    Row(
+                      children: [
+                        if (cart.isNotEmpty)
+                          IconButton(
+                            onPressed: () => cart.clear(),
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            tooltip: 'Vider le chariot',
+                          ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.brandGold.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${cart.itemCount} articles',
+                            style: const TextStyle(
+                              color: AppTheme.brandGold,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -276,17 +287,43 @@ class CartTicket extends StatelessWidget {
                     const SizedBox(height: 24),
                     Row(
                       children: [
-                        // Annuler / Vider
-                        ElevatedButton(
-                          onPressed: cart.isEmpty ? null : () => cart.clear(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red.shade50,
-                            foregroundColor: Colors.red,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        // Annuler Commande
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: (cart.activeOrder == null) ? null : () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (c) => PinVerificationDialog(
+                                  title: 'Autorisation requise pour annuler la commande #${cart.activeOrder!.id}',
+                                  requireAdmin: true,
+                                ),
+                              );
+
+                              if (confirm == true && context.mounted) {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
+                                );
+                                
+                                try {
+                                  await OrderService().updateOrderStatus(cart.activeOrder!.id, OrderStatus.annulee);
+                                  cart.clear(); // Vider l'écran après
+                                } finally {
+                                  if (context.mounted) Navigator.pop(context); // Fermer le loader
+                                }
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red.shade50,
+                              foregroundColor: Colors.red,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text('ANNULER', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                           ),
-                          child: const Icon(Icons.delete_outline),
                         ),
                         const SizedBox(width: 8),
 
@@ -304,7 +341,7 @@ class CartTicket extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(vertical: 20),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text('FACTURE', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                            child: const Text('FACTURE', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -322,7 +359,7 @@ class CartTicket extends StatelessWidget {
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text('ENVOYER', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            child: const Text('ENVOYER', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -340,7 +377,7 @@ class CartTicket extends StatelessWidget {
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text('PAYER', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            child: const Text('PAYER', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ],

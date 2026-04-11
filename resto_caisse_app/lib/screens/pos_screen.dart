@@ -106,11 +106,20 @@ class _PosScreenState extends State<PosScreen> {
 
   List<Product> get _filteredProducts {
     var list = _products;
+    
+    // Si une recherche est en cours, on ignore le filtre de catégorie pour faire une recherche globale
+    if (_searchQuery.isNotEmpty) {
+      return list.where((p) {
+        final searchLower = _searchQuery.toLowerCase();
+        final nameMatch = p.nom.toLowerCase().contains(searchLower);
+        final descMatch = p.description?.toLowerCase().contains(searchLower) ?? false;
+        return nameMatch || descMatch;
+      }).toList();
+    }
+
+    // Sinon, on applique le filtre de catégorie classique
     if (_selectedCategoryId != null) {
       list = list.where((p) => p.categorieId == _selectedCategoryId).toList();
-    }
-    if (_searchQuery.isNotEmpty) {
-      list = list.where((p) => p.nom.toLowerCase().contains(_searchQuery)).toList();
     }
     return list;
   }
@@ -205,7 +214,26 @@ class _PosScreenState extends State<PosScreen> {
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 32),
                             child: _filteredProducts.isEmpty
-                                ? const Center(child: Text('Aucun produit trouvé', style: TextStyle(fontSize: 18, color: Colors.grey)))
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.search_off, size: 64, color: Colors.grey.shade300),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          _searchQuery.isNotEmpty 
+                                              ? 'Aucun résultat pour "$_searchQuery"' 
+                                              : 'Aucun produit dans cette catégorie',
+                                          style: const TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.w500),
+                                        ),
+                                        if (_searchQuery.isNotEmpty)
+                                          TextButton(
+                                            onPressed: () => setState(() => _searchQuery = ''),
+                                            child: const Text('Effacer la recherche', style: TextStyle(color: AppTheme.brandGold)),
+                                          )
+                                      ],
+                                    ),
+                                  )
                                 : GridView.builder(
                                     padding: const EdgeInsets.only(bottom: 80),
                                     gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
@@ -292,11 +320,27 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   Widget _buildSearchField() {
+    final TextEditingController controller = TextEditingController.fromValue(
+      TextEditingValue(
+        text: _searchQuery,
+        selection: TextSelection.collapsed(offset: _searchQuery.length),
+      ),
+    );
+
     return TextField(
-      onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+      controller: controller,
+      onChanged: (val) {
+        setState(() => _searchQuery = val.toLowerCase());
+      },
       decoration: InputDecoration(
-        hintText: 'Rechercher...',
+        hintText: 'Rechercher un plat ou une boisson...',
         prefixIcon: const Icon(Icons.search, color: Colors.grey),
+        suffixIcon: _searchQuery.isNotEmpty 
+            ? IconButton(
+                icon: const Icon(Icons.clear, size: 20),
+                onPressed: () => setState(() => _searchQuery = ''),
+              )
+            : null,
         filled: true,
         fillColor: AppTheme.backgroundColor,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
