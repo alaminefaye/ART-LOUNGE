@@ -24,10 +24,7 @@ class AuthService extends ChangeNotifier {
     try {
       final response = await _apiService.post(
         ApiConfig.setPin,
-        data: {
-          'old_pin': oldPin,
-          'new_pin': newPin,
-        },
+        data: {'old_pin': oldPin, 'new_pin': newPin},
       );
 
       if (response.statusCode == 200) {
@@ -35,12 +32,14 @@ class AuthService extends ChangeNotifier {
       }
       return {
         'success': false,
-        'message': response.data['message'] ?? 'Erreur lors du changement de PIN'
+        'message':
+            response.data['message'] ?? 'Erreur lors du changement de PIN',
       };
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Erreur réseau ou PIN incorrect'
+        'message':
+            e.response?.data['message'] ?? 'Erreur réseau ou PIN incorrect',
       };
     }
   }
@@ -56,22 +55,20 @@ class AuthService extends ChangeNotifier {
       if (userId != null) {
         data['user_id'] = userId.toString();
       }
-      final response = await _apiService.post(
-        ApiConfig.verifyPin,
-        data: data,
-      );
+      final response = await _apiService.post(ApiConfig.verifyPin, data: data);
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         return {'success': true};
       }
       return {
         'success': false,
-        'message': response.data['message'] ?? 'PIN incorrect'
+        'message': response.data['message'] ?? 'PIN incorrect',
       };
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Erreur réseau ou PIN incorrect'
+        'message':
+            e.response?.data['message'] ?? 'Erreur réseau ou PIN incorrect',
       };
     }
   }
@@ -110,7 +107,8 @@ class AuthService extends ChangeNotifier {
         final data = response.data as Map<String, dynamic>;
         _token = data['token'] as String?;
         if (data['user'] != null) {
-          final hasFullResponse = data['client'] != null ||
+          final hasFullResponse =
+              data['client'] != null ||
               data['fidelity_settings'] != null ||
               data['payment_method_settings'] != null;
           _currentUser = hasFullResponse
@@ -130,7 +128,7 @@ class AuthService extends ChangeNotifier {
       } else {
         return {
           'success': false,
-          'message': 'Erreur d\'inscription (${response.statusCode})'
+          'message': 'Erreur d\'inscription (${response.statusCode})',
         };
       }
     } on DioException catch (e) {
@@ -179,7 +177,7 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       return {
         'success': false,
-        'message': 'Erreur inattendue: ${e.toString()}'
+        'message': 'Erreur inattendue: ${e.toString()}',
       };
     }
   }
@@ -188,8 +186,8 @@ class AuthService extends ChangeNotifier {
   Future<bool> _hasConnectivity() async {
     // Sur Windows/Desktop, le plugin connectivity_plus est parfois instable.
     // On autorise la tentative d'appel API par défaut sur ces plateformes.
-    if (defaultTargetPlatform == TargetPlatform.windows || 
-        defaultTargetPlatform == TargetPlatform.macOS || 
+    if (defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.macOS ||
         defaultTargetPlatform == TargetPlatform.linux) {
       return true;
     }
@@ -213,7 +211,9 @@ class AuthService extends ChangeNotifier {
 
   // Login (accepte email ou téléphone)
   Future<Map<String, dynamic>> login(
-      String emailOrPhone, String password) async {
+    String emailOrPhone,
+    String password,
+  ) async {
     final hasNetwork = await _hasConnectivity();
     if (!hasNetwork) {
       return {
@@ -235,7 +235,8 @@ class AuthService extends ChangeNotifier {
         final data = response.data as Map<String, dynamic>;
         _token = data['token'] as String?;
         if (data['user'] != null) {
-          final hasFullResponse = data['client'] != null ||
+          final hasFullResponse =
+              data['client'] != null ||
               data['fidelity_settings'] != null ||
               data['payment_method_settings'] != null;
           _currentUser = hasFullResponse
@@ -255,7 +256,7 @@ class AuthService extends ChangeNotifier {
       } else {
         return {
           'success': false,
-          'message': 'Erreur de connexion (${response.statusCode})'
+          'message': 'Erreur de connexion (${response.statusCode})',
         };
       }
     } on DioException catch (e) {
@@ -306,7 +307,7 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       return {
         'success': false,
-        'message': 'Erreur inattendue: ${e.toString()}'
+        'message': 'Erreur inattendue: ${e.toString()}',
       };
     }
   }
@@ -324,16 +325,15 @@ class AuthService extends ChangeNotifier {
     try {
       final response = await _apiService.post(
         '/auth/login-pin-only',
-        data: {
-          'pin': pin,
-        },
+        data: {'pin': pin},
       );
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         _token = data['token'] as String?;
         if (data['user'] != null) {
-          final hasFullResponse = data['client'] != null ||
+          final hasFullResponse =
+              data['client'] != null ||
               data['fidelity_settings'] != null ||
               data['payment_method_settings'] != null;
           _currentUser = hasFullResponse
@@ -353,7 +353,7 @@ class AuthService extends ChangeNotifier {
       } else {
         return {
           'success': false,
-          'message': 'Erreur de connexion (${response.statusCode})'
+          'message': 'Erreur de connexion (${response.statusCode})',
         };
       }
     } on DioException catch (e) {
@@ -373,9 +373,7 @@ class AuthService extends ChangeNotifier {
         }
 
         if (e.response?.statusCode == 422) {
-          message = message.isNotEmpty
-              ? message
-              : 'Code PIN incorrect.';
+          message = message.isNotEmpty ? message : 'Code PIN incorrect.';
         } else if (e.response?.statusCode == 403) {
           message = 'Accès refusé';
         } else if (e.response?.statusCode == 500) {
@@ -393,14 +391,17 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       return {
         'success': false,
-        'message': 'Erreur inattendue: ${e.toString()}'
+        'message': 'Erreur inattendue: ${e.toString()}',
       };
     }
   }
 
-
   // Changer de mot de passe
-  Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword, String confirmPassword) async {
+  Future<Map<String, dynamic>> changePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmPassword,
+  ) async {
     try {
       final response = await _apiService.put(
         '/auth/update-password',
@@ -410,7 +411,10 @@ class AuthService extends ChangeNotifier {
           'new_password_confirmation': confirmPassword,
         },
       );
-      return {'success': response.statusCode == 200, 'message': response.data['message'] ?? 'Mot de passe mis à jour'};
+      return {
+        'success': response.statusCode == 200,
+        'message': response.data['message'] ?? 'Mot de passe mis à jour',
+      };
     } on DioException catch (e) {
       String message = 'Erreur lors de la modification';
       if (e.response != null && e.response?.data != null) {
@@ -492,7 +496,9 @@ class AuthService extends ChangeNotifier {
   Future<void> logout() async {
     try {
       if (_token != null) {
-        await _apiService.post(ApiConfig.logout);
+        await _apiService
+            .post(ApiConfig.logout)
+            .timeout(const Duration(seconds: 5));
       }
     } catch (e) {
       // Ignorer les erreurs de logout
@@ -520,7 +526,8 @@ class AuthService extends ChangeNotifier {
         if (response.statusCode == 200) {
           final data = response.data as Map<String, dynamic>?;
           if (data != null && data['user'] != null) {
-            final hasFullResponse = data['client'] != null ||
+            final hasFullResponse =
+                data['client'] != null ||
                 data['fidelity_settings'] != null ||
                 data['payment_method_settings'] != null;
             _currentUser = hasFullResponse
@@ -561,11 +568,7 @@ class AuthService extends ChangeNotifier {
     try {
       final response = await _apiService.put(
         ApiConfig.updateProfile,
-        data: {
-          'name': name,
-          'email': email,
-          'phone': phone,
-        },
+        data: {'name': name, 'email': email, 'phone': phone},
       );
 
       if (response.statusCode == 200) {
@@ -573,7 +576,7 @@ class AuthService extends ChangeNotifier {
         if (data['success'] == true && data['user'] != null) {
           // Mettre à jour l'utilisateur localement
           final userData = data['user'] as Map<String, dynamic>;
-          
+
           if (_currentUser != null) {
             // On garde les infos de rôle/client et on met à jour le reste
             _currentUser = User(
@@ -594,13 +597,10 @@ class AuthService extends ChangeNotifier {
       }
       return {
         'success': false,
-        'message': response.data['message'] ?? 'Erreur lors de la mise à jour'
+        'message': response.data['message'] ?? 'Erreur lors de la mise à jour',
       };
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erreur réseau: ${e.toString()}'
-      };
+      return {'success': false, 'message': 'Erreur réseau: ${e.toString()}'};
     }
   }
 

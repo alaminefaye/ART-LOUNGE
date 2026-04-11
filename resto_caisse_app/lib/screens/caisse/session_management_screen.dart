@@ -129,11 +129,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       _notesController.clear();
       if (!mounted) return;
 
-      // Récupérer le bilan le plus récent (avant deconnexion)
-      final bilanRes = await _caisseService.getBilan();
-      final bilan = bilanRes['success']
-          ? (bilanRes['data'] as Map<String, dynamic>? ?? {})
-          : (_bilan ?? {});
+      // Récupérer le bilan pour l'impression (utilise le bilan déjà chargé)
+      final bilan = (_bilan ?? {}) as Map<String, dynamic>;
 
       // Récupérer le nom du caissier
       final authService = Provider.of<AuthService>(context, listen: false);

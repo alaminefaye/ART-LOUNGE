@@ -49,31 +49,32 @@ class CaisseService {
   // Obtenir le bilan
   Future<Map<String, dynamic>> getBilan() async {
     try {
-      final response = await _apiService.get(ApiConfig.bilanCaisseSession);
+      final response = await _apiService
+          .get(ApiConfig.bilanCaisseSession)
+          .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'data': response.data['data'],
-        };
+        return {'success': true, 'data': response.data['data']};
       }
       return {
         'success': false,
-        'message': response.data['message'] ?? 'Erreur lors de la récupération du bilan',
+        'message':
+            response.data['message'] ??
+            'Erreur lors de la récupération du bilan',
       };
     } catch (e) {
-      return {'success': false, 'message': 'Erreur inattendue'};
+      return {'success': false, 'message': 'Erreur de connexion ou timeout'};
     }
   }
 
   // Fermer la session
-  Future<Map<String, dynamic>> closeSession(double soldeFermetureReel, {String? notes}) async {
+  Future<Map<String, dynamic>> closeSession(
+    double soldeFermetureReel, {
+    String? notes,
+  }) async {
     try {
       final response = await _apiService.post(
         ApiConfig.closeCaisseSession,
-        data: {
-          'solde_fermeture_reel': soldeFermetureReel,
-          'notes': notes,
-        },
+        data: {'solde_fermeture_reel': soldeFermetureReel, 'notes': notes},
       );
 
       if (response.statusCode == 200) {
