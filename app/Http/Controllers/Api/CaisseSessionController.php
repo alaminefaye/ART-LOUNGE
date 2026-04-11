@@ -119,7 +119,7 @@ class CaisseSessionController extends Controller
                 'client:id,nom,prenom',
                 'commande.table:id,numero',
                 'commande.produits.produit:id,nom',
-                'commande.serveur:id,name',
+                'commande.serveur:id,nom,prenom',
             ])
             ->select('id', 'client_id', 'montant', 'moyen_paiement', 'points_utilises', 'commande_id', 'created_at')
             ->orderBy('created_at', 'desc')
