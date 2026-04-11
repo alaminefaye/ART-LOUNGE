@@ -115,7 +115,12 @@ class CaisseSessionController extends Controller
         // Tous les détails de paiements
         $transactions = Paiement::where('caisse_session_id', $session->id)
             ->where('statut', StatutPaiement::Valide->value)
-            ->with(['client:id,nom,prenom', 'commande.table:id,numero'])
+            ->with([
+                'client:id,nom,prenom',
+                'commande.table:id,numero',
+                'commande.produits.produit:id,nom',
+                'commande.serveur:id,name',
+            ])
             ->select('id', 'client_id', 'montant', 'moyen_paiement', 'points_utilises', 'commande_id', 'created_at')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -123,14 +128,15 @@ class CaisseSessionController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'session' => $session,
-                'repartition' => $totaux,
-                'total_ventes' => $totalVentes,
-                'total_liquide' => $totalLiquide,
+                'session'                     => $session,
+                'solde_ouverture'             => $session->solde_ouverture,
+                'repartition'                 => $totaux,
+                'total_ventes'                => $totalVentes,
+                'total_liquide'               => $totalLiquide,
                 'total_points_fidelite_montant' => $totalPointsMontant,
-                'total_attendu_caisse' => $session->solde_ouverture + $totalLiquide,
-                'points_details' => $transactions->where('moyen_paiement', MoyenPaiement::PointsFidelite->value)->values(),
-                'transactions' => $transactions
+                'total_attendu_caisse'         => $session->solde_ouverture + $totalLiquide,
+                'points_details'              => $transactions->where('moyen_paiement', MoyenPaiement::PointsFidelite->value)->values(),
+                'transactions'                => $transactions
             ]
         ]);
     }

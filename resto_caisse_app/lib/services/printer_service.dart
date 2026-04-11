@@ -336,4 +336,212 @@ class PrinterService {
     );
     await _dispatchPrint(pdf, 'Supplement_${orderId}_${DateTime.now().millisecondsSinceEpoch}');
   }
+
+  /// Rapport de clôture de caisse (format thermique 72mm)
+  Future<void> printClosingReport({
+    required Map<String, dynamic> bilan,
+    required String cashierName,
+    required DateTime openedAt,
+  }) async {
+    final pdf = pw.Document();
+    final logo = await _loadLogo();
+    final now = DateTime.now();
+
+    double parseD(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    String fmt2(int v) => v.toString().padLeft(2, '0');
+
+    final List repartition = bilan['repartition'] ?? [];
+    final List transactions = bilan['transactions'] ?? [];
+    final double totalVentes = parseD(bilan['total_ventes']);
+    final double soldeOuverture = parseD(bilan['solde_ouverture']);
+
+    // Agrégation produits vendus par nom
+    final Map<String, Map<String, dynamic>> prodMap = {};
+    for (final t in transactions) {
+      final commande = t['commande'];
+      if (commande == null) continue;
+      final produits = commande['produits'] as List? ?? [];
+      for (final p in produits) {
+        final nom = p['produit']?['nom']?.toString()
+            ?? p['produit_nom']?.toString()
+            ?? 'Article';
+        final qte = (p['quantite'] as num?)?.toInt() ?? 1;
+        final prix = parseD(p['prix_unitaire']);
+        if (prodMap.containsKey(nom)) {
+          prodMap[nom]!['qte'] = (prodMap[nom]!['qte'] as int) + qte;
+          prodMap[nom]!['total'] = parseD(prodMap[nom]!['total']) + prix * qte;
+        } else {
+          prodMap[nom] = {'qte': qte, 'total': prix * qte};
+        }
+      }
+    }
+
+    // Meilleur serveur (par montant vendu)
+    final Map<String, double> serveurTotaux = {};
+    for (final t in transactions) {
+      final serveur = t['commande']?['serveur'];
+      if (serveur == null) continue;
+      final name = serveur['name']?.toString() ?? '';
+      if (name.isEmpty) continue;
+      serveurTotaux[name] = (serveurTotaux[name] ?? 0) + parseD(t['montant']);
+    }
+    String? topServeur;
+    double topTotal = 0;
+    serveurTotaux.forEach((s, v) {
+      if (v > topTotal) { topTotal = v; topServeur = s; }
+    });
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: _thermalFormat,
+        build: (ctx) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          mainAxisSize: pw.MainAxisSize.min,
+          children: [
+            // En-tête
+            if (logo != null) pw.Image(logo, width: 48, height: 48, fit: pw.BoxFit.contain),
+            pw.SizedBox(height: 2),
+            pw.Text('Dolce Vita Palace',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+            pw.Text('RAPPORT DE CLÔTURE',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+            pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+
+            // Infos session
+            pw.Align(
+              alignment: pw.Alignment.centerLeft,
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    'Ouverture: ${fmt2(openedAt.day)}/${fmt2(openedAt.month)}/${openedAt.year}  ${fmt2(openedAt.hour)}:${fmt2(openedAt.minute)}',
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
+                  pw.Text('Caissier: $cashierName',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                  pw.Text('Fond ouverture: ${Formatters.formatCurrency(soldeOuverture)}',
+                      style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+            ),
+            pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+
+            // Produits vendus
+            pw.Align(
+              alignment: pw.Alignment.centerLeft,
+              child: pw.Text('PRODUITS VENDUS',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+            ),
+            pw.SizedBox(height: 2),
+            if (prodMap.isEmpty)
+              pw.Align(
+                alignment: pw.Alignment.centerLeft,
+                child: pw.Text('Aucune vente enregistrée', style: const pw.TextStyle(fontSize: 8)),
+              )
+            else
+              ...prodMap.entries.map((e) => pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(vertical: 1),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Expanded(
+                          child: pw.Text(
+                            '${e.value['qte']}x  ${e.key}',
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                        ),
+                        pw.Text(
+                          Formatters.formatCurrency(parseD(e.value['total'])),
+                          style: const pw.TextStyle(fontSize: 8),
+                        ),
+                      ],
+                    ),
+                  )),
+
+            pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+
+            // Répartition par moyen de paiement
+            pw.Align(
+              alignment: pw.Alignment.centerLeft,
+              child: pw.Text('MOYENS DE PAIEMENT',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+            ),
+            pw.SizedBox(height: 2),
+            ...repartition.map((item) {
+              final String label =
+                  item['moyen_paiement']?.toString().toUpperCase() ?? '';
+              final double total = parseD(item['total']);
+              return pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 1),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(label, style: const pw.TextStyle(fontSize: 8)),
+                    pw.Text(Formatters.formatCurrency(total),
+                        style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                  ],
+                ),
+              );
+            }),
+
+            pw.Divider(thickness: 0.8, borderStyle: pw.BorderStyle.solid),
+
+            // Total général
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('TOTAL CAISSE',
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                pw.Text(Formatters.formatCurrency(totalVentes),
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold, fontSize: 11)),
+              ],
+            ),
+
+            pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+
+            // Meilleur serveur
+            if (topServeur != null) ...[
+              pw.SizedBox(height: 2),
+              pw.Align(
+                alignment: pw.Alignment.centerLeft,
+                child: pw.Text('TOP SERVEUR DU SHIFT',
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold, fontSize: 9)),
+              ),
+              pw.Align(
+                alignment: pw.Alignment.centerLeft,
+                child: pw.Text(
+                  '★ $topServeur — ${Formatters.formatCurrency(topTotal)}',
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold, fontSize: 9),
+                ),
+              ),
+              pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+            ],
+
+            // Pied de page
+            pw.SizedBox(height: 4),
+            pw.Text(
+              'Imprimé le ${fmt2(now.day)}/${fmt2(now.month)}/${now.year} à ${fmt2(now.hour)}:${fmt2(now.minute)}',
+              style: const pw.TextStyle(fontSize: 7),
+            ),
+            pw.Text('Session ouverte par: $cashierName',
+                style: const pw.TextStyle(fontSize: 7)),
+            pw.SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    await _dispatchPrint(pdf, 'Cloture_${now.millisecondsSinceEpoch}');
+  }
 }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/caisse_session.dart';
 import '../../services/caisse_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/printer_service.dart';
 import '../../utils/formatters.dart';
 
 class SessionManagementScreen extends StatefulWidget {
@@ -106,20 +107,28 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
       _amountController.clear();
       _notesController.clear();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Session clôturée avec succès')),
-      );
-      
-      // Rafraîchir les données localement
-      await _loadData();
 
-      // Déconnexion automatique
+      // Récupérer le bilan le plus récent (avant deconnexion)
+      final bilanRes = await _caisseService.getBilan();
+      final bilan = bilanRes['success'] ? (bilanRes['data'] as Map<String, dynamic>? ?? {}) : (_bilan ?? {});
+
+      // Récupérer le nom du caissier
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final cashierName = authService.currentUser?.name ?? 'Caissier';
+      final openedAt = _currentSession?.openedAt ?? DateTime.now();
+
+      // Imprimer le rapport de clôture (ne pas bloquer si erreur)
+      try {
+        await PrinterService().printClosingReport(
+          bilan: bilan,
+          cashierName: cashierName,
+          openedAt: openedAt,
+        );
+      } catch (_) {}
+
+      // Déconnexion immédiate → retour écran login
       if (mounted) {
-        Future.delayed(const Duration(seconds: 2), () async {
-          if (mounted) {
-             await Provider.of<AuthService>(context, listen: false).logout();
-          }
-        });
+        await authService.logout();
       }
     } else {
       setState(() => _isLoading = false);

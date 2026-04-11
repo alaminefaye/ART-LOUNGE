@@ -62,7 +62,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,

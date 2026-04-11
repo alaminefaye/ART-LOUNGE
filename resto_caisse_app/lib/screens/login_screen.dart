@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
           height: 80,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
+            color: AppTheme.backgroundColor,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
@@ -166,14 +166,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           child: Container(
             width: 450,
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: AppTheme.backgroundColor,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
