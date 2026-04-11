@@ -205,7 +205,10 @@ class OrderService {
       if (response.statusCode == 200) {
         return {'success': true, 'message': 'Commande annulée avec succès'};
       }
-      return {'success': false, 'message': response.data['message'] ?? 'Erreur lors de l\'annulation'};
+      return {
+        'success': false,
+        'message': response.data['message'] ?? 'Erreur lors de l\'annulation'
+      };
     } on DioException catch (e) {
       String message = 'Erreur réseau';
       if (e.response?.data is Map) {
@@ -218,13 +221,18 @@ class OrderService {
   }
 
   /// Remove a product from an order
-  Future<Map<String, dynamic>> removeProductFromOrder(int orderId, int productId) async {
+  Future<Map<String, dynamic>> removeProductFromOrder(
+      int orderId, int productId) async {
     try {
-      final response = await _apiService.delete(ApiConfig.removeProduit(orderId, productId));
+      final response =
+          await _apiService.delete(ApiConfig.removeProduit(orderId, productId));
       if (response.statusCode == 200) {
         return {'success': true, 'message': 'Produit supprimé avec succès'};
       }
-      return {'success': false, 'message': response.data['message'] ?? 'Erreur lors de la suppression'};
+      return {
+        'success': false,
+        'message': response.data['message'] ?? 'Erreur lors de la suppression'
+      };
     } on DioException catch (e) {
       String message = 'Erreur réseau';
       if (e.response?.data is Map) {

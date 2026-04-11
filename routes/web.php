@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\PaiementController;
 use App\Http\Controllers\Web\AvisController;
 use App\Http\Controllers\Web\CaisseSessionController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Web\StatsController;
 
 // Authentication Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -134,6 +135,7 @@ Route::middleware(['auth'])->group(function () {
     // Avis & Rapports
     Route::get('avis', [AvisController::class, 'index'])->name('avis.index')->middleware('can:view_avis');
     Route::get('rapport', [ReportController::class, 'index'])->name('rapport.index')->middleware('can:view_reports');
+    Route::get('stats/produits', [StatsController::class, 'produits'])->name('stats.produits')->middleware('can:view_reports');
     
     // Rôles & Permissions
     Route::middleware(['can:view_roles'])->group(function () {

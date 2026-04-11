@@ -63,11 +63,23 @@
                     @endcan
                     
                     @can('view_reports')
-                    <li class="menu-item {{ request()->routeIs('rapport.*') ? 'active' : '' }}">
-                        <a href="{{ route('rapport.index') }}" class="menu-link">
+                    <li class="menu-item {{ request()->routeIs('rapport.*') || request()->routeIs('stats.*') ? 'active open' : '' }}">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
-                            <div>Rapport</div>
+                            <div>Rapports & Stats</div>
                         </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item {{ request()->routeIs('rapport.*') ? 'active' : '' }}">
+                                <a href="{{ route('rapport.index') }}" class="menu-link">
+                                    <div>Rapport financier</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ request()->routeIs('stats.produits') ? 'active' : '' }}">
+                                <a href="{{ route('stats.produits') }}" class="menu-link">
+                                    <div>Stats Produits</div>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endcan
                     
