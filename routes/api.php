@@ -18,6 +18,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/login-pin', [AuthController::class, 'loginWithPin']);
+    Route::post('/login-pin-only', [AuthController::class, 'loginWithPinOnly']);
 });
 
 // Endpoints publics pour le menu via QR code (accessibles sans authentification)

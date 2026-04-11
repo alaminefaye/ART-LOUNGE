@@ -250,6 +250,94 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  // Login uniquement par PIN
+  Future<Map<String, dynamic>> loginWithPinOnly(String pin) async {
+    final hasNetwork = await _hasConnectivity();
+    if (!hasNetwork) {
+      return {
+        'success': false,
+        'message':
+            'Pas de connexion internet. Vérifiez que le Wi-Fi ou les données mobiles sont activés et que l\'accès réseau est autorisé pour l\'application.',
+      };
+    }
+    try {
+      final response = await _apiService.post(
+        '/auth/login-pin-only',
+        data: {
+          'pin': pin,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        _token = data['token'] as String?;
+        if (data['user'] != null) {
+          final hasFullResponse = data['client'] != null ||
+              data['fidelity_settings'] != null ||
+              data['payment_method_settings'] != null;
+          _currentUser = hasFullResponse
+              ? User.fromAuthResponse(data)
+              : User.fromJson(data['user'] as Map<String, dynamic>);
+        }
+
+        // Sauvegarder le token
+        if (_token != null) {
+          await _saveToken(_token!);
+          _apiService.setToken(_token);
+          notifyListeners();
+          return {'success': true, 'user': _currentUser};
+        } else {
+          return {'success': false, 'message': 'Token non reçu du serveur'};
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Erreur de connexion (${response.statusCode})'
+        };
+      }
+    } on DioException catch (e) {
+      String message = 'Erreur de connexion';
+
+      if (e.response != null) {
+        final data = e.response?.data;
+        if (data is Map) {
+          if (data['message'] != null) {
+            message = data['message'] as String;
+          } else if (data['errors'] != null) {
+            final errors = data['errors'] as Map;
+            if (errors['pin'] != null) {
+              message = (errors['pin'] as List).first as String;
+            }
+          }
+        }
+
+        if (e.response?.statusCode == 422) {
+          message = message.isNotEmpty
+              ? message
+              : 'Code PIN incorrect.';
+        } else if (e.response?.statusCode == 403) {
+          message = 'Accès refusé';
+        } else if (e.response?.statusCode == 500) {
+          message = 'Erreur serveur. Veuillez réessayer plus tard.';
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        message = 'Délai d\'attente dépassé.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        message = 'Impossible de joindre le serveur.';
+      }
+
+      return {'success': false, 'message': message};
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur inattendue: ${e.toString()}'
+      };
+    }
+  }
+
+
   // Changer de mot de passe
   Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword, String confirmPassword) async {
     try {

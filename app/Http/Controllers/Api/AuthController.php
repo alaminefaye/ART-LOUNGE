@@ -748,4 +748,74 @@ class AuthController extends Controller
             'token_type' => 'Bearer',
         ]);
     }
+
+    /**
+     * Connexion par PIN (uniquement avec le code PIN)
+     * POST /auth/login-pin-only  (public)
+     */
+    public function loginWithPinOnly(Request $request)
+    {
+        $request->validate([
+            'pin' => 'required|string|size:4',
+        ]);
+
+        $roles = ['serveur', 'manager', 'admin', 'superadmin', 'caissier'];
+        $existingRoles = Role::whereIn('name', $roles)
+            ->where('guard_name', 'web')
+            ->pluck('name')
+            ->toArray();
+
+        // Trouver tous les membres du staff qui ont un PIN
+        $staffWithPin = User::with('roles')->whereHas('roles', function ($q) use ($existingRoles) {
+            $q->whereIn('name', $existingRoles);
+        })->get()->filter(fn($u) => $u->hasPin());
+
+        // Chercher le premier utilisateur correspondant au PIN
+        foreach ($staffWithPin as $staffUser) {
+            if (Hash::check($request->pin, $staffUser->getAttributes()['pin'])) {
+                // On a trouvé un utilisateur
+                $staffUser->load('roles.permissions');
+                $permissions = $staffUser->getAllPermissions()->pluck('name')->toArray();
+                $token = $staffUser->createToken('auth_token', $permissions)->plainTextToken;
+
+                $client = $staffUser->client;
+                $fidelitySettings = \App\Models\FidelitySetting::first();
+                $paymentMethods = \App\Models\PaymentMethodSetting::first();
+
+                return response()->json([
+                    'message' => 'Connexion par PIN réussie',
+                    'user' => [
+                        'id'      => $staffUser->id,
+                        'name'    => $staffUser->name,
+                        'email'   => $staffUser->email,
+                        'phone'   => $staffUser->phone,
+                        'has_pin' => true,
+                        'roles'   => $staffUser->roles->pluck('name'),
+                        'permissions' => $permissions,
+                    ],
+                    'client' => $client ? [
+                        'id' => $client->id,
+                        'nom' => $client->nom,
+                        'prenom' => $client->prenom,
+                        'points_fidelite' => (int) $client->points_fidelite,
+                    ] : null,
+                    'fidelity_settings' => [
+                        'actif' => $fidelitySettings ? $fidelitySettings->actif : false,
+                        'valeur_fcfa_1_point' => $fidelitySettings ? (float) $fidelitySettings->valeur_fcfa_1_point : 0,
+                    ],
+                    'payment_method_settings' => [
+                        'wave_enabled' => $paymentMethods ? $paymentMethods->wave_enabled : false,
+                        'orange_money_enabled' => $paymentMethods ? $paymentMethods->orange_money_enabled : false,
+                    ],
+                    'token'      => $token,
+                    'token_type' => 'Bearer',
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Code PIN incorrect.',
+            'errors'  => ['pin' => ['Le code PIN est invalide ou non autorisé.']],
+        ], 422);
+    }
 }
