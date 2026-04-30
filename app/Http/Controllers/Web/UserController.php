@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -34,11 +35,13 @@ class UserController extends Controller
             'pin'      => 'nullable|string|size:4|regex:/^[0-9]{4}$/',
         ]);
 
+        $pinPlain = $validated['pin'] ?? null;
         $user = User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'pin'      => !empty($validated['pin']) ? Hash::make($validated['pin']) : null,
+            'pin'      => !empty($pinPlain) ? Hash::make($pinPlain) : null,
+            'pin_encrypted' => !empty($pinPlain) ? Crypt::encryptString($pinPlain) : null,
         ]);
 
         $user->syncRoles($validated['roles']);
@@ -80,7 +83,10 @@ class UserController extends Controller
         }
 
         if (!empty($validated['pin'])) {
-            $user->update(['pin' => Hash::make($validated['pin'])]);
+            $user->update([
+                'pin' => Hash::make($validated['pin']),
+                'pin_encrypted' => Crypt::encryptString($validated['pin']),
+            ]);
         }
 
         $user->syncRoles($validated['roles']);

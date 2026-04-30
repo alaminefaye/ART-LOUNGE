@@ -34,7 +34,21 @@
                     </td>
                     <td>
                         @if($user->hasPin())
-                            <span class="badge bg-success">✅</span>
+                            @can('manage_users')
+                                @php $pinPlain = $user->pinPlainForAdmin(); @endphp
+                                @if($pinPlain !== null)
+                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                        <span class="pin-masked font-monospace" style="min-width:4ch;letter-spacing:0.2em">••••</span>
+                                        <span class="pin-shown font-monospace d-none">{{ $pinPlain }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-primary pin-toggle"
+                                                data-label-show="Afficher" data-label-hide="Masquer">Afficher</button>
+                                    </div>
+                                @else
+                                    <span class="badge bg-success" title="PIN défini (non affichable ici — créé avant l’enregistrement chiffré ou APP_KEY modifiée)">✓</span>
+                                @endif
+                            @else
+                                <span class="badge bg-success">✅</span>
+                            @endcan
                         @else
                             <span class="badge bg-light text-muted">—</span>
                         @endif
@@ -72,5 +86,28 @@
         </div>
     </div>
 </div>
+@can('manage_users')
+<script>
+document.querySelectorAll('.pin-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        const wrap = btn.closest('div');
+        if (!wrap) return;
+        const masked = wrap.querySelector('.pin-masked');
+        const shown = wrap.querySelector('.pin-shown');
+        if (!masked || !shown) return;
+        const isHidden = shown.classList.contains('d-none');
+        if (isHidden) {
+            shown.classList.remove('d-none');
+            masked.classList.add('d-none');
+            btn.textContent = btn.dataset.labelHide;
+        } else {
+            shown.classList.add('d-none');
+            masked.classList.remove('d-none');
+            btn.textContent = btn.dataset.labelShow;
+        }
+    });
+});
+</script>
+@endcan
 @endsection
 

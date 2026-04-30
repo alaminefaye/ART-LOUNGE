@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -571,7 +572,10 @@ class AuthController extends Controller
             }
         }
 
-        $user->update(['pin' => Hash::make($request->new_pin)]);
+        $user->update([
+            'pin' => Hash::make($request->new_pin),
+            'pin_encrypted' => Crypt::encryptString($request->new_pin),
+        ]);
 
         return response()->json([
             'success' => true,

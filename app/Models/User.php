@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Crypt;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -26,6 +27,7 @@ class User extends Authenticatable
         'password',
         'fcm_token',
         'pin',
+        'pin_encrypted',
     ];
 
     /**
@@ -37,6 +39,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'pin',
+        'pin_encrypted',
     ];
 
     /**
@@ -58,6 +61,23 @@ class User extends Authenticatable
     public function hasPin(): bool
     {
         return !empty($this->getAttributes()['pin']);
+    }
+
+    /**
+     * PIN en clair pour affichage admin uniquement (chiffré avec APP_KEY).
+     * Null si aucun PIN ou si le PIN a été défini avant l’ajout de pin_encrypted.
+     */
+    public function pinPlainForAdmin(): ?string
+    {
+        $cipher = $this->getAttributes()['pin_encrypted'] ?? null;
+        if (empty($cipher)) {
+            return null;
+        }
+        try {
+            return Crypt::decryptString($cipher);
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
