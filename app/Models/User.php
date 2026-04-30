@@ -69,7 +69,11 @@ class User extends Authenticatable
      */
     public function pinPlainForAdmin(): ?string
     {
-        $cipher = $this->getAttributes()['pin_encrypted'] ?? null;
+        $attrs = $this->getAttributes();
+        if (! array_key_exists('pin_encrypted', $attrs)) {
+            return null;
+        }
+        $cipher = $attrs['pin_encrypted'] ?? null;
         if (empty($cipher)) {
             return null;
         }
