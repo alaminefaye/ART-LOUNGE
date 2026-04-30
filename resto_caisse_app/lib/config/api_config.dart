@@ -7,7 +7,7 @@ class ApiConfig {
     if (kIsWeb) {
       return '${Uri.base.origin}/api';
     }
-    return 'https://restaurant.universaltechnologiesafrica.com/api';
+    return 'https://artlounge.universaltechnologiesafrica.com/api';
   }
 
   // URL de base du serveur (sans /api)

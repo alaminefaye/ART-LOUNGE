@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'table.dart' as models;
 import 'serveur.dart';
 
@@ -46,7 +47,7 @@ enum OrderStatus {
       case OrderStatus.attente:
         return Colors.blue;
       case OrderStatus.preparation:
-        return Colors.orange;
+        return AppTheme.brandGold;
       case OrderStatus.servie:
         return Colors.green;
       case OrderStatus.terminee:

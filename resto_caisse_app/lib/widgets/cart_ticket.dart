@@ -266,7 +266,7 @@ class CartTicket extends StatelessWidget {
                                               right: 8,
                                             ),
                                             decoration: const BoxDecoration(
-                                              color: Colors.orange,
+                                              color: AppTheme.brandGold,
                                               shape: BoxShape.circle,
                                             ),
                                           ),
@@ -509,7 +509,7 @@ class CartTicket extends StatelessWidget {
                                 : () => _lancerCuisine(context, cart),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 20),
-                              backgroundColor: Colors.orange,
+                              backgroundColor: AppTheme.brandGold,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -648,7 +648,7 @@ class CartTicket extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Table mise à jour en cuisine et ticket imprimé !'),
-              backgroundColor: Colors.orange,
+              backgroundColor: AppTheme.brandGold,
             ),
           );
         }

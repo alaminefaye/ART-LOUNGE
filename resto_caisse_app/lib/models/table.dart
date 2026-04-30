@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/api_config.dart';
+import '../theme/app_theme.dart';
 
 enum TableType {
   simple,
@@ -72,7 +73,7 @@ enum TableStatus {
       case TableStatus.occupee:
         return Colors.red;
       case TableStatus.reservee:
-        return Colors.orange;
+        return AppTheme.brandGold;
       case TableStatus.enPaiement:
         return Colors.blue;
     }

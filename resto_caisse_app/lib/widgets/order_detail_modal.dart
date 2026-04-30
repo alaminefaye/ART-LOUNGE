@@ -550,7 +550,7 @@ class _OrderDetailModalState extends State<OrderDetailModal> {
                           _ActionButton(
                             label: 'Marquer Servi',
                             icon: Icons.check_circle_outline,
-                            color: Colors.orange,
+                            color: AppTheme.brandGold,
                             onPressed: () => _updateStatus(OrderStatus.servie),
                           ),
 

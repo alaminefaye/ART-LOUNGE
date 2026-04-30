@@ -191,8 +191,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
-    const gold = 'rgb(208, 160, 48)';
-    const goldLight = 'rgba(208, 160, 48, 0.15)';
+    const gold = 'rgb(25, 31, 118)';
+    const goldLight = 'rgba(25, 31, 118, 0.15)';
 
     const labelsJours = @json($labelsJours);
     const dataCaJour = @json($dataCaJour);

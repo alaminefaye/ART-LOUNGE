@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Brand Colors
-  static const Color brandGold = Color(0xFFD0A030);
-  static const Color brandGoldLight = Color(0xFFE0B040);
-  static const Color backgroundColor = Color(0xFFFFF6EC);
+  /// Couleur de marque principale (#191f76)
+  static const Color brandGold = Color(0xFF191F76);
+  /// Variante plus claire pour surfaces / secondaires
+  static const Color brandGoldLight = Color(0xFF2E36A3);
+  static const Color backgroundColor = Color(0xFFF4F5FC);
   static const Color sidebarColor = Colors.white;
   static const Color textDark = Color(0xFF1E1E1E);
 

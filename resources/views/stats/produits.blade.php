@@ -163,7 +163,7 @@
                     @php
                         $pct = round(($p->quantite / $grandTotalQte) * 100, 1);
                         $barColor = match(true) {
-                            $i === 0 => '#d0a030',
+                            $i === 0 => '#191f76',
                             $i === 1 => '#8592a3',
                             $i === 2 => '#c0733a',
                             $pct >= 10 => '#696cff',
@@ -210,9 +210,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
-    const gold      = 'rgb(208,160,48)';
-    const goldLight = 'rgba(208,160,48,0.15)';
-    const palette   = ['#d0a030','#696cff','#03c3ec','#71dd37','#ffab00','#ff3e1d','#8592a3','#20c997','#fd7e14','#6610f2'];
+    const gold      = 'rgb(25,31,118)';
+    const goldLight = 'rgba(25,31,118,0.15)';
+    const palette   = ['#191f76','#696cff','#03c3ec','#71dd37','#ffab00','#ff3e1d','#8592a3','#20c997','#fd7e14','#6610f2'];
 
     // ── Top par quantité ─────────────────────────────────────────────
     const labelsQte = @json($topParQuantite->pluck('nom'));

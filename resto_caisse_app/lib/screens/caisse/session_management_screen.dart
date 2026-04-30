@@ -6,6 +6,7 @@ import '../../services/caisse_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/printer_service.dart';
 import '../../utils/formatters.dart';
+import '../../theme/app_theme.dart';
 
 class SessionManagementScreen extends StatefulWidget {
   final VoidCallback? onSessionOpened;
@@ -251,7 +252,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF6EC),
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text(
           'GESTION DE CAISSE',
@@ -266,7 +267,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
         centerTitle: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.orange))
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.brandGold))
           : RefreshIndicator(
               onRefresh: _loadData,
               child: SingleChildScrollView(
@@ -302,13 +303,13 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
+                  color: AppTheme.brandGold.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.no_accounts_outlined,
                   size: 48,
-                  color: Colors.orange,
+                  color: AppTheme.brandGold,
                 ),
               ),
               const SizedBox(height: 24),
@@ -349,7 +350,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                 child: ElevatedButton(
                   onPressed: _handleOpenSession,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
+                    backgroundColor: AppTheme.brandGold,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -576,7 +577,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                   Formatters.formatCurrency(total),
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: Colors.orange,
+                    color: AppTheme.brandGold,
                   ),
                 ),
               ],
@@ -632,7 +633,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
                   child: Text(
                     '+ ${filteredTransactions.length - 5} autres transactions',
                     style: const TextStyle(
-                      color: Colors.orange,
+                      color: AppTheme.brandGold,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -656,7 +657,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
+            border: Border.all(color: AppTheme.brandGold.withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [
@@ -744,10 +745,10 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
         onSelected: (selected) {
           if (selected) setState(() => _transactionFilter = code);
         },
-        selectedColor: Colors.orange.withValues(alpha: 0.2),
+        selectedColor: AppTheme.brandGold.withValues(alpha: 0.2),
         showCheckmark: false,
         labelStyle: TextStyle(
-          color: isSelected ? Colors.orange : Colors.black87,
+          color: isSelected ? AppTheme.brandGold : Colors.black87,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
@@ -826,7 +827,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
             style: const TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 13,
-              color: Colors.orange,
+              color: AppTheme.brandGold,
             ),
           ),
         ],
@@ -842,7 +843,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
         title: Container(
           padding: const EdgeInsets.all(20),
           decoration: const BoxDecoration(
-            color: Colors.orange,
+            color: AppTheme.brandGold,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(28),
               topRight: Radius.circular(28),
