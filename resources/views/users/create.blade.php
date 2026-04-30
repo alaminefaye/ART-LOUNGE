@@ -32,13 +32,14 @@
             
             <div class="mb-3">
                 <label class="form-label">Mot de Passe *</label>
-                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
+                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" value="{{ old('password', 'passer123') }}" required autocomplete="new-password">
                 @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="form-text">Mot de passe proposé par défaut : <code>passer123</code> (modifiable).</div>
             </div>
             
             <div class="mb-3">
                 <label class="form-label">Confirmer Mot de Passe *</label>
-                <input type="password" name="password_confirmation" class="form-control" required>
+                <input type="password" name="password_confirmation" class="form-control" value="{{ old('password_confirmation', 'passer123') }}" required autocomplete="new-password">
             </div>
 
             {{-- PIN pour l'application Serveur --}}
