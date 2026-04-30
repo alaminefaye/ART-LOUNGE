@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 /**
- * Source unique : MENU DOLCE VITA PALACE (catégories + liste des noms autorisés).
+ * Source unique : menu Art Restaurant (catégories + liste des noms autorisés).
  */
-final class DolceVitaMenu
+final class ArtRestaurantMenu
 {
     /** @return list<string> */
     public static function categoryNames(): array
@@ -29,7 +29,7 @@ final class DolceVitaMenu
             'MENU BOISSONS — Cocktails signature (sans alcool)',
             'MENU BOISSONS — Shots classiques & tendances',
             'MENU BOISSONS — Shots aromatisés',
-            'MENU BOISSONS — Shots signature Dolce Vita',
+            'MENU BOISSONS — Shots signature Art Restaurant',
             'Champagnes & vins mousseux',
             'Vins rouges',
             'Vins blancs',

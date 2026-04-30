@@ -6,19 +6,19 @@ use App\Models\Category;
 use Illuminate\Database\Seeder;
 
 /**
- * MENU DOLCE VITA PALACE — uniquement ces catégories (aucune autre).
+ * Menu Art Restaurant — uniquement ces catégories (aucune autre).
  */
 class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        $names = DolceVitaMenu::categoryNames();
+        $names = ArtRestaurantMenu::categoryNames();
 
         $categories = [];
         foreach ($names as $index => $nom) {
             $categories[] = [
                 'nom' => $nom,
-                'description' => 'Menu Dolce Vita Palace',
+                'description' => 'Menu Art Restaurant',
                 'ordre' => $index + 1,
                 'actif' => true,
             ];
@@ -31,6 +31,6 @@ class CategorySeeder extends Seeder
             );
         }
 
-        $this->command->info('✓ '.count($categories).' catégories Menu Dolce Vita Palace');
+        $this->command->info('✓ '.count($categories).' catégories Menu Art Restaurant');
     }
 }

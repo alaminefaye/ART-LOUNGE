@@ -43,15 +43,15 @@ class DatabaseSeeder extends Seeder
         // Liste des nouveaux caissiers
         $caissiers = [
             [
-                'email' => 'bassolefatoumata@dolcevita.com',
+                'email' => 'bassolefatoumata@artrestaurant.com',
                 'name' => 'Bassole Fatoumata'
             ],
             [
-                'email' => 'ahmed@dolcevita.com',
+                'email' => 'ahmed@artrestaurant.com',
                 'name' => 'Ahmed'
             ],
             [
-                'email' => 'bambagracemariam@dolcevita.com',
+                'email' => 'bambagracemariam@artrestaurant.com',
                 'name' => 'Bamba Grace Mariam'
             ],
         ];

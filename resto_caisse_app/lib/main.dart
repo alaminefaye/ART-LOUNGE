@@ -23,7 +23,7 @@ class RestoCaisseApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => Cart()),
       ],
       child: MaterialApp(
-        title: 'Resto Caisse',
+        title: 'ART LOUNGE',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const AuthWrapper(),

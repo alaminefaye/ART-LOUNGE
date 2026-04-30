@@ -10,11 +10,11 @@
         <div class="app-brand justify-content-center mb-4">
             <a href="{{ route('dashboard') }}" class="app-brand-link gap-2 d-flex flex-column align-items-center">
                 <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" class="app-brand-logo" style="height: 120px; width: auto;" />
-                <span class="app-brand-text demo text-body fw-bolder mt-2">{{ config('app.name', 'Dolce Vita Palace') }}</span>
+                <span class="app-brand-text demo text-body fw-bolder mt-2">{{ config('app.name', 'Art Restaurant') }}</span>
             </a>
         </div>
         <!-- /Logo -->
-        <h4 class="mb-2">Bienvenue sur {{ config('app.name', 'Dolce Vita Palace') }} ! 👋</h4>
+        <h4 class="mb-2">Bienvenue sur {{ config('app.name', 'Art Restaurant') }} ! 👋</h4>
         <p class="mb-4">Connectez-vous à votre compte pour continuer</p>
         
         <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
