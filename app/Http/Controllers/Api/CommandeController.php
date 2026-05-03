@@ -818,18 +818,33 @@ class CommandeController extends Controller
                 ->where('statut', StatutPaiement::Valide)
                 ->sum('points_utilises'),
             'notes' => $commande->notes,
-            'produits' => $commande->produits->map(function($produit) {
-                return [
-                    'id' => (int) $produit->id,
-                    'nom' => $produit->nom,
-                    'prix_unitaire' => (float) $produit->pivot->prix_unitaire,
-                    'quantite' => (int) $produit->pivot->quantite,
-                    'notes' => $produit->pivot->notes,
-                    'statut' => $produit->pivot->statut ?? 'envoye',
-                    'servi' => (bool) ($produit->pivot->servi ?? false),
-                    'sous_total' => (float) ($produit->pivot->prix_unitaire * $produit->pivot->quantite),
-                ];
-            }),
+            // Agréger les lignes pivot par produit_id pour éviter les doublons
+            // (plusieurs lignes pivot peuvent exister si un produit a été ajouté
+            //  en plusieurs vagues ; on consolide pour l'affichage client)
+            'produits' => $commande->produits
+                ->groupBy(fn ($p) => $p->id)
+                ->map(function ($group) {
+                    $first    = $group->first();
+                    $quantite = $group->sum(fn ($p) => (int) $p->pivot->quantite);
+                    $sousTotal = $group->sum(
+                        fn ($p) => (float) $p->pivot->prix_unitaire * (int) $p->pivot->quantite
+                    );
+                    // Statut : 'envoye' dès qu'au moins une ligne est envoyée
+                    $statut = $group->contains(fn ($p) => ($p->pivot->statut ?? '') === 'envoye')
+                        ? 'envoye'
+                        : ($first->pivot->statut ?? 'envoye');
+
+                    return [
+                        'id'            => (int)   $first->id,
+                        'nom'           => $first->nom,
+                        'prix_unitaire' => (float) $first->pivot->prix_unitaire,
+                        'quantite'      => $quantite,
+                        'notes'         => $first->pivot->notes,
+                        'statut'        => $statut,
+                        'servi'         => (bool) ($first->pivot->servi ?? false),
+                        'sous_total'    => (float) $sousTotal,
+                    ];
+                })->values(),
             'created_at' => $commande->created_at ? $commande->created_at->toIso8601String() : null,
             'updated_at' => $commande->updated_at ? $commande->updated_at->toIso8601String() : null,
         ];

@@ -104,23 +104,33 @@ class Cart extends ChangeNotifier {
     _tableId = order.tableId;
     _tableNumero = order.table?.numero;
     _serveurId = order.serveur?.id;
-    _serveurNom = order.serveur != null ? (order.serveur!.nom + (order.serveur!.prenom != null ? ' ${order.serveur!.prenom}' : '')) : null;
+    _serveurNom = order.serveur != null
+        ? (order.serveur!.nom +
+            (order.serveur!.prenom != null ? ' ${order.serveur!.prenom}' : ''))
+        : null;
     _activeOrder = order;
 
     if (order.produits != null) {
-      for (var p in order.produits!) {
-        _items.add(CartItem(
-          product: Product(
-            id: p.produitId,
-            nom: p.produitNom,
-            prix: p.prix,
-            categorieId: 0, // Not needed for cart display
-            disponible: true,
-          ),
-          quantite: p.quantite,
-          isNew: false,
-        ));
+      // Fusionner les lignes ayant le même produitId (défense contre doublons API)
+      final Map<int, CartItem> merged = {};
+      for (final p in order.produits!) {
+        if (merged.containsKey(p.produitId)) {
+          merged[p.produitId]!.quantite += p.quantite;
+        } else {
+          merged[p.produitId] = CartItem(
+            product: Product(
+              id: p.produitId,
+              nom: p.produitNom,
+              prix: p.prix,
+              categorieId: 0,
+              disponible: true,
+            ),
+            quantite: p.quantite,
+            isNew: false,
+          );
+        }
       }
+      _items.addAll(merged.values);
     }
     notifyListeners();
   }

@@ -97,7 +97,7 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
           color: AppTheme.backgroundColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -145,7 +145,7 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppTheme.brandGold.withOpacity(0.08),
+                  color: AppTheme.brandGold.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(

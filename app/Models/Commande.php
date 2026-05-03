@@ -149,16 +149,30 @@ class Commande extends Model
     }
 
     /**
-     * Ajouter un produit à la commande
+     * Ajouter un produit à la commande.
+     * Si une ligne 'brouillon' existe déjà pour ce produit, on incrémente sa
+     * quantité au lieu de créer un doublon en base.
      */
     public function ajouterProduit(Product $produit, int $quantite = 1, ?string $notes = null): void
     {
-        $this->produits()->attach($produit->id, [
-            'quantite' => $quantite,
-            'prix_unitaire' => $produit->prix,
-            'notes' => $notes,
-            'statut' => 'brouillon',
-        ]);
+        $existingBrouillon = \Illuminate\Support\Facades\DB::table('commande_produit')
+            ->where('commande_id', $this->id)
+            ->where('produit_id', $produit->id)
+            ->where('statut', 'brouillon')
+            ->first();
+
+        if ($existingBrouillon) {
+            \Illuminate\Support\Facades\DB::table('commande_produit')
+                ->where('id', $existingBrouillon->id)
+                ->update(['quantite' => $existingBrouillon->quantite + $quantite]);
+        } else {
+            $this->produits()->attach($produit->id, [
+                'quantite' => $quantite,
+                'prix_unitaire' => $produit->prix,
+                'notes' => $notes,
+                'statut' => 'brouillon',
+            ]);
+        }
 
         $this->calculerMontantTotal();
     }

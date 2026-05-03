@@ -1,4 +1,4 @@
-rootProject.name = "resto_caisse_app_android"
+rootProject.name = "art_moments_android"
 
 pluginManagement {
     val flutterSdkPath =

@@ -10,6 +10,17 @@ class ApiConfig {
     return 'https://artlounge.universaltechnologiesafrica.com/api';
   }
 
+  /// Fallbacks desktop/mobile si un domaine ne répond pas (DNS/certif/réseau).
+  static List<String> get fallbackBaseUrls {
+    if (kIsWeb) {
+      return [baseUrl];
+    }
+    return const [
+      'https://artlounge.universaltechnologiesafrica.com/api',
+      'https://artmoments.universaltechnologiesafrica.com/api',
+    ];
+  }
+
   // URL de base du serveur (sans /api)
   static String get serverBaseUrl {
     return baseUrl.replaceAll('/api', '');

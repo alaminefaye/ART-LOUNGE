@@ -9,6 +9,7 @@ import '../models/cart.dart';
 import '../services/menu_service.dart';
 import '../services/order_service.dart'; // Import pour OrderService
 import '../services/auth_service.dart';
+import '../services/offline_sync_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
 import '../widgets/cart_ticket.dart';
@@ -34,7 +35,8 @@ class _PosScreenState extends State<PosScreen> {
   bool _isLoading = true;
   Timer? _refreshTimer;
   int _lastOrderCount = 0;
-  bool _showCartInMobile = false; // Pour afficher le panier en plein écran sur mobile
+  bool _showCartInMobile =
+      false; // Pour afficher le panier en plein écran sur mobile
 
   @override
   void initState() {
@@ -55,6 +57,7 @@ class _PosScreenState extends State<PosScreen> {
   Future<void> _loadData({bool isAutoRefresh = false}) async {
     if (!isAutoRefresh) setState(() => _isLoading = true);
     try {
+      await OfflineSyncService().trySync();
       final results = await Future.wait([
         _menuService.getCategories(),
         _menuService.getProducts(),
@@ -63,10 +66,12 @@ class _PosScreenState extends State<PosScreen> {
 
       if (mounted) {
         final currentOrders = results[2] as List<Order>;
-        
+
         // Notification si nouvelle commande client (en attente)
         if (isAutoRefresh && currentOrders.length > _lastOrderCount) {
-          final newOrders = currentOrders.where((o) => o.statut == OrderStatus.attente).toList();
+          final newOrders = currentOrders
+              .where((o) => o.statut == OrderStatus.attente)
+              .toList();
           if (newOrders.isNotEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -83,7 +88,12 @@ class _PosScreenState extends State<PosScreen> {
                   label: 'VOIR',
                   textColor: Colors.white,
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (ctx) => const OrderManagementScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (ctx) => const OrderManagementScreen(),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -93,7 +103,9 @@ class _PosScreenState extends State<PosScreen> {
 
         setState(() {
           _categories = results[0] as List<Category>;
-          _products = (results[1] as List<Product>).where((p) => p.disponible).toList();
+          _products = (results[1] as List<Product>)
+              .where((p) => p.disponible)
+              .toList();
           _lastOrderCount = currentOrders.length;
           _isLoading = false;
         });
@@ -106,13 +118,14 @@ class _PosScreenState extends State<PosScreen> {
 
   List<Product> get _filteredProducts {
     var list = _products;
-    
+
     // Si une recherche est en cours, on ignore le filtre de catégorie pour faire une recherche globale
     if (_searchQuery.isNotEmpty) {
       return list.where((p) {
         final searchLower = _searchQuery.toLowerCase();
         final nameMatch = p.nom.toLowerCase().contains(searchLower);
-        final descMatch = p.description?.toLowerCase().contains(searchLower) ?? false;
+        final descMatch =
+            p.description?.toLowerCase().contains(searchLower) ?? false;
         return nameMatch || descMatch;
       }).toList();
     }
@@ -124,7 +137,11 @@ class _PosScreenState extends State<PosScreen> {
     return list;
   }
 
-  Widget _buildCategoryItem(BuildContext context, String title, int? categoryId) {
+  Widget _buildCategoryItem(
+    BuildContext context,
+    String title,
+    int? categoryId,
+  ) {
     final isSelected = _selectedCategoryId == categoryId;
     return GestureDetector(
       onTap: () => setState(() => _selectedCategoryId = categoryId),
@@ -135,7 +152,13 @@ class _PosScreenState extends State<PosScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.shade200),
           boxShadow: isSelected
-              ? [BoxShadow(color: AppTheme.brandGold.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]
+              ? [
+                  BoxShadow(
+                    color: AppTheme.brandGold.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
               : null,
         ),
         child: Center(
@@ -157,7 +180,9 @@ class _PosScreenState extends State<PosScreen> {
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: AppTheme.backgroundColor,
-        body: Center(child: CircularProgressIndicator(color: AppTheme.brandGold)),
+        body: Center(
+          child: CircularProgressIndicator(color: AppTheme.brandGold),
+        ),
       );
     }
 
@@ -168,17 +193,22 @@ class _PosScreenState extends State<PosScreen> {
         return Scaffold(
           backgroundColor: AppTheme.backgroundColor,
           // Mobile FAB to show cart
-          floatingActionButton: isMobile ? Consumer<Cart>(
-            builder: (context, cart, _) => FloatingActionButton.extended(
-              onPressed: () => setState(() => _showCartInMobile = true),
-              backgroundColor: AppTheme.brandGold,
-              icon: const Icon(Icons.shopping_cart, color: Colors.white),
-              label: Text(
-                '${Formatters.formatCurrency(cart.total)} (${cart.itemCount})',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ) : null,
+          floatingActionButton: isMobile
+              ? Consumer<Cart>(
+                  builder: (context, cart, _) => FloatingActionButton.extended(
+                    onPressed: () => setState(() => _showCartInMobile = true),
+                    backgroundColor: AppTheme.brandGold,
+                    icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                    label: Text(
+                      '${Formatters.formatCurrency(cart.total)} (${cart.itemCount})',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                )
+              : null,
           body: Stack(
             children: [
               Row(
@@ -194,15 +224,22 @@ class _PosScreenState extends State<PosScreen> {
                         Container(
                           height: isMobile ? 80 : 90,
                           padding: EdgeInsets.symmetric(
-                            horizontal: isMobile ? 12 : 32, 
-                            vertical: isMobile ? 8 : 16
+                            horizontal: isMobile ? 12 : 32,
+                            vertical: isMobile ? 8 : 16,
                           ),
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: _categories.length + 1,
-                            separatorBuilder: (context, index) => const SizedBox(width: 12),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 12),
                             itemBuilder: (context, index) {
-                              if (index == 0) return _buildCategoryItem(context, 'Tous', null);
+                              if (index == 0) {
+                                return _buildCategoryItem(
+                                  context,
+                                  'Tous',
+                                  null,
+                                );
+                              }
                               final c = _categories[index - 1];
                               return _buildCategoryItem(context, c.nom, c.id);
                             },
@@ -212,40 +249,67 @@ class _PosScreenState extends State<PosScreen> {
                         // Products Grid
                         Expanded(
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 32),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 12 : 32,
+                            ),
                             child: _filteredProducts.isEmpty
                                 ? Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.search_off, size: 64, color: Colors.grey.shade300),
+                                        Icon(
+                                          Icons.search_off,
+                                          size: 64,
+                                          color: Colors.grey.shade300,
+                                        ),
                                         const SizedBox(height: 16),
                                         Text(
-                                          _searchQuery.isNotEmpty 
-                                              ? 'Aucun résultat pour "$_searchQuery"' 
+                                          _searchQuery.isNotEmpty
+                                              ? 'Aucun résultat pour "$_searchQuery"'
                                               : 'Aucun produit dans cette catégorie',
-                                          style: const TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.w500),
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                         if (_searchQuery.isNotEmpty)
                                           TextButton(
-                                            onPressed: () => setState(() => _searchQuery = ''),
-                                            child: const Text('Effacer la recherche', style: TextStyle(color: AppTheme.brandGold)),
-                                          )
+                                            onPressed: () => setState(
+                                              () => _searchQuery = '',
+                                            ),
+                                            child: const Text(
+                                              'Effacer la recherche',
+                                              style: TextStyle(
+                                                color: AppTheme.brandGold,
+                                              ),
+                                            ),
+                                          ),
                                       ],
                                     ),
                                   )
                                 : GridView.builder(
                                     padding: const EdgeInsets.only(bottom: 80),
-                                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                                      maxCrossAxisExtent: isMobile ? 180 : 220,
-                                      childAspectRatio: isMobile ? 0.75 : 0.8,
-                                      crossAxisSpacing: isMobile ? 12 : 24,
-                                      mainAxisSpacing: isMobile ? 12 : 24,
-                                    ),
+                                    gridDelegate:
+                                        SliverGridDelegateWithMaxCrossAxisExtent(
+                                          maxCrossAxisExtent: isMobile
+                                              ? 180
+                                              : 220,
+                                          childAspectRatio: isMobile
+                                              ? 0.75
+                                              : 0.8,
+                                          crossAxisSpacing: isMobile ? 12 : 24,
+                                          mainAxisSpacing: isMobile ? 12 : 24,
+                                        ),
                                     itemCount: _filteredProducts.length,
                                     itemBuilder: (context, index) {
                                       final p = _filteredProducts[index];
-                                      return _buildProductCard(context, p, isMobile);
+                                      return _buildProductCard(
+                                        context,
+                                        p,
+                                        isMobile,
+                                      );
                                     },
                                   ),
                           ),
@@ -254,11 +318,11 @@ class _PosScreenState extends State<PosScreen> {
                     ),
                   ),
                   // Desktop side: Ticket
-                  if (!isMobile) 
+                  if (!isMobile)
                     const SizedBox(width: 400, child: CartTicket()),
                 ],
               ),
-              
+
               // Mobile Cart Overlay
               if (isMobile && _showCartInMobile)
                 Positioned.fill(
@@ -267,8 +331,17 @@ class _PosScreenState extends State<PosScreen> {
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap: () => setState(() => _showCartInMobile = false),
-                          child: Container(width: 60, color: Colors.transparent, child: const Icon(Icons.chevron_left, color: Colors.white, size: 40)),
+                          onTap: () =>
+                              setState(() => _showCartInMobile = false),
+                          child: Container(
+                            width: 60,
+                            color: Colors.transparent,
+                            child: const Icon(
+                              Icons.chevron_left,
+                              color: Colors.white,
+                              size: 40,
+                            ),
+                          ),
                         ),
                         const Expanded(child: CartTicket()),
                       ],
@@ -288,32 +361,42 @@ class _PosScreenState extends State<PosScreen> {
 
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 16 : 32, 
-        vertical: isMobile ? 12 : 24
+        horizontal: isMobile ? 16 : 32,
+        vertical: isMobile ? 12 : 24,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), offset: const Offset(0, 4), blurRadius: 10)
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
+          ),
         ],
       ),
       child: Column(
         children: [
           Row(
             children: [
-              Image.asset('assets/logo.png', height: isMobile ? 32 : 48),
+              Image.asset(
+                'assets/logo.png',
+                height: isMobile ? 32 : 48,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.storefront,
+                  color: AppTheme.brandGold,
+                  size: 32,
+                ),
+              ),
               if (!isMobile) ...[
-                const SizedBox(width: 48),
+                const SizedBox(width: 24),
                 Expanded(child: _buildSearchField()),
+                const SizedBox(width: 24),
               ],
-              const Spacer(),
+              if (isMobile) const Spacer(),
               _buildHeaderActions(context, userName, isMobile),
             ],
           ),
-          if (isMobile) ...[
-            const SizedBox(height: 12),
-            _buildSearchField(),
-          ],
+          if (isMobile) ...[const SizedBox(height: 12), _buildSearchField()],
         ],
       ),
     );
@@ -333,9 +416,9 @@ class _PosScreenState extends State<PosScreen> {
         setState(() => _searchQuery = val.toLowerCase());
       },
       decoration: InputDecoration(
-        hintText: 'Rechercher un plat ou une boisson...',
+        hintText: 'Rechercher...',
         prefixIcon: const Icon(Icons.search, color: Colors.grey),
-        suffixIcon: _searchQuery.isNotEmpty 
+        suffixIcon: _searchQuery.isNotEmpty
             ? IconButton(
                 icon: const Icon(Icons.clear, size: 20),
                 onPressed: () => setState(() => _searchQuery = ''),
@@ -343,7 +426,10 @@ class _PosScreenState extends State<PosScreen> {
             : null,
         filled: true,
         fillColor: AppTheme.backgroundColor,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
         contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
       ),
     );
@@ -404,7 +490,11 @@ class _PosScreenState extends State<PosScreen> {
                     });
 
                     if (isLoading) {
-                      final authService = Provider.of<AuthService>(context, listen: false);
+                      if (!mounted) return;
+                      final authService = Provider.of<AuthService>(
+                        context,
+                        listen: false,
+                      );
                       authService.setPin(oldPin, newPin).then((result) {
                         if (!ctx.mounted) return;
                         if (result['success']) {
@@ -419,7 +509,9 @@ class _PosScreenState extends State<PosScreen> {
                         } else {
                           setStateDialog(() {
                             isLoading = false;
-                            errorMessage = result['message'] ?? 'Erreur lors de la modification';
+                            errorMessage =
+                                result['message'] ??
+                                'Erreur lors de la modification';
                             currentInput = '';
                             step = 1;
                             oldPin = '';
@@ -435,7 +527,12 @@ class _PosScreenState extends State<PosScreen> {
 
             void onBackspace() {
               if (currentInput.isNotEmpty) {
-                setStateDialog(() => currentInput = currentInput.substring(0, currentInput.length - 1));
+                setStateDialog(
+                  () => currentInput = currentInput.substring(
+                    0,
+                    currentInput.length - 1,
+                  ),
+                );
               }
             }
 
@@ -452,7 +549,9 @@ class _PosScreenState extends State<PosScreen> {
                       shape: BoxShape.circle,
                       color: filled ? AppTheme.brandGold : Colors.transparent,
                       border: Border.all(
-                        color: filled ? AppTheme.brandGold : Colors.grey.shade400,
+                        color: filled
+                            ? AppTheme.brandGold
+                            : Colors.grey.shade400,
                         width: 2,
                       ),
                     ),
@@ -472,11 +571,21 @@ class _PosScreenState extends State<PosScreen> {
                     shape: BoxShape.circle,
                     color: AppTheme.backgroundColor,
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 3)),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
                     ],
                   ),
                   child: Center(
-                    child: Text(label, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -486,49 +595,70 @@ class _PosScreenState extends State<PosScreen> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                    buildKeypadBtn('1', () => onKeyTap('1')),
-                    buildKeypadBtn('2', () => onKeyTap('2')),
-                    buildKeypadBtn('3', () => onKeyTap('3')),
-                  ]),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      buildKeypadBtn('1', () => onKeyTap('1')),
+                      buildKeypadBtn('2', () => onKeyTap('2')),
+                      buildKeypadBtn('3', () => onKeyTap('3')),
+                    ],
+                  ),
                   const SizedBox(height: 12),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                    buildKeypadBtn('4', () => onKeyTap('4')),
-                    buildKeypadBtn('5', () => onKeyTap('5')),
-                    buildKeypadBtn('6', () => onKeyTap('6')),
-                  ]),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      buildKeypadBtn('4', () => onKeyTap('4')),
+                      buildKeypadBtn('5', () => onKeyTap('5')),
+                      buildKeypadBtn('6', () => onKeyTap('6')),
+                    ],
+                  ),
                   const SizedBox(height: 12),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                    buildKeypadBtn('7', () => onKeyTap('7')),
-                    buildKeypadBtn('8', () => onKeyTap('8')),
-                    buildKeypadBtn('9', () => onKeyTap('9')),
-                  ]),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      buildKeypadBtn('7', () => onKeyTap('7')),
+                      buildKeypadBtn('8', () => onKeyTap('8')),
+                      buildKeypadBtn('9', () => onKeyTap('9')),
+                    ],
+                  ),
                   const SizedBox(height: 12),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                    const SizedBox(width: 64),
-                    buildKeypadBtn('0', () => onKeyTap('0')),
-                    SizedBox(
-                      width: 64,
-                      height: 64,
-                      child: IconButton(
-                        onPressed: onBackspace,
-                        icon: const Icon(Icons.backspace_outlined, size: 26, color: Colors.grey),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const SizedBox(width: 64),
+                      buildKeypadBtn('0', () => onKeyTap('0')),
+                      SizedBox(
+                        width: 64,
+                        height: 64,
+                        child: IconButton(
+                          onPressed: onBackspace,
+                          icon: const Icon(
+                            Icons.backspace_outlined,
+                            size: 26,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ],
               );
             }
 
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: Row(
                 children: [
                   const Icon(Icons.pin, color: AppTheme.brandGold),
                   const SizedBox(width: 8),
                   Text(
                     stepTitles[step]!,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                 ],
               ),
@@ -549,8 +679,10 @@ class _PosScreenState extends State<PosScreen> {
                           height: 6,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(3),
-                            color: done ? AppTheme.brandGold
-                                : active ? AppTheme.brandGold.withValues(alpha: 0.5)
+                            color: done
+                                ? AppTheme.brandGold
+                                : active
+                                ? AppTheme.brandGold.withValues(alpha: 0.5)
                                 : Colors.grey.shade300,
                           ),
                         );
@@ -561,17 +693,36 @@ class _PosScreenState extends State<PosScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8)),
-                        child: Row(children: [
-                          const Icon(Icons.error_outline, color: Colors.red, size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 12))),
-                        ]),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                errorMessage!,
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     isLoading
                         ? const Padding(
                             padding: EdgeInsets.all(24),
-                            child: CircularProgressIndicator(color: AppTheme.brandGold),
+                            child: CircularProgressIndicator(
+                              color: AppTheme.brandGold,
+                            ),
                           )
                         : buildPinDots(),
                     const SizedBox(height: 24),
@@ -582,7 +733,10 @@ class _PosScreenState extends State<PosScreen> {
               actions: [
                 TextButton(
                   onPressed: isLoading ? null : () => Navigator.pop(ctx),
-                  child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
               ],
             );
@@ -592,7 +746,11 @@ class _PosScreenState extends State<PosScreen> {
     );
   }
 
-  Widget _buildHeaderActions(BuildContext context, String userName, bool isMobile) {
+  Widget _buildHeaderActions(
+    BuildContext context,
+    String userName,
+    bool isMobile,
+  ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -607,15 +765,31 @@ class _PosScreenState extends State<PosScreen> {
                   CircleAvatar(
                     radius: 18,
                     backgroundColor: AppTheme.brandGold.withValues(alpha: 0.2),
-                    child: const Icon(Icons.person, color: AppTheme.brandGold, size: 20),
+                    child: const Icon(
+                      Icons.person,
+                      color: AppTheme.brandGold,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(userName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      Text('Session Ouverte', style: TextStyle(color: Colors.green.shade600, fontSize: 10)),
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        'Session Ouverte',
+                        style: TextStyle(
+                          color: Colors.green.shade600,
+                          fontSize: 10,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(width: 4),
@@ -626,30 +800,57 @@ class _PosScreenState extends State<PosScreen> {
           ),
           const SizedBox(width: 16),
         ],
-        
+
         // Bouton Refresh
         IconButton(
           onPressed: () => _loadData(),
           icon: const Icon(Icons.refresh, color: AppTheme.brandGold),
           tooltip: 'Actualiser',
         ),
-        
+
         // Bouton Printer Settings
         IconButton(
           onPressed: () => _showPrinterSettings(),
           icon: const Icon(Icons.print, color: AppTheme.brandGold),
           tooltip: 'Imprimante',
         ),
-        
+
         // Popup Menu pour les actions sur mobile ou Row sur Desktop
         if (isMobile)
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: AppTheme.brandGold),
             onSelected: (val) => _handleMenuAction(val),
             itemBuilder: (ctx) => [
-              const PopupMenuItem(value: 'orders', child: Row(children: [Icon(Icons.receipt_long, size: 20), SizedBox(width: 8), Text('Commandes')])),
-              const PopupMenuItem(value: 'caisse', child: Row(children: [Icon(Icons.point_of_sale, size: 20, color: Colors.green), SizedBox(width: 8), Text('Ma Caisse')])),
-              const PopupMenuItem(value: 'logout', child: Row(children: [Icon(Icons.logout, size: 20, color: Colors.red), SizedBox(width: 8), Text('Déconnexion')])),
+              const PopupMenuItem(
+                value: 'orders',
+                child: Row(
+                  children: [
+                    Icon(Icons.receipt_long, size: 20),
+                    SizedBox(width: 8),
+                    Text('Commandes'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'caisse',
+                child: Row(
+                  children: [
+                    Icon(Icons.point_of_sale, size: 20, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text('Ma Caisse'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, size: 20, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Déconnexion'),
+                  ],
+                ),
+              ),
             ],
           )
         else ...[
@@ -674,7 +875,12 @@ class _PosScreenState extends State<PosScreen> {
     );
   }
 
-  Widget _buildActionButton({required VoidCallback onPressed, required IconData icon, required String label, required Color color}) {
+  Widget _buildActionButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
     return ElevatedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 18),
@@ -690,9 +896,12 @@ class _PosScreenState extends State<PosScreen> {
 
   void _handleMenuAction(String action) {
     if (action == 'orders') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderManagementScreen()));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const OrderManagementScreen()),
+      );
     } else if (action == 'caisse') {
-       Navigator.push(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => SessionManagementScreen(
@@ -713,13 +922,21 @@ class _PosScreenState extends State<PosScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Se déconnecter ?'),
-        content: const Text('Assurez-vous d\'avoir clôturé votre session de caisse.'),
+        content: const Text(
+          'Assurez-vous d\'avoir clôturé votre session de caisse.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Déconnexion', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Déconnexion',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -754,7 +971,11 @@ class _PosScreenState extends State<PosScreen> {
     );
   }
 
-  Widget _buildProductCard(BuildContext context, Product product, bool isMobile) {
+  Widget _buildProductCard(
+    BuildContext context,
+    Product product,
+    bool isMobile,
+  ) {
     final cart = Provider.of<Cart>(context, listen: false);
     return GestureDetector(
       onTap: () {
@@ -765,7 +986,9 @@ class _PosScreenState extends State<PosScreen> {
             content: Text('${product.nom} ajouté au panier'),
             duration: const Duration(seconds: 1),
             backgroundColor: AppTheme.brandGold,
-            behavior: isMobile ? SnackBarBehavior.fixed : SnackBarBehavior.floating,
+            behavior: isMobile
+                ? SnackBarBehavior.fixed
+                : SnackBarBehavior.floating,
             width: isMobile ? null : 300,
           ),
         );
@@ -780,25 +1003,51 @@ class _PosScreenState extends State<PosScreen> {
               color: Colors.black.withValues(alpha: 0.03),
               offset: const Offset(0, 4),
               blurRadius: 10,
-            )
+            ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 3,
+              flex: 2,
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
                 child: product.imageUrl.isNotEmpty
                     ? CachedNetworkImage(
                         imageUrl: product.imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) =>
-                            Container(color: AppTheme.backgroundColor, child: const Center(child: CircularProgressIndicator())),
-                        errorWidget: (context, url, error) => Image.asset('assets/app_icon.png', fit: BoxFit.cover),
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) => Container(
+                          color: AppTheme.backgroundColor,
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppTheme.backgroundColor,
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.image_not_supported_outlined,
+                            color: Colors.grey,
+                            size: 28,
+                          ),
+                        ),
                       )
-                    : Image.asset('assets/app_icon.png', fit: BoxFit.cover),
+                    : Image.asset(
+                        'assets/logo.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: AppTheme.backgroundColor,
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.image_not_supported_outlined,
+                            color: Colors.grey,
+                            size: 28,
+                          ),
+                        ),
+                      ),
               ),
             ),
             Expanded(
@@ -811,13 +1060,24 @@ class _PosScreenState extends State<PosScreen> {
                   children: [
                     Text(
                       product.nom,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: isMobile ? 13 : 15),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: isMobile ? 13 : 15,
+                        height: 1.2,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       Formatters.formatCurrency(product.prix),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.brandGold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        height: 1.2,
+                        color: AppTheme.brandGold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "Art Restaurant" "\0"
-            VALUE "FileDescription", "ART LOUNGE — caisse" "\0"
+            VALUE "CompanyName", "ART MOMENTS" "\0"
+            VALUE "FileDescription", "ART MOMENTS — caisse" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "art_lounge" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 Art Restaurant. All rights reserved." "\0"
-            VALUE "OriginalFilename", "art_lounge.exe" "\0"
-            VALUE "ProductName", "ART LOUNGE" "\0"
+            VALUE "InternalName", "art_moments" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 ART MOMENTS. All rights reserved." "\0"
+            VALUE "OriginalFilename", "art_moments.exe" "\0"
+            VALUE "ProductName", "ART MOMENTS" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

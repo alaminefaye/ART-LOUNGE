@@ -131,7 +131,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       if (!mounted) return;
 
       // Récupérer le bilan pour l'impression (utilise le bilan déjà chargé)
-      final bilan = (_bilan ?? {}) as Map<String, dynamic>;
+      final bilan = (_bilan ?? {});
 
       // Récupérer le nom du caissier
       final authService = Provider.of<AuthService>(context, listen: false);
@@ -145,7 +145,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
           cashierName: cashierName,
           openedAt: openedAt,
         );
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Print closing report failed: $e');
+      }
 
       // Déconnexion immédiate → retour écran login
       if (mounted) {
@@ -267,7 +269,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
         centerTitle: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.brandGold))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.brandGold),
+            )
           : RefreshIndicator(
               onRefresh: _loadData,
               child: SingleChildScrollView(
@@ -657,7 +661,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppTheme.brandGold.withValues(alpha: 0.2)),
+            border: Border.all(
+              color: AppTheme.brandGold.withValues(alpha: 0.2),
+            ),
           ),
           child: Column(
             children: [

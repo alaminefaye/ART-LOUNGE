@@ -1,20 +1,39 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../config/api_config.dart';
 import '../models/caisse_session.dart';
 import 'api_service.dart';
+import 'local_cache.dart';
 
 class CaisseService {
   final ApiService _apiService = ApiService();
+  static const String _cacheSessionKey = 'cache_caisse_session_v1';
 
   // Récupérer la session actuelle
   Future<CaisseSession?> getCurrentSession() async {
     try {
       final response = await _apiService.get(ApiConfig.currentCaisseSession);
       if (response.statusCode == 200 && response.data['data'] != null) {
-        return CaisseSession.fromJson(response.data['data']);
+        final session = CaisseSession.fromJson(
+          response.data['data'] as Map<String, dynamic>,
+        );
+        try {
+          await LocalCache.setJson(_cacheSessionKey, session.toJson());
+        } catch (e) {
+          if (kDebugMode) debugPrint('Cache session write failed: $e');
+        }
+        return session;
       }
       return null;
     } catch (e) {
+      try {
+        final raw = await LocalCache.getJson(_cacheSessionKey);
+        if (raw is Map) {
+          return CaisseSession.fromJson(Map<String, dynamic>.from(raw));
+        }
+      } catch (e) {
+        if (kDebugMode) debugPrint('Cache session read failed: $e');
+      }
       return null;
     }
   }
@@ -28,10 +47,18 @@ class CaisseService {
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
+        final session = CaisseSession.fromJson(
+          response.data['data'] as Map<String, dynamic>,
+        );
+        try {
+          await LocalCache.setJson(_cacheSessionKey, session.toJson());
+        } catch (e) {
+          if (kDebugMode) debugPrint('Cache session write failed: $e');
+        }
         return {
           'success': true,
           'message': response.data['message'] ?? 'Session ouverte',
-          'data': CaisseSession.fromJson(response.data['data']),
+          'data': session,
         };
       }
       return {
@@ -78,10 +105,18 @@ class CaisseService {
       );
 
       if (response.statusCode == 200) {
+        final session = CaisseSession.fromJson(
+          response.data['data'] as Map<String, dynamic>,
+        );
+        try {
+          await LocalCache.setJson(_cacheSessionKey, session.toJson());
+        } catch (e) {
+          if (kDebugMode) debugPrint('Cache session write failed: $e');
+        }
         return {
           'success': true,
           'message': response.data['message'] ?? 'Session fermée',
-          'data': CaisseSession.fromJson(response.data['data']),
+          'data': session,
         };
       }
       return {

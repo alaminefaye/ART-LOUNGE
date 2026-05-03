@@ -3,9 +3,12 @@ import '../config/api_config.dart';
 import '../models/category.dart';
 import '../models/product.dart';
 import 'api_service.dart';
+import 'local_cache.dart';
 
 class MenuService {
   final ApiService _apiService = ApiService();
+  static const String _cacheCategoriesKey = 'cache_categories_v1';
+  static const String _cacheProductsKey = 'cache_products_v1';
 
   // Récupérer toutes les catégories
   Future<List<Category>> getCategories() async {
@@ -35,21 +38,30 @@ class MenuService {
           return [];
         }
 
-        final categories = categoriesData.map((json) {
-          try {
-            return Category.fromJson(json as Map<String, dynamic>);
-          } catch (_) {
-            rethrow;
-          }
-        }).toList();
+        final List<Category> categories = categoriesData
+            .map((json) => Category.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        try {
+          await LocalCache.setJson(
+            _cacheCategoriesKey,
+            categories.map((c) => c.toJson()).toList(),
+          );
+        } catch (e) {
+          final _ = e;
+        }
 
         return categories;
       }
       return [];
     } on DioException {
-      rethrow; // Relancer l'exception pour qu'elle soit visible
-    } catch (_) {
-      rethrow;
+      final cached = await _loadCategoriesFromCache();
+      if (cached.isNotEmpty) return cached;
+      return [];
+    } catch (e) {
+      final cached = await _loadCategoriesFromCache();
+      if (cached.isNotEmpty) return cached;
+      return [];
     }
   }
 
@@ -86,21 +98,34 @@ class MenuService {
           return [];
         }
 
-        final products = productsData.map((json) {
+        final List<Product> products = productsData
+            .map((json) => Product.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        if (categoryId == null) {
           try {
-            return Product.fromJson(json as Map<String, dynamic>);
-          } catch (_) {
-            rethrow;
+            await LocalCache.setJson(
+              _cacheProductsKey,
+              products.map((p) => p.toJson()).toList(),
+            );
+          } catch (e) {
+            final _ = e;
           }
-        }).toList();
+        }
 
         return products;
       }
       return [];
     } on DioException {
-      rethrow;
-    } catch (_) {
-      rethrow;
+      final cached = await _loadProductsFromCache();
+      if (cached.isEmpty) return [];
+      if (categoryId == null) return cached;
+      return cached.where((p) => p.categorieId == categoryId).toList();
+    } catch (e) {
+      final cached = await _loadProductsFromCache();
+      if (cached.isEmpty) return [];
+      if (categoryId == null) return cached;
+      return cached.where((p) => p.categorieId == categoryId).toList();
     }
   }
 
@@ -123,9 +148,45 @@ class MenuService {
       }
       return null;
     } on DioException {
-      return null;
+      final cached = await _loadProductsFromCache();
+      try {
+        return cached.firstWhere((p) => p.id == id);
+      } catch (_) {
+        return null;
+      }
+    } catch (e) {
+      final cached = await _loadProductsFromCache();
+      try {
+        return cached.firstWhere((p) => p.id == id);
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  Future<List<Category>> _loadCategoriesFromCache() async {
+    try {
+      final raw = await LocalCache.getJson(_cacheCategoriesKey);
+      if (raw is! List) return [];
+      return raw
+          .whereType<Map>()
+          .map((e) => Category.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
-      return null;
+      return [];
+    }
+  }
+
+  Future<List<Product>> _loadProductsFromCache() async {
+    try {
+      final raw = await LocalCache.getJson(_cacheProductsKey);
+      if (raw is! List) return [];
+      return raw
+          .whereType<Map>()
+          .map((e) => Product.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (_) {
+      return [];
     }
   }
 }

@@ -124,7 +124,19 @@ class _PaymentSelectionDialogState extends State<PaymentSelectionDialog> {
           serveurId: serveurSelection,
           produits: widget.cart!.toJson(),
         );
-        if (orderRes['success'] && orderRes['order'] != null) {
+        if (orderRes['offline'] == true) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Paiement indisponible hors ligne. Reconnecte-toi puis réessaie.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          setState(() => _isLoading = false);
+          return;
+        }
+        if (orderRes['success'] == true && orderRes['order'] != null) {
           order = orderRes['order'];
         } else {
            if (mounted) {

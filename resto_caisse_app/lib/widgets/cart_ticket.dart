@@ -7,6 +7,7 @@ import '../services/table_service.dart';
 import '../services/order_service.dart';
 import '../models/order.dart';
 import '../services/printer_service.dart'; // Import PrinterService
+import '../services/serveur_service.dart';
 import '../models/table.dart' as model;
 import 'payment_selection_dialog.dart';
 import 'serveur_selection_dialog.dart';
@@ -343,8 +344,9 @@ class CartTicket extends StatelessWidget {
                                         // Re-sync l'ordre complet
                                         final updated = await OrderService()
                                             .getOrder(cart.activeOrder!.id);
-                                        if (updated != null)
+                                        if (updated != null) {
                                           cart.syncWithOrder(updated);
+                                        }
                                       } else {
                                         if (!context.mounted) return;
                                         ScaffoldMessenger.of(
@@ -439,10 +441,11 @@ class CartTicket extends StatelessWidget {
                                         );
                                         cart.clear(); // Vider l'écran après
                                       } finally {
-                                        if (context.mounted)
+                                        if (context.mounted) {
                                           Navigator.pop(
                                             context,
                                           ); // Fermer le loader
+                                        }
                                       }
                                     }
                                   },
@@ -565,6 +568,8 @@ class CartTicket extends StatelessWidget {
   Future<void> _lancerCuisine(BuildContext context, Cart cart) async {
     final orderService = OrderService();
     final printerService = PrinterService(); // Instance du service d'impression
+    final serveurService = ServeurService();
+    final tableService = TableService();
 
     try {
       // 1. Si pas de commande active -> Créer
@@ -586,15 +591,77 @@ class CartTicket extends StatelessWidget {
           tableId: cart.tableId!,
           serveurId: serveurId,
           produits: cart.toJson(),
+          launchAfterCreate: true,
         );
-        if (res['success']) {
+        if (res['success'] == true && res['offline'] == true) {
+          final localId = (res['offline_order_id'] is int)
+              ? res['offline_order_id'] as int
+              : -DateTime.now().millisecondsSinceEpoch;
+
+          final tableFromCache = await tableService.getTableFromCache(
+            cart.tableId!,
+          );
+          final serveurFromCache = await serveurService.getServeurById(
+            serveurId,
+          );
+
+          final localOrder = Order(
+            id: localId,
+            tableId: cart.tableId!,
+            montantTotal: cart.total,
+            statut: OrderStatus.preparation,
+            createdAt: DateTime.now(),
+            produits: cart.items
+                .map(
+                  (i) => OrderItem(
+                    produitId: i.product.id,
+                    produitNom: i.product.nom,
+                    prix: i.product.prix,
+                    quantite: i.quantite,
+                    image: i.product.image,
+                    statut: 'envoye',
+                  ),
+                )
+                .toList(),
+            table:
+                tableFromCache ??
+                model.Table.fromJson({
+                  'id': cart.tableId!,
+                  'numero': cart.tableNumero ?? cart.tableId!.toString(),
+                  'type': 'simple',
+                  'capacite': 0,
+                  'statut': 'libre',
+                  'actif': true,
+                }),
+            serveur: serveurFromCache,
+          );
+
+          try {
+            await printerService.printKitchenTicket(localOrder);
+          } catch (e) {
+            debugPrint('Print kitchen ticket (offline) failed: $e');
+          }
+
+          cart.syncWithOrder(localOrder);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Commande enregistrée hors ligne et ticket imprimé.',
+                ),
+                backgroundColor: AppTheme.brandGold,
+              ),
+            );
+          }
+        } else if (res['success'] == true && res['order'] != null) {
           final order = res['order'] as Order;
           await orderService.launchOrder(order.id);
 
-          // Impression du bon de cuisine complet
           try {
             await printerService.printKitchenTicket(order);
-          } catch (_) {}
+          } catch (e) {
+            debugPrint('Print kitchen ticket failed: $e');
+          }
 
           cart.syncWithOrder(order);
           if (context.mounted) {
@@ -628,6 +695,9 @@ class CartTicket extends StatelessWidget {
           }
         }
 
+        // Envoyer les nouvelles lignes en cuisine (brouillon → envoye)
+        await orderService.launchOrder(cart.activeOrder!.id);
+
         // Impression du bon de cuisine "Supplément" (uniquement ce qui vient d'être ajouté)
         if (printedAdditions.isNotEmpty) {
           try {
@@ -636,7 +706,9 @@ class CartTicket extends StatelessWidget {
               tableNumero: cart.tableNumero ?? '?',
               additions: printedAdditions,
             );
-          } catch (_) {}
+          } catch (e) {
+            debugPrint('Print supplement kitchen ticket failed: $e');
+          }
         }
 
         // Re-sync pour tout avoir au propre (optionnel mais recommandé)
@@ -868,11 +940,12 @@ class CartTicket extends StatelessWidget {
                                   cart.setTable(t.id, tableNumero: t.numero);
                                 }
                               } finally {
-                                if (context.mounted)
+                                if (context.mounted) {
                                   Navigator.of(
                                     context,
                                     rootNavigator: true,
                                   ).pop();
+                                }
                               }
                             } else {
                               cart.setTable(t.id, tableNumero: t.numero);
@@ -913,10 +986,11 @@ class CartTicket extends StatelessWidget {
                                       }
                                       setDialogState(() {});
                                     } finally {
-                                      if (context.mounted)
+                                      if (context.mounted) {
                                         Navigator.pop(
                                           context,
                                         ); // Fermer le loader
+                                      }
                                     }
                                   }
                                 }

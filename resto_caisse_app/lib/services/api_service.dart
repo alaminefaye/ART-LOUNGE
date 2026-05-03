@@ -50,45 +50,56 @@ class ApiService {
     String endpoint, {
     Map<String, dynamic>? queryParameters,
   }) async {
-    try {
-      return await _dio.get(endpoint, queryParameters: queryParameters);
-    } catch (e) {
-      rethrow;
-    }
+    return _executeWithFallback(
+      () => _dio.get(endpoint, queryParameters: queryParameters),
+    );
   }
 
   // POST request
   Future<Response> post(String endpoint, {dynamic data}) async {
-    try {
-      return await _dio.post(endpoint, data: data);
-    } catch (e) {
-      rethrow;
-    }
+    return _executeWithFallback(() => _dio.post(endpoint, data: data));
   }
 
   // PUT request
   Future<Response> put(String endpoint, {dynamic data}) async {
-    try {
-      return await _dio.put(endpoint, data: data);
-    } catch (e) {
-      rethrow;
-    }
+    return _executeWithFallback(() => _dio.put(endpoint, data: data));
   }
 
   // PATCH request
   Future<Response> patch(String endpoint, {dynamic data}) async {
-    try {
-      return await _dio.patch(endpoint, data: data);
-    } catch (e) {
-      rethrow;
-    }
+    return _executeWithFallback(() => _dio.patch(endpoint, data: data));
   }
 
   // DELETE request
   Future<Response> delete(String endpoint) async {
+    return _executeWithFallback(() => _dio.delete(endpoint));
+  }
+
+  Future<Response> _executeWithFallback(
+    Future<Response> Function() request,
+  ) async {
     try {
-      return await _dio.delete(endpoint);
-    } catch (e) {
+      return await request();
+    } on DioException catch (e) {
+      // Fallback uniquement sur erreurs de connexion (DNS/réseau/certif)
+      if (e.type != DioExceptionType.connectionError) rethrow;
+
+      final originalBaseUrl = _dio.options.baseUrl;
+      for (final candidate in ApiConfig.fallbackBaseUrls) {
+        if (candidate == originalBaseUrl) continue;
+        try {
+          _dio.options.baseUrl = candidate;
+          return await request();
+        } on DioException catch (retryError) {
+          if (retryError.type != DioExceptionType.connectionError) {
+            rethrow;
+          }
+          // sinon on tente le prochain candidat
+        }
+      }
+
+      // Restaurer avant de remonter l'erreur initiale.
+      _dio.options.baseUrl = originalBaseUrl;
       rethrow;
     }
   }

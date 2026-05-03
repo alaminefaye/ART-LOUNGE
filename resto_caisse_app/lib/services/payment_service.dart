@@ -80,7 +80,13 @@ class PaymentService {
               'data': payment,
               'reste_a_payer': resteAPayer,
             };
-          } catch (_) {}
+          } catch (_) {
+            return {
+              'success': true,
+              'message': message,
+              'reste_a_payer': resteAPayer,
+            };
+          }
         }
         return {
           'success': true,

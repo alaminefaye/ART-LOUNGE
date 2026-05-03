@@ -9,11 +9,11 @@ import 'models/cart.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  runApp(const RestoCaisseApp());
+  runApp(const ArtMomentsApp());
 }
 
-class RestoCaisseApp extends StatelessWidget {
-  const RestoCaisseApp({super.key});
+class ArtMomentsApp extends StatelessWidget {
+  const ArtMomentsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class RestoCaisseApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => Cart()),
       ],
       child: MaterialApp(
-        title: 'ART LOUNGE',
+        title: 'ART MOMENTS',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const AuthWrapper(),
@@ -67,7 +67,15 @@ class _AuthWrapperState extends State<AuthWrapper> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset('assets/logo.png', width: 200),
+              Image.asset(
+                'assets/logo.png',
+                width: 200,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.storefront,
+                  color: AppTheme.brandGold,
+                  size: 80,
+                ),
+              ),
               const SizedBox(height: 24),
               const CircularProgressIndicator(color: AppTheme.brandGold),
             ],

@@ -27,7 +27,7 @@
                 <label class="form-label">Email *</label>
                 <input type="email" name="email" id="user_email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required autocomplete="email">
                 @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <div class="form-text">Rempli automatiquement depuis le nom (<code>@artlounge.com</code>). Vous pouvez le modifier si besoin.</div>
+                <div class="form-text">Rempli automatiquement depuis le nom (<code>@artmoments.com</code>). Vous pouvez le modifier si besoin.</div>
             </div>
             
             <div class="mb-3">
@@ -84,7 +84,7 @@
 (function () {
     const nameEl = document.getElementById('user_name');
     const emailEl = document.getElementById('user_email');
-    const domain = '@artlounge.com';
+    const domain = '@artmoments.com';
 
     function slugFromName(name) {
         let s = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');

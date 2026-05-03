@@ -43,7 +43,7 @@ class FCMService
             ->withAndroidConfig([
                 'priority' => 'high',
                 'notification' => [
-                    'channel_id' => 'artrestaurant_order_channel',
+                    'channel_id' => 'artmoments_order_channel',
                     'sound' => 'notification_sound',
                 ],
             ])
@@ -88,7 +88,7 @@ class FCMService
             ->withAndroidConfig([
                 'priority' => 'high',
                 'notification' => [
-                    'channel_id' => 'artrestaurant_order_channel',
+                    'channel_id' => 'artmoments_order_channel',
                     'sound' => 'notification_sound',
                 ],
             ])

@@ -1,4 +1,4 @@
-# resto_caisse_app
+# art_moments_app
 
 A new Flutter project.
 

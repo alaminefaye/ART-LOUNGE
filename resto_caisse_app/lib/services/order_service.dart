@@ -2,23 +2,26 @@ import 'package:dio/dio.dart';
 import '../config/api_config.dart';
 import '../models/order.dart';
 import 'api_service.dart';
+import 'offline_queue_service.dart';
 
 class OrderService {
   final ApiService _apiService = ApiService();
+  final OfflineQueueService _offlineQueue = OfflineQueueService();
 
   // Créer une commande
   Future<Map<String, dynamic>> createOrder({
     required int tableId,
     required int serveurId, // Nouveau paramètre obligatoire
     required List<Map<String, dynamic>> produits,
+    bool launchAfterCreate = false,
   }) async {
     try {
       final response = await _apiService.post(
         ApiConfig.orders,
         data: {
-          'table_id': tableId, 
+          'table_id': tableId,
           'serveur_id': serveurId,
-          'produits': produits
+          'produits': produits,
         },
       );
 
@@ -41,6 +44,29 @@ class OrderService {
         };
       }
     } on DioException catch (e) {
+      if (e.response == null &&
+          (e.type == DioExceptionType.connectionError ||
+              e.type == DioExceptionType.connectionTimeout ||
+              e.type == DioExceptionType.receiveTimeout)) {
+        final offlineId = -DateTime.now().millisecondsSinceEpoch;
+        await _offlineQueue.enqueue(
+          type: 'create_order',
+          payload: <String, dynamic>{
+            'table_id': tableId,
+            'serveur_id': serveurId,
+            'produits': produits,
+            if (launchAfterCreate) '_launch': true,
+            '_offline_order_id': offlineId,
+          },
+        );
+        return {
+          'success': true,
+          'offline': true,
+          'offline_order_id': offlineId,
+          'message':
+              'Commande enregistrée hors ligne. Synchronisation automatique dès que le réseau revient.',
+        };
+      }
       String message = 'Erreur lors de la création de la commande';
       if (e.response != null) {
         final data = e.response?.data;
@@ -162,7 +188,14 @@ class OrderService {
   Future<Order?> getActiveOrderByTable(int tableId) async {
     try {
       final orders = await getCurrentOrders();
-      final list = orders.where((o) => o.tableId == tableId && o.statut != OrderStatus.terminee && o.statut != OrderStatus.annulee).toList();
+      final list = orders
+          .where(
+            (o) =>
+                o.tableId == tableId &&
+                o.statut != OrderStatus.terminee &&
+                o.statut != OrderStatus.annulee,
+          )
+          .toList();
       return list.isNotEmpty ? list.first : null;
     } catch (_) {
       return null;
@@ -199,7 +232,9 @@ class OrderService {
             if (json is Map<String, dynamic>) {
               orders.add(Order.fromJson(json));
             }
-          } catch (_) {}
+          } catch (_) {
+            continue;
+          }
         }
         return orders;
       }
@@ -415,9 +450,7 @@ class OrderService {
   /// Les nouveaux produits ajoutés ensuite par le client restent "non servis".
   Future<Map<String, dynamic>> marquerServi(int orderId) async {
     try {
-      final response = await _apiService.post(
-        ApiConfig.marquerServi(orderId),
-      );
+      final response = await _apiService.post(ApiConfig.marquerServi(orderId));
       final data = response.data;
       if (response.statusCode == 200) {
         Map<String, dynamic>? orderData;

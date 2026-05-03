@@ -89,7 +89,7 @@ class PrinterService {
             children: [
               if (logo != null) pw.Image(logo, width: 50, height: 50, fit: pw.BoxFit.contain),
               pw.SizedBox(height: 4),
-              pw.Text('Art Restaurant', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black)),
+              pw.Text('ART MOMENTS', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black)),
               pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
               pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed, color: PdfColors.black),
               pw.SizedBox(height: 4),
@@ -185,7 +185,7 @@ class PrinterService {
               // === EN-TÊTE ===
               if (logo != null) pw.Image(logo, width: 55, height: 55, fit: pw.BoxFit.contain),
               pw.SizedBox(height: 4),
-              pw.Text('Art Restaurant', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black)),
+              pw.Text('ART MOMENTS', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black)),
               pw.Text('Ticket de Caisse', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
 
               // === CLIENT (si associé) ===
@@ -410,7 +410,7 @@ class PrinterService {
             // En-tête
             if (logo != null) pw.Image(logo, width: 48, height: 48, fit: pw.BoxFit.contain),
             pw.SizedBox(height: 2),
-            pw.Text('Art Restaurant',
+            pw.Text('ART MOMENTS',
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.Text('RAPPORT DE CLÔTURE',
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
