@@ -3,35 +3,40 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static const Color brandGold = Color(0xFF191F76);
   static const Color brandGoldLight = Color(0xFF2E36A3);
-  static const Color backgroundColor = Color(0xFFF4F5FC);
-  static const Color textDark = Color(0xFF1E1E1E);
+  static const Color accent = Color(0xFFFF6A3D);
+  static const Color bgTop = Color(0xFF0B1029);
+  static const Color bgBottom = Color(0xFF0F1A3C);
+  static const Color surface = Color(0xFF121B3A);
+  static const Color surface2 = Color(0xFF16214A);
+  static const Color text = Color(0xFFF4F6FF);
+  static const Color textMuted = Color(0xFF9AA3B2);
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: backgroundColor,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: bgTop,
       colorScheme: ColorScheme.fromSeed(
         seedColor: brandGold,
-        brightness: Brightness.light,
+        brightness: Brightness.dark,
         primary: brandGold,
         secondary: brandGoldLight,
-        surface: Colors.white,
+        surface: surface,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         titleTextStyle: TextStyle(
-          color: textDark,
+          color: text,
           fontSize: 18,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
         ),
-        iconTheme: IconThemeData(color: textDark),
+        iconTheme: IconThemeData(color: text),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: brandGold,
+          backgroundColor: accent,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -41,18 +46,26 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.grey.shade100,
+        fillColor: surface2,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: brandGold, width: 2),
+          borderSide: const BorderSide(color: brandGoldLight, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
+        hintStyle: const TextStyle(color: textMuted),
+      ),
+      textTheme: const TextTheme(
+        bodyMedium: TextStyle(color: text),
+        bodySmall: TextStyle(color: textMuted),
+        titleMedium: TextStyle(color: text, fontWeight: FontWeight.w800),
       ),
     );
   }
 }
-

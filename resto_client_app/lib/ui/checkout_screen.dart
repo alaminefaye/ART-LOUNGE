@@ -170,118 +170,166 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final auth = context.watch<AuthState>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Paiement')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.black12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total',
-                  style: TextStyle(fontWeight: FontWeight.w900),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppTheme.bgTop, AppTheme.bgBottom],
+          ),
+        ),
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: AppTheme.text,
+                    ),
+                  ),
+                  const Expanded(
+                    child: Text(
+                      'Checkout',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.10),
+                  ),
                 ),
-                Text(
-                  _money.format(cart.total),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.brandGold,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Total',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    Text(
+                      _money.format(cart.total),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.accent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _notesCtrl,
+                maxLines: 2,
+                style: const TextStyle(color: AppTheme.text),
+                decoration: const InputDecoration(
+                  labelText: 'Note (optionnel)',
+                  prefixIcon: Icon(Icons.edit_note, color: AppTheme.textMuted),
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Moyen de paiement',
+                style: TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 10),
+              _ChoiceTile(
+                title: 'Payer à la récupération',
+                subtitle:
+                    'Tu commandes maintenant, tu paies quand tu viens récupérer.',
+                value: PaymentChoice.later,
+                groupValue: _choice,
+                onChanged: _loading
+                    ? null
+                    : (v) {
+                        if (v != null) setState(() => _choice = v);
+                      },
+              ),
+              _ChoiceTile(
+                title: 'Wave',
+                subtitle: auth.waveEnabled
+                    ? 'Payer via Wave (validation par le gérant).'
+                    : 'Wave est désactivé.',
+                value: PaymentChoice.wave,
+                groupValue: _choice,
+                enabled: auth.waveEnabled,
+                onChanged: _loading || !auth.waveEnabled
+                    ? null
+                    : (v) {
+                        if (v != null) setState(() => _choice = v);
+                      },
+              ),
+              _ChoiceTile(
+                title: 'Points fidélité',
+                subtitle: auth.fidelityEnabled
+                    ? 'Solde: ${auth.pointsFidelite} points (1 point = ${auth.valeurFcfa1Point.toStringAsFixed(0)} FCFA)'
+                    : 'Fidélité désactivée.',
+                value: PaymentChoice.points,
+                groupValue: _choice,
+                enabled: auth.fidelityEnabled,
+                onChanged: _loading || !auth.fidelityEnabled
+                    ? null
+                    : (v) {
+                        if (v != null) setState(() => _choice = v);
+                      },
+              ),
+              if (_choice == PaymentChoice.points) ...[
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _pointsCtrl,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: AppTheme.text),
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre de points à utiliser',
+                    prefixIcon: Icon(
+                      Icons.card_giftcard,
+                      color: AppTheme.textMuted,
+                    ),
                   ),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _notesCtrl,
-            maxLines: 2,
-            decoration: const InputDecoration(
-              labelText: 'Note (optionnel)',
-              prefixIcon: Icon(Icons.edit_note),
-            ),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'Moyen de paiement',
-            style: TextStyle(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          _ChoiceTile(
-            title: 'Payer à la récupération',
-            subtitle:
-                'Tu commandes maintenant, tu paies quand tu viens récupérer.',
-            value: PaymentChoice.later,
-            groupValue: _choice,
-            onChanged: _loading
-                ? null
-                : (v) {
-                    if (v != null) setState(() => _choice = v);
-                  },
-          ),
-          _ChoiceTile(
-            title: 'Wave',
-            subtitle: auth.waveEnabled
-                ? 'Payer via Wave (validation par le gérant).'
-                : 'Wave est désactivé.',
-            value: PaymentChoice.wave,
-            groupValue: _choice,
-            enabled: auth.waveEnabled,
-            onChanged: _loading || !auth.waveEnabled
-                ? null
-                : (v) {
-                    if (v != null) setState(() => _choice = v);
-                  },
-          ),
-          _ChoiceTile(
-            title: 'Points fidélité',
-            subtitle: auth.fidelityEnabled
-                ? 'Solde: ${auth.pointsFidelite} points (1 point = ${auth.valeurFcfa1Point.toStringAsFixed(0)} FCFA)'
-                : 'Fidélité désactivée.',
-            value: PaymentChoice.points,
-            groupValue: _choice,
-            enabled: auth.fidelityEnabled,
-            onChanged: _loading || !auth.fidelityEnabled
-                ? null
-                : (v) {
-                    if (v != null) setState(() => _choice = v);
-                  },
-          ),
-          if (_choice == PaymentChoice.points) ...[
-            const SizedBox(height: 10),
-            TextField(
-              controller: _pointsCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de points à utiliser',
-                prefixIcon: Icon(Icons.card_giftcard),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: _loading
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Valider la commande',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                ),
               ),
-            ),
-          ],
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _loading ? null : _submit,
-              child: _loading
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Valider la commande'),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -310,18 +358,24 @@ class _ChoiceTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: selected ? AppTheme.brandGold : Colors.black12,
+          color: selected
+              ? AppTheme.accent
+              : Colors.white.withValues(alpha: 0.10),
         ),
       ),
       child: RadioListTile<PaymentChoice>(
         value: value,
         groupValue: groupValue,
         onChanged: enabled ? onChanged : null,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-        subtitle: Text(subtitle),
+        activeColor: AppTheme.accent,
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(color: AppTheme.textMuted),
+        ),
       ),
     );
   }

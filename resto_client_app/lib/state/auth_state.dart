@@ -48,10 +48,13 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> login({required String identifier, required String password}) async {
+  Future<void> login({
+    required String identifier,
+    required String password,
+  }) async {
     try {
       final res = await _apiClient.dio.post(
-        '/auth/login',
+        'auth/login',
         data: {'email': identifier, 'password': password},
       );
       final data = res.data;
@@ -66,24 +69,35 @@ class AuthState extends ChangeNotifier {
       _apiClient.setAuthToken(_token);
       _isAuthenticated = true;
 
-      _userName = (data is Map && data['user'] is Map) ? (data['user']['name'] as String?) : null;
-      _pointsFidelite = (data is Map && data['client'] is Map) ? ((data['client']['points_fidelite'] ?? 0) as num).toInt() : 0;
-      _fidelityEnabled = (data is Map && data['fidelity_settings'] is Map) ? (data['fidelity_settings']['actif'] == true) : false;
-      _valeurFcfa1Point = (data is Map && data['fidelity_settings'] is Map)
-          ? ((data['fidelity_settings']['valeur_fcfa_1_point'] ?? 0) as num).toDouble()
+      _userName = (data is Map && data['user'] is Map)
+          ? (data['user']['name'] as String?)
+          : null;
+      _pointsFidelite = (data is Map && data['client'] is Map)
+          ? ((data['client']['points_fidelite'] ?? 0) as num).toInt()
           : 0;
-      _waveEnabled = (data is Map && data['payment_method_settings'] is Map) ? (data['payment_method_settings']['wave_enabled'] != false) : true;
+      _fidelityEnabled = (data is Map && data['fidelity_settings'] is Map)
+          ? (data['fidelity_settings']['actif'] == true)
+          : false;
+      _valeurFcfa1Point = (data is Map && data['fidelity_settings'] is Map)
+          ? ((data['fidelity_settings']['valeur_fcfa_1_point'] ?? 0) as num)
+                .toDouble()
+          : 0;
+      _waveEnabled = (data is Map && data['payment_method_settings'] is Map)
+          ? (data['payment_method_settings']['wave_enabled'] != false)
+          : true;
 
       notifyListeners();
     } on DioException catch (e) {
-      final message = e.response?.data is Map ? (e.response?.data['message'] as String?) : null;
+      final message = e.response?.data is Map
+          ? (e.response?.data['message'] as String?)
+          : null;
       throw Exception(message ?? 'Erreur de connexion');
     }
   }
 
   Future<void> refreshMe() async {
     if (_token == null) return;
-    final res = await _apiClient.dio.get('/auth/me');
+    final res = await _apiClient.dio.get('auth/me');
     final data = res.data;
 
     if (data is Map) {
@@ -100,7 +114,8 @@ class AuthState extends ChangeNotifier {
       final fidelitySettings = data['fidelity_settings'];
       if (fidelitySettings is Map) {
         _fidelityEnabled = fidelitySettings['actif'] == true;
-        _valeurFcfa1Point = ((fidelitySettings['valeur_fcfa_1_point'] ?? 0) as num).toDouble();
+        _valeurFcfa1Point =
+            ((fidelitySettings['valeur_fcfa_1_point'] ?? 0) as num).toDouble();
       }
 
       final paymentMethodSettings = data['payment_method_settings'];
@@ -122,4 +137,3 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
   }
 }
-

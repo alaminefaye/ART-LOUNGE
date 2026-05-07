@@ -11,10 +11,13 @@ class OrderService {
     String? notes,
     required List<Map<String, dynamic>> produits,
   }) async {
-    final res = await _apiClient.dio.post('/commandes/emporter', data: {
-      if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
-      'produits': produits,
-    });
+    final res = await _apiClient.dio.post(
+      'commandes/emporter',
+      data: {
+        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+        'produits': produits,
+      },
+    );
     final data = res.data;
     if (data is Map && data['data'] is Map) {
       return Map<String, dynamic>.from(data['data'] as Map);
@@ -22,9 +25,11 @@ class OrderService {
     return {};
   }
 
-  Future<List<Map<String, dynamic>>> fetchMyOrders({required bool current}) async {
+  Future<List<Map<String, dynamic>>> fetchMyOrders({
+    required bool current,
+  }) async {
     final res = await _apiClient.dio.get(
-      '/commandes',
+      'commandes',
       queryParameters: {
         'filter': current ? 'current' : 'history',
         'sort': 'desc',
@@ -33,7 +38,10 @@ class OrderService {
     );
     final data = _apiClient.extractData(res.data, (d) => d);
     if (data is List) {
-      return data.whereType<Map>().map((m) => Map<String, dynamic>.from(m)).toList();
+      return data
+          .whereType<Map>()
+          .map((m) => Map<String, dynamic>.from(m))
+          .toList();
     }
     return const [];
   }
@@ -44,18 +52,23 @@ class OrderService {
     int? pointsUtilises,
   }) async {
     try {
-      final res = await _apiClient.dio.post('/paiements', data: {
-        'commande_id': commandeId,
-        'moyen_paiement': moyenPaiement,
-        if (pointsUtilises != null) 'points_utilises': pointsUtilises,
-      });
+      final res = await _apiClient.dio.post(
+        'paiements',
+        data: {
+          'commande_id': commandeId,
+          'moyen_paiement': moyenPaiement,
+          if (pointsUtilises != null) 'points_utilises': pointsUtilises,
+        },
+      );
       final data = res.data;
       if (data is Map && data['data'] is Map) {
         return Map<String, dynamic>.from(data['data'] as Map);
       }
       return {};
     } on DioException catch (e) {
-      final message = e.response?.data is Map ? (e.response?.data['message'] as String?) : null;
+      final message = e.response?.data is Map
+          ? (e.response?.data['message'] as String?)
+          : null;
       throw Exception(message ?? 'Erreur paiement');
     }
   }
@@ -65,9 +78,8 @@ class OrderService {
     required String transactionId,
   }) async {
     await _apiClient.dio.post(
-      '/paiements/$paiementId/confirmer',
+      'paiements/$paiementId/confirmer',
       data: {'transaction_id': transactionId},
     );
   }
 }
-

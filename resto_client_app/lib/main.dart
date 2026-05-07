@@ -8,7 +8,6 @@ import 'state/auth_state.dart';
 import 'state/cart_state.dart';
 import 'theme/app_theme.dart';
 import 'ui/home_screen.dart';
-import 'ui/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,29 +34,8 @@ class ArtRestoClientApp extends StatelessWidget {
         title: 'ART RESTO',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const RootScreen(),
+        home: const HomeScreen(),
       ),
-    );
-  }
-}
-
-class RootScreen extends StatelessWidget {
-  const RootScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AuthState>(
-      builder: (context, auth, _) {
-        if (!auth.isReady) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (auth.isAuthenticated) {
-          return const HomeScreen();
-        }
-        return const LoginScreen();
-      },
     );
   }
 }
