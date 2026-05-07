@@ -70,7 +70,7 @@
                     <tr>
                         <td><strong>{{ $paiement->facture->numero_facture ?? 'N/A' }}</strong></td>
                         <td>#{{ $paiement->commande->id }}</td>
-                        <td><span class="badge bg-primary">{{ $paiement->commande->table->numero }}</span></td>
+                        <td><span class="badge bg-primary">{{ $paiement->commande->table?->numero ?? 'À emporter' }}</span></td>
                         <td>{{ $paiement->user->name ?? 'N/A' }}</td>
                         <td>
                             @switch($paiement->moyen_paiement->value)
@@ -185,4 +185,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
-

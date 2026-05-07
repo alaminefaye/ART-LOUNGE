@@ -166,7 +166,9 @@ class PaiementController extends Controller
                 $totalPaye = (float) $commande->paiements()->where('statut', StatutPaiement::Valide)->sum('montant');
                 if ($totalPaye >= (float) $commande->montant_total) {
                     $commande->update(['statut' => OrderStatus::Terminee->value]);
-                    $commande->table->liberer();
+                    if ($commande->table) {
+                        $commande->table->liberer();
+                    }
                     $montantReel = app(\App\Services\FidelityService::class)->montantPayeReel($commande);
                     if ($montantReel > 0 && $commande->client_id) {
                         app(\App\Services\FidelityService::class)->crediterPointsPourPaiement($commande, $montantReel);

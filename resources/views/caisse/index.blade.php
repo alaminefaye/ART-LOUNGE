@@ -54,13 +54,15 @@
                 @foreach($commandesEnAttente as $commande)
                 <div class="col-md-4 col-lg-3 mb-3 commande-card"
                      data-id="{{ $commande->id }}"
-                     data-table="{{ $commande->table->numero }}"
+                     data-table="{{ $commande->table?->numero ?? 'À emporter' }}"
                      data-statut="{{ $commande->statut->value }}"
                      data-montant="{{ $commande->montant_total }}"
                      data-date="{{ $commande->created_at->timestamp }}">
                     <div class="card border {{ $commande->statut->value === 'servie' ? 'border-primary' : 'border-secondary' }} shadow-sm">
                         <div class="card-header d-flex justify-content-between align-items-center py-2">
-                            <strong class="text-primary">Table {{ $commande->table->numero }}</strong>
+                            <strong class="text-primary">
+                                {{ $commande->table ? 'Table '.$commande->table->numero : 'À emporter' }}
+                            </strong>
                             @switch($commande->statut->value)
                                 @case('attente')
                                     <span class="badge bg-warning small">Attente</span>

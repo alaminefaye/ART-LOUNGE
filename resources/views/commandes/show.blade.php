@@ -46,7 +46,7 @@
                 <div class="row mb-3">
                     <div class="col-12 col-md-6">
                         <strong>Table :</strong>
-                        <p class="text-primary h4">{{ $commande->table->numero }}</p>
+                        <p class="text-primary h4">{{ $commande->table?->numero ?? 'À emporter' }}</p>
                     </div>
                     <div class="col-12 col-md-6">
                         <strong>Serveur :</strong>

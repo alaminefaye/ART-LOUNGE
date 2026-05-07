@@ -228,7 +228,9 @@ class PaiementController extends Controller
 
             $commande->statut = OrderStatus::Terminee;
             $commande->save();
-            $commande->table->liberer();
+            if ($commande->table) {
+                $commande->table->liberer();
+            }
 
             // Créditer les points pour la part payée en argent réel
             $montantReel = $this->fidelityService->montantPayeReel($commande);

@@ -270,12 +270,18 @@
                 <div class="info-box">
                     <div class="info-label">🪑 Table</div>
                     <div style="font-size: 18px; font-weight: bold; color: #e74c3c;">
-                        {{ $table->numero }}
+                        {{ $table?->numero ?? 'À emporter' }}
                     </div>
-                    <div style="font-size: 11px; color: #666;">
-                        Type: {{ ucfirst($table->type->value) }} | 
-                        Capacité: {{ $table->capacite }} personnes
-                    </div>
+                    @if($table)
+                        <div style="font-size: 11px; color: #666;">
+                            Type: {{ ucfirst($table->type->value) }} |
+                            Capacité: {{ $table->capacite }} personnes
+                        </div>
+                    @else
+                        <div style="font-size: 11px; color: #666;">
+                            Retrait sur place
+                        </div>
+                    @endif
                 </div>
             </div>
             <div class="info-right">
@@ -315,7 +321,7 @@
                     </tr>
                     @endforeach
 
-                    @if($table->type->value === 'espace_jeux')
+                    @if($table && $table->type->value === 'espace_jeux')
                     <tr>
                         <td>
                             <strong>Frais de salle (Occupation)</strong>
@@ -404,4 +410,3 @@
     </div>
 </body>
 </html>
-

@@ -46,7 +46,7 @@
             <div class="col-md-6">
                 <h6>Informations</h6>
                 <p class="mb-0">
-                    <strong>Table:</strong> {{ $facture->commande->table->numero }}<br>
+                    <strong>Table:</strong> {{ $facture->commande->table?->numero ?? 'À emporter' }}<br>
                     <strong>Serveur:</strong> {{ $facture->commande->user->name ?? 'N/A' }}<br>
                     <strong>Caissier:</strong> {{ $facture->paiement->user->name ?? 'N/A' }}
                 </p>
@@ -157,4 +157,3 @@
 }
 </style>
 @endsection
-

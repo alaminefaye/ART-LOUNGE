@@ -123,7 +123,7 @@
             </div>
             <div class="card-body">
                 <div class="mb-3">
-                    <strong>Table:</strong> {{ $commande->table->numero }}
+                    <strong>Table:</strong> {{ $commande->table?->numero ?? 'À emporter' }}
                 </div>
                 
                 <div class="mb-3">
@@ -230,4 +230,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
-

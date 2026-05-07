@@ -148,6 +148,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [App\Http\Controllers\Api\CommandeController::class, 'show'])
             ->middleware('permission:view_orders');
         
+        // Créer une commande à emporter (client)
+        Route::post('/emporter', [App\Http\Controllers\Api\CommandeController::class, 'storeEmporter'])
+            ->middleware('permission:create_orders');
+
         // Créer une commande (serveur, caissier, manager, admin)
         Route::post('/', [App\Http\Controllers\Api\CommandeController::class, 'store'])
             ->middleware('permission:create_orders');

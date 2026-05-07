@@ -47,7 +47,7 @@
             
             <div class="mb-3">
                 <label class="form-label">Table</label>
-                <input type="text" class="form-control" value="{{ $commande->table->numero }}" disabled>
+                <input type="text" class="form-control" value="{{ $commande->table?->numero ?? 'À emporter' }}" disabled>
                 <small class="text-muted">La table ne peut pas être modifiée</small>
             </div>
             
@@ -181,4 +181,3 @@ function removeProduit(button) {
 }
 </script>
 @endpush
-

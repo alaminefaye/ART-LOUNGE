@@ -69,7 +69,13 @@
                     @forelse($commandes as $commande)
                     <tr>
                         <td><strong>#{{ $commande->id }}</strong></td>
-                        <td><span class="badge bg-primary">{{ $commande->table->numero }}</span></td>
+                        <td>
+                            @if($commande->table)
+                                <span class="badge bg-primary">{{ $commande->table->numero }}</span>
+                            @else
+                                <span class="badge bg-secondary">À emporter</span>
+                            @endif
+                        </td>
                         <td>{{ $commande->user->name ?? 'N/A' }}</td>
                         <td>{{ $commande->produits->count() }} article(s)</td>
                         <td><strong>{{ number_format($commande->montant_total, 0, ',', ' ') }} FCFA</strong></td>

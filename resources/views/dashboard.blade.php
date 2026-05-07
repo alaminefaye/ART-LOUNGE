@@ -140,12 +140,12 @@
                         <li class="d-flex mb-3 pb-1">
                             <div class="avatar flex-shrink-0 me-3">
                                 <span class="avatar-initial rounded bg-label-info">
-                                    {{ $commande->table->numero }}
+                                    {{ $commande->table?->numero ?? 'EMP' }}
                                 </span>
                             </div>
                             <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
                                 <div class="me-2">
-                                    <h6 class="mb-0">{{ $commande->table->numero }}</h6>
+                                    <h6 class="mb-0">{{ $commande->table?->numero ?? 'À emporter' }}</h6>
                                     <small class="text-muted">{{ $commande->created_at->diffForHumans() }}</small>
                                 </div>
                                 <div class="user-progress">

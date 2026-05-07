@@ -280,6 +280,83 @@ class CommandeController extends Controller
     }
 
     /**
+     * Créer une commande à emporter (sans table)
+     * POST /api/commandes/emporter
+     */
+    public function storeEmporter(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'notes' => 'nullable|string',
+            'produits' => 'required|array|min:1',
+            'produits.*.produit_id' => 'required|exists:produits,id',
+            'produits.*.quantite' => 'required|integer|min:1',
+            'produits.*.notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $commande = Commande::create([
+                'table_id' => null,
+                'user_id' => $user->id,
+                'serveur_id' => null,
+                'client_id' => $user->client?->id,
+                'statut' => OrderStatus::Attente,
+                'notes' => $request->notes,
+            ]);
+
+            foreach ($request->produits as $item) {
+                $produit = Product::find($item['produit_id']);
+                if (!$produit || !$produit->isDisponible()) {
+                    DB::rollBack();
+                    $nom = $produit ? $produit->nom : "ID {$item['produit_id']}";
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Le produit {$nom} n'est pas disponible",
+                    ], 400);
+                }
+
+                $commande->produits()->attach($produit->id, [
+                    'quantite' => $item['quantite'],
+                    'prix_unitaire' => $produit->prix,
+                    'notes' => $item['notes'] ?? null,
+                    'statut' => 'envoye',
+                ]);
+            }
+
+            $commande->calculerMontantTotal();
+            DB::commit();
+
+            $this->notifierPersonnel($commande->fresh()->load(['produits', 'user', 'client']), 'create');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Commande à emporter créée avec succès',
+                'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits', 'client'])),
+            ], 201);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('CommandeController::storeEmporter - Exception', [
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur. Veuillez réessayer plus tard.',
+            ], 500);
+        }
+    }
+
+    /**
      * Afficher une commande
      * GET /api/commandes/{id}
      */
@@ -745,12 +822,12 @@ class CommandeController extends Controller
 
         $fcmService = app(FCMService::class);
         $tableModel = $commande->table()->first();
-        $tableNumber = $tableModel ? $tableModel->numero : 'Inconnue';
+        $locationLabel = $tableModel ? "la table #{$tableModel->numero}" : "votre commande à emporter";
 
         $fcmService->sendToTokens(
             [$client->fcm_token],
             'Commande Lancée 🚀',
-            "Votre commande pour la table #{$tableNumber} a été lancée en cuisine.",
+            "Votre commande pour {$locationLabel} a été lancée en cuisine.",
             [
                 'type' => 'commande_update',
                 'commande_id' => (string)$commande->id,
@@ -777,7 +854,7 @@ class CommandeController extends Controller
 
         return [
             'id' => $commande->id,
-            'table_id' => (int) $commande->table_id,
+            'table_id' => $commande->table_id !== null ? (int) $commande->table_id : null,
             'table' => $table ? [
                 'id' => $table->id,
                 'numero' => $table->numero,
@@ -881,10 +958,10 @@ class CommandeController extends Controller
             }
 
             $tableModel = $commande->table()->first();
-            $tableNumero = $tableModel ? $tableModel->numero : 'Inconnue';
+            $tableNumero = $tableModel ? $tableModel->numero : 'À emporter';
             $title = ($type === 'create') 
-                ? "Nouvelle Commande - Table $tableNumero"
-                : "Mise à jour Commande - Table $tableNumero";
+                ? "Nouvelle Commande - {$tableNumero}"
+                : "Mise à jour Commande - {$tableNumero}";
 
             // Construire le corps du message
             $body = "";
@@ -910,7 +987,7 @@ class CommandeController extends Controller
             $data = [
                 'type' => 'commande_update',
                 'commande_id' => (string) $commande->id,
-                'table_id' => (string) $commande->table_id,
+                'table_id' => $commande->table_id !== null ? (string) $commande->table_id : null,
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             ];
 
