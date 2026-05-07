@@ -45,8 +45,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _loading = true);
     try {
       final orderService = context.read<OrderService>();
+      final headerNote = _notesCtrl.text.trim();
+      final itemNotes = cart.items
+          .where((it) => (it.note?.trim().isNotEmpty ?? false))
+          .map((it) => '- ${it.product.nom} : ${it.note!.trim()}')
+          .toList(growable: false);
+      final combinedNotes = [
+        if (headerNote.isNotEmpty) headerNote,
+        if (itemNotes.isNotEmpty) 'Détails:\n${itemNotes.join('\n')}',
+      ].join('\n\n');
       final created = await orderService.createEmporter(
-        notes: _notesCtrl.text,
+        notes: combinedNotes,
         produits: cart.toCommandeProduitsPayload(),
       );
       final commandeId = (created['id'] as num?)?.toInt();
@@ -193,7 +202,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   const Expanded(
                     child: Text(
-                      'Checkout',
+                      'Paiement',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,

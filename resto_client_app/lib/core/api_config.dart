@@ -8,20 +8,26 @@ class ApiConfig {
     }
 
     if (kIsWeb) {
-      return '${Uri.base.origin}/api';
+      return '${Uri.base.origin}/api/';
     }
 
-    return 'https://artlounge.universaltechnologiesafrica.com/api';
+    return 'https://artlounge.universaltechnologiesafrica.com/api/';
   }
 
   static String _normalize(String url) {
     var u = url.trim();
-    if (u.endsWith('/')) {
+    while (u.endsWith('/')) {
       u = u.substring(0, u.length - 1);
     }
-    if (!u.endsWith('/api')) {
-      u = '$u/api';
+
+    if (u.endsWith('/api')) {
+      return '$u/';
     }
-    return u;
+
+    if (u.endsWith('/api/')) {
+      return u;
+    }
+
+    return '$u/api/';
   }
 }

@@ -59,7 +59,7 @@ class _OrdersTabState extends State<OrdersTab> {
                 children: [
                   const Expanded(
                     child: Text(
-                      'My Orders',
+                      'Mes commandes',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,

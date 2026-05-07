@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
 import 'tabs/cart_tab.dart';
+import 'tabs/favorites_tab.dart';
 import 'tabs/menu_tab.dart';
 import 'tabs/orders_tab.dart';
 import 'tabs/profile_tab.dart';
@@ -22,7 +23,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = const [MenuTab(), CartTab(), OrdersTab(), ProfileTab()];
+    final tabs = const [
+      MenuTab(),
+      CartTab(),
+      OrdersTab(),
+      FavoritesTab(),
+      ProfileTab(),
+    ];
 
     return Scaffold(
       body: DecoratedBox(
@@ -62,32 +69,48 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                _NavItem(
-                                  icon: Icons.home_rounded,
-                                  label: 'Menu',
-                                  active: _index == 0,
-                                  onTap: () => setState(() => _index = 0),
+                                Expanded(
+                                  child: _NavItem(
+                                    icon: Icons.home_rounded,
+                                    label: 'Menu',
+                                    active: _index == 0,
+                                    onTap: () => setState(() => _index = 0),
+                                  ),
                                 ),
-                                _NavItem(
-                                  icon: Icons.shopping_bag_outlined,
-                                  label: 'Panier',
-                                  badge: cart.itemCount > 0
-                                      ? cart.itemCount.toString()
-                                      : null,
-                                  active: _index == 1,
-                                  onTap: () => setState(() => _index = 1),
+                                Expanded(
+                                  child: _NavItem(
+                                    icon: Icons.shopping_bag_outlined,
+                                    label: 'Panier',
+                                    badge: cart.itemCount > 0
+                                        ? cart.itemCount.toString()
+                                        : null,
+                                    active: _index == 1,
+                                    onTap: () => setState(() => _index = 1),
+                                  ),
                                 ),
-                                _NavItem(
-                                  icon: Icons.receipt_long,
-                                  label: 'Commandes',
-                                  active: _index == 2,
-                                  onTap: () => setState(() => _index = 2),
+                                Expanded(
+                                  child: _NavItem(
+                                    icon: Icons.receipt_long,
+                                    label: 'Commandes',
+                                    active: _index == 2,
+                                    onTap: () => setState(() => _index = 2),
+                                  ),
                                 ),
-                                _NavItem(
-                                  icon: Icons.person_outline,
-                                  label: 'Profil',
-                                  active: _index == 3,
-                                  onTap: () => setState(() => _index = 3),
+                                Expanded(
+                                  child: _NavItem(
+                                    icon: Icons.favorite_border_rounded,
+                                    label: 'Favoris',
+                                    active: _index == 3,
+                                    onTap: () => setState(() => _index = 3),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _NavItem(
+                                    icon: Icons.person_outline,
+                                    label: 'Profil',
+                                    active: _index == 4,
+                                    onTap: () => setState(() => _index = 4),
+                                  ),
                                 ),
                               ],
                             ),
@@ -128,7 +151,7 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 76,
+        width: double.infinity,
         height: 64,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

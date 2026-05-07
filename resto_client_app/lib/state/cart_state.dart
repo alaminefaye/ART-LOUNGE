@@ -3,10 +3,11 @@ import 'package:flutter/foundation.dart';
 import '../models/product.dart';
 
 class CartItem {
-  CartItem({required this.product, required this.quantite});
+  CartItem({required this.product, required this.quantite, this.note});
 
   final Product product;
   int quantite;
+  String? note;
 
   double get total => product.prix * quantite;
 }
@@ -18,6 +19,10 @@ class CartState extends ChangeNotifier {
 
   int get itemCount => _itemsByProductId.length;
 
+  int quantityOf(int productId) => _itemsByProductId[productId]?.quantite ?? 0;
+
+  String? noteOf(int productId) => _itemsByProductId[productId]?.note;
+
   double get total => _itemsByProductId.values.fold(0, (sum, it) => sum + it.total);
 
   void add(Product product) {
@@ -27,6 +32,14 @@ class CartState extends ChangeNotifier {
     } else {
       _itemsByProductId[product.id] = CartItem(product: product, quantite: 1);
     }
+    notifyListeners();
+  }
+
+  void setNote(int productId, String? note) {
+    final existing = _itemsByProductId[productId];
+    if (existing == null) return;
+    final v = note?.trim();
+    existing.note = (v == null || v.isEmpty) ? null : v;
     notifyListeners();
   }
 
@@ -69,4 +82,3 @@ class CartState extends ChangeNotifier {
         .toList(growable: false);
   }
 }
-

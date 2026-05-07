@@ -16,7 +16,7 @@ class ProfileTab extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
           children: [
             const Text(
-              'Profile',
+              'Profil',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 12),
@@ -99,7 +99,7 @@ class ProfileTab extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Points: ${auth.pointsFidelite}',
+                            'Points : ${auth.pointsFidelite}',
                             style: const TextStyle(
                               color: AppTheme.textMuted,
                               fontWeight: FontWeight.w700,

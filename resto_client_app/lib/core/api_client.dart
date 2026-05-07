@@ -12,7 +12,8 @@ class ApiClient {
               connectTimeout: const Duration(seconds: 15),
               receiveTimeout: const Duration(seconds: 20),
               headers: {'Accept': 'application/json'},
-              validateStatus: (status) => status != null && status >= 200 && status < 400,
+              validateStatus: (status) =>
+                  status != null && status >= 200 && status < 400,
             ),
           ) {
     if (kDebugMode) {
@@ -23,7 +24,9 @@ class ApiClient {
             handler.next(options);
           },
           onError: (e, handler) {
-            debugPrint('[API] ERROR ${e.requestOptions.method} ${e.requestOptions.uri} -> ${e.response?.statusCode}');
+            debugPrint(
+              '[API] ERROR ${e.requestOptions.method} ${e.requestOptions.uri} -> ${e.response?.statusCode}',
+            );
             handler.next(e);
           },
         ),
