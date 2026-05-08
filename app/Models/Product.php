@@ -55,6 +55,10 @@ class Product extends Model
             return null;
         }
 
+        if (preg_match('#^https?://#i', $this->image)) {
+            return $this->image;
+        }
+
         // Si le chemin commence par "public/", on l'enlève
         $path = str_starts_with($this->image, 'public/') 
             ? substr($this->image, 7) // Enlève "public/"
@@ -64,28 +68,35 @@ class Product extends Model
         // Sinon retourner un chemin relatif pour le web
         $request = request();
         if ($request && ($request->is('api/*') || $request->expectsJson())) {
-            // Pour l'API, utiliser le domaine de la requête actuelle pour le développement local
-            // ou config('app.url') pour la production
+            $path = ltrim($path, '/');
+
+            $configBaseUrl = rtrim((string) config('app.url'), '/');
             $host = $request->getHttpHost();
+
             $scheme = $request->getScheme();
-            
-            // Si c'est un domaine local (localhost, 127.0.0.1, ou .test, .local), utiliser le domaine de la requête
-            // Sinon utiliser config('app.url') pour la cohérence en production
-            if (str_contains($host, 'localhost') || 
-                str_contains($host, '127.0.0.1') || 
-                str_contains($host, '.test') || 
-                str_contains($host, '.local')) {
-                return $scheme . '://' . $host . '/storage/' . $path;
+            $forwardedProto = $request->header('X-Forwarded-Proto');
+            if (is_string($forwardedProto) && strtolower($forwardedProto) === 'https') {
+                $scheme = 'https';
             }
-            
-            // Pour la production, utiliser config('app.url')
-            $baseUrl = rtrim(config('app.url'), '/');
-            return $baseUrl . '/storage/' . $path;
+
+            $requestBaseUrl = $scheme . '://' . $host;
+
+            $baseUrl = $configBaseUrl;
+            $configHost = $configBaseUrl ? parse_url($configBaseUrl, PHP_URL_HOST) : null;
+            $configLooksLocal = $configHost === 'localhost' || $configHost === '127.0.0.1' || $configHost === '0.0.0.0';
+
+            if (empty($baseUrl) || $configLooksLocal) {
+                $baseUrl = $requestBaseUrl;
+            } elseif (!empty($host) && is_string($configHost) && $configHost !== $host && !$configLooksLocal) {
+                $baseUrl = $requestBaseUrl;
+            }
+
+            return rtrim($baseUrl, '/') . '/storage/' . $path;
         }
 
         // Retourner un chemin relatif qui fonctionne avec le domaine actuel
         // Le navigateur résoudra automatiquement l'URL complète
-        return '/storage/' . $path;
+        return '/storage/' . ltrim($path, '/');
     }
 
     /**

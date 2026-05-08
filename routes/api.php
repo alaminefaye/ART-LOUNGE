@@ -36,6 +36,7 @@ Route::prefix('categories')->group(function () {
 Route::prefix('produits')->group(function () {
     Route::get('/', [App\Http\Controllers\Api\ProductController::class, 'index']);
     Route::get('/{id}', [App\Http\Controllers\Api\ProductController::class, 'show']);
+    Route::get('/{id}/rating', [App\Http\Controllers\Api\ProductController::class, 'rating']);
 });
 
 // Tables - Routes publiques pour la consultation

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static const Color brandGold = Color(0xFF191F76);
   static const Color brandGoldLight = Color(0xFF2E36A3);
-  static const Color accent = Color(0xFFFF6A3D);
+  static const Color accent = Color(0xFFF2BC91);
   static const Color bgTop = Color(0xFF0B1029);
   static const Color bgBottom = Color(0xFF0F1A3C);
   static const Color surface = Color(0xFF121B3A);

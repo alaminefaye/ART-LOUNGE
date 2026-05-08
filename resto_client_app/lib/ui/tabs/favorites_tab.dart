@@ -139,13 +139,13 @@ class _FavoriteCard extends StatelessWidget {
                 child: SizedBox(
                   width: 74,
                   height: 74,
-                  child: (product.imageUrl == null || product.imageUrl!.isEmpty)
+                  child: (product.imageUrlCacheBusted == null)
                       ? Container(
                           color: Colors.white.withValues(alpha: 0.06),
                           child: const Icon(Icons.fastfood, color: AppTheme.textMuted),
                         )
                       : CachedNetworkImage(
-                          imageUrl: product.imageUrl!,
+                          imageUrl: product.imageUrlCacheBusted!,
                           fit: BoxFit.cover,
                           errorWidget: (_, __, ___) => Container(color: Colors.white.withValues(alpha: 0.06)),
                         ),
@@ -181,4 +181,3 @@ class _FavoriteCard extends StatelessWidget {
     );
   }
 }
-

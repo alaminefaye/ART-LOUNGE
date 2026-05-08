@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -94,6 +95,38 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'data' => $this->formatProduct($produit),
+        ]);
+    }
+
+    /**
+     * Note moyenne d'un produit (basée sur les avis des commandes qui contiennent ce produit).
+     * GET /api/produits/{id}/rating
+     */
+    public function rating(int $id)
+    {
+        $exists = Product::query()->whereKey($id)->exists();
+        if (!$exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Produit non trouvé',
+            ], 404);
+        }
+
+        $stats = DB::table('avis')
+            ->join('commande_produit', 'commande_produit.commande_id', '=', 'avis.commande_id')
+            ->where('commande_produit.produit_id', $id)
+            ->selectRaw('AVG(avis.note) as moyenne, COUNT(*) as total')
+            ->first();
+
+        $moyenne = $stats?->moyenne !== null ? (float) $stats->moyenne : 0.0;
+        $total = $stats?->total !== null ? (int) $stats->total : 0;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'moyenne' => $moyenne,
+                'total' => $total,
+            ],
         ]);
     }
 
