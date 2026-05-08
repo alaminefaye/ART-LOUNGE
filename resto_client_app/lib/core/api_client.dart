@@ -13,7 +13,7 @@ class ApiClient {
               receiveTimeout: const Duration(seconds: 20),
               headers: {'Accept': 'application/json'},
               validateStatus: (status) =>
-                  status != null && status >= 200 && status < 400,
+                  status != null && status >= 200 && status < 600,
             ),
           ) {
     if (kDebugMode) {

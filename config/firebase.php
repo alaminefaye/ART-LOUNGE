@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+$credentials = env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS'));
+if (is_string($credentials) && $credentials !== '' && !str_starts_with($credentials, '/')) {
+    $credentials = base_path($credentials);
+}
+if ((!is_string($credentials) || $credentials === '') && is_file(base_path('artmoment-c26ad-3023fef5a2b5.json'))) {
+    $credentials = base_path('artmoment-c26ad-3023fef5a2b5.json');
+}
+
 return [
     /*
      * ------------------------------------------------------------------------
@@ -50,7 +58,7 @@ return [
              *
              */
 
-            'credentials' => env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS')),
+            'credentials' => $credentials,
 
             /*
              * ------------------------------------------------------------------------

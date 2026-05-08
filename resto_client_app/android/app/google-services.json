@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "523489387466",
+    "project_id": "artmoment-c26ad",
+    "storage_bucket": "artmoment-c26ad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:523489387466:android:837ab134bb7162e459e533",
+        "android_client_info": {
+          "package_name": "com.artmoment.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3S18Tbc0AqorxXTllqdr_0yGpJlhhTXk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

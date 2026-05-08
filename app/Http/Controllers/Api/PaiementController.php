@@ -568,58 +568,69 @@ class PaiementController extends Controller
 
     public function waveCheckout(Request $request, Paiement $paiement)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        if ($paiement->moyen_paiement !== MoyenPaiement::Wave) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ce paiement n’est pas un paiement Wave.',
-            ], 400);
-        }
+            if ($paiement->moyen_paiement !== MoyenPaiement::Wave) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce paiement n’est pas un paiement Wave.',
+                ], 400);
+            }
 
-        if ($user->hasRole('client') && $paiement->commande?->user_id !== $user->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Vous n’êtes pas autorisé à initier ce paiement.',
-            ], 403);
-        }
+            if ($user->hasRole('client') && $paiement->commande?->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous n’êtes pas autorisé à initier ce paiement.',
+                ], 403);
+            }
 
-        if ($paiement->statut === StatutPaiement::Valide) {
+            if ($paiement->statut === StatutPaiement::Valide) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Paiement déjà validé.',
+                    'data' => [
+                        'paiement_id' => $paiement->id,
+                        'status' => 'already_paid',
+                    ],
+                ]);
+            }
+
+            if ($paiement->statut !== StatutPaiement::EnAttente) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce paiement n’est pas en attente.',
+                ], 409);
+            }
+
+            $result = $this->wavePaymentService->createCheckoutSession($paiement);
+            if (!($result['success'] ?? false)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Erreur Wave',
+                ], 400);
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Paiement déjà validé.',
+                'message' => 'Session Wave créée',
                 'data' => [
                     'paiement_id' => $paiement->id,
-                    'status' => 'already_paid',
+                    'payment_url' => $result['payment_url'],
+                    'wave_id' => $result['wave_id'] ?? null,
+                    'client_reference' => $result['client_reference'] ?? null,
                 ],
             ]);
-        }
-
-        if ($paiement->statut !== StatutPaiement::EnAttente) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ce paiement n’est pas en attente.',
-            ], 409);
-        }
-
-        $result = $this->wavePaymentService->createCheckoutSession($paiement);
-        if (!($result['success'] ?? false)) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'] ?? 'Erreur Wave',
-            ], 400);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Session Wave créée',
-            'data' => [
+        } catch (\Throwable $e) {
+            Log::error('Wave checkout: erreur serveur', [
                 'paiement_id' => $paiement->id,
-                'payment_url' => $result['payment_url'],
-                'wave_id' => $result['wave_id'] ?? null,
-                'client_reference' => $result['client_reference'] ?? null,
-            ],
-        ]);
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur Wave. Vérifie la configuration (APP_URL/WAVE_API_KEY).',
+            ], 500);
+        }
     }
 
     public function waveWebhook(Request $request)

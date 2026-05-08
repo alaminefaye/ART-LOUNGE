@@ -1,4 +1,4 @@
-package com.artmoments.resto_client_app
+package com.artmoment.app
 
 import io.flutter.embedding.android.FlutterActivity
 

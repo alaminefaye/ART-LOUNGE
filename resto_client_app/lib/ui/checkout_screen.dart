@@ -239,12 +239,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       },
               ),
               _ChoiceTile(
-                title: 'Wave',
+                title: '',
                 subtitle: auth.waveEnabled
                     ? 'Payer via Wave (validation automatique).'
                     : 'Wave est désactivé.',
                 value: PaymentChoice.wave,
                 groupValue: _choice,
+                leading: Image.asset('logowave.png', fit: BoxFit.contain),
                 enabled: auth.waveEnabled,
                 onChanged: _loading || !auth.waveEnabled
                     ? null
@@ -322,20 +323,25 @@ class _ChoiceTile extends StatelessWidget {
     required this.subtitle,
     required this.value,
     required this.groupValue,
+    this.leading,
     this.enabled = true,
     required this.onChanged,
   });
+
+  static const double _leadingSize = 56;
 
   final String title;
   final String subtitle;
   final PaymentChoice value;
   final PaymentChoice groupValue;
+  final Widget? leading;
   final bool enabled;
   final ValueChanged<PaymentChoice?>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     final selected = value == groupValue;
+    final hasTitle = title.trim().isNotEmpty;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -352,7 +358,21 @@ class _ChoiceTile extends StatelessWidget {
         groupValue: groupValue,
         onChanged: enabled ? onChanged : null,
         activeColor: AppTheme.accent,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+        title: Row(
+          children: [
+            if (leading != null) ...[
+              SizedBox.square(dimension: _leadingSize, child: leading),
+              if (hasTitle) const SizedBox(width: 10),
+            ],
+            if (hasTitle)
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+          ],
+        ),
         subtitle: Text(
           subtitle,
           style: const TextStyle(color: AppTheme.textMuted),
