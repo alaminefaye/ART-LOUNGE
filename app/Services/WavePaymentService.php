@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Paiement;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -59,10 +60,30 @@ class WavePaymentService
             'api_url' => rtrim((string) $this->baseUrl, '/') . '/checkout/sessions',
         ]);
 
-        $response = Http::timeout(30)
-            ->withToken($this->apiKey)
-            ->acceptJson()
-            ->post(rtrim((string) $this->baseUrl, '/') . '/checkout/sessions', $payload);
+        try {
+            $response = Http::timeout(30)
+                ->withToken($this->apiKey)
+                ->acceptJson()
+                ->post(rtrim((string) $this->baseUrl, '/') . '/checkout/sessions', $payload);
+        } catch (ConnectionException $e) {
+            Log::error('Wave: connexion impossible', [
+                'paiement_id' => $paiement->id,
+                'error' => $e->getMessage(),
+            ]);
+            return [
+                'success' => false,
+                'message' => 'Impossible de joindre Wave. Réessaie dans quelques instants.',
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Wave: exception création checkout session', [
+                'paiement_id' => $paiement->id,
+                'error' => $e->getMessage(),
+            ]);
+            return [
+                'success' => false,
+                'message' => 'Erreur interne lors de l’initialisation Wave.',
+            ];
+        }
 
         if (!$response->successful()) {
             Log::error('Wave: erreur création checkout session', [

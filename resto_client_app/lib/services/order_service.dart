@@ -11,18 +11,25 @@ class OrderService {
     String? notes,
     required List<Map<String, dynamic>> produits,
   }) async {
-    final res = await _apiClient.dio.post(
-      'commandes/emporter',
-      data: {
-        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
-        'produits': produits,
-      },
-    );
-    final data = res.data;
-    if (data is Map && data['data'] is Map) {
-      return Map<String, dynamic>.from(data['data'] as Map);
+    try {
+      final res = await _apiClient.dio.post(
+        'commandes/emporter',
+        data: {
+          if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+          'produits': produits,
+        },
+      );
+      final data = res.data;
+      if (data is Map && data['data'] is Map) {
+        return Map<String, dynamic>.from(data['data'] as Map);
+      }
+      return {};
+    } on DioException catch (e) {
+      final message = e.response?.data is Map
+          ? (e.response?.data['message'] as String?)
+          : null;
+      throw Exception(message ?? 'Erreur création commande');
     }
-    return {};
   }
 
   Future<List<Map<String, dynamic>>> fetchMyOrders({
