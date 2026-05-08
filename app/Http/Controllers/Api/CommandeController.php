@@ -360,7 +360,7 @@ class CommandeController extends Controller
      * Afficher une commande
      * GET /api/commandes/{id}
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $commande = Commande::with(['table', 'user', 'serveur', 'produits', 'paiements.facture'])->find($id);
 
@@ -369,6 +369,15 @@ class CommandeController extends Controller
                 'success' => false,
                 'message' => 'Commande non trouvée',
             ], 404);
+        }
+
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        if ($user->hasRole('client') && (int) $commande->user_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous ne pouvez pas consulter cette commande.',
+            ], 403);
         }
 
         return response()->json([

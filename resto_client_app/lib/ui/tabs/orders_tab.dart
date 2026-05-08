@@ -6,6 +6,7 @@ import '../../services/order_service.dart';
 import '../../state/auth_state.dart';
 import '../../theme/app_theme.dart';
 import '../login_screen.dart';
+import '../order_detail_screen.dart';
 
 class OrdersTab extends StatefulWidget {
   const OrdersTab({super.key});
@@ -170,7 +171,9 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final id = order['id'];
+    final idRaw = order['id'];
+    final orderId =
+        idRaw is int ? idRaw : int.tryParse(idRaw?.toString() ?? '') ?? 0;
     final statut = (order['statut_display'] ?? order['statut'] ?? '')
         .toString();
     final montant = (order['montant_total'] ?? 0) as num;
@@ -179,52 +182,86 @@ class _OrderCard extends StatelessWidget {
         ? 'Table ${(table['numero'] ?? '').toString()}'
         : 'À emporter';
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(Icons.receipt_long, color: AppTheme.text),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '#$id • $place',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  statut,
-                  style: const TextStyle(
-                    color: AppTheme.textMuted,
-                    fontWeight: FontWeight.w700,
+        onTap: orderId <= 0
+            ? null
+            : () {
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) => OrderDetailScreen(orderId: orderId),
                   ),
+                );
+              },
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ],
-            ),
+                child: const Icon(Icons.receipt_long, color: AppTheme.text),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '#$orderId • $place',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      statut,
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Voir le détail',
+                      style: TextStyle(
+                        color: AppTheme.accent.withValues(alpha: 0.95),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    money.format(montant),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.accent,
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.white.withValues(alpha: 0.42),
+                  ),
+                ],
+              ),
+            ],
           ),
-          Text(
-            money.format(montant),
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              color: AppTheme.accent,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

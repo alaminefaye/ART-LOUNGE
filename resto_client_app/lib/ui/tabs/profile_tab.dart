@@ -55,9 +55,19 @@ class _ProfileTabState extends State<ProfileTab> {
       children: [
         const Text(
           'Profil',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 4),
+        Text(
+          'Ton compte, tes paiements et tes réglages',
+          style: TextStyle(
+            color: AppTheme.textMuted,
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            height: 1.3,
+          ),
+        ),
+        const SizedBox(height: 16),
         if (!auth.isAuthenticated) ...[
           ClipRRect(
             borderRadius: BorderRadius.circular(22),
@@ -140,131 +150,431 @@ class _ProfileTabState extends State<ProfileTab> {
             value: 'Seulement au checkout',
           ),
         ] else ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-            ),
-            child: Row(
+          _ProfileHeroCard(auth: auth),
+          const SizedBox(height: 22),
+          _ProfileSectionLabel(title: 'Paiements & fidélité'),
+          const SizedBox(height: 10),
+          _GroupedGlassPanel(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(
-                      color: AppTheme.accent.withValues(alpha: 0.55),
-                      width: 2,
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Image.asset(
-                    'logo.jpeg',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) =>
-                        const Icon(Icons.person, color: AppTheme.bgTop),
-                  ),
+                _InfoPanelRow(
+                  icon: Icons.waves,
+                  title: 'Wave',
+                  value: auth.waveEnabled ? 'Activé' : 'Désactivé',
+                  valuePositive: auth.waveEnabled,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        auth.userName ?? 'Client',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        auth.email ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppTheme.textMuted,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.10),
-                    ),
-                  ),
-                  child: Text(
-                    '${auth.pointsFidelite} pts',
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
+                _panelDivider(),
+                _InfoPanelRow(
+                  icon: Icons.card_giftcard_rounded,
+                  title: 'Fidélité',
+                  value: auth.fidelityEnabled ? 'Points activés' : 'Désactivé',
+                  valuePositive: auth.fidelityEnabled,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          _InfoTile(
-            icon: Icons.waves,
-            title: 'Wave',
-            value: auth.waveEnabled ? 'Activé' : 'Désactivé',
-          ),
+          const SizedBox(height: 22),
+          _ProfileSectionLabel(title: 'Paramètres'),
           const SizedBox(height: 10),
-          _InfoTile(
-            icon: Icons.card_giftcard,
-            title: 'Fidélité',
-            value: auth.fidelityEnabled ? 'Points activés' : 'Désactivé',
+          _GroupedGlassPanel(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _SettingsPanelRow(
+                  icon: Icons.manage_accounts_outlined,
+                  title: 'Modifier le profil',
+                  subtitle: auth.email ?? '',
+                  onTap: () => _openEditProfile(auth: auth),
+                ),
+                _panelDivider(),
+                _SettingsPanelRow(
+                  icon: Icons.location_on_outlined,
+                  title: 'Adresse',
+                  subtitle: (auth.adresse == null || auth.adresse!.trim().isEmpty)
+                      ? 'Non renseignée'
+                      : auth.adresse!,
+                  onTap: () => _openEditProfile(auth: auth, focusAdresse: true),
+                ),
+                _panelDivider(),
+                _SettingsPanelRow(
+                  icon: Icons.lock_outline_rounded,
+                  title: 'Mot de passe',
+                  subtitle: 'Changer ton mot de passe',
+                  onTap: _openChangePassword,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 18),
-          const Text(
-            'Paramètres',
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-          ),
-          const SizedBox(height: 10),
-          _SettingTile(
-            icon: Icons.manage_accounts_outlined,
-            title: 'Modifier le profil',
-            subtitle: auth.email ?? '',
-            onTap: () => _openEditProfile(auth: auth),
-          ),
-          const SizedBox(height: 10),
-          _SettingTile(
-            icon: Icons.location_on_outlined,
-            title: 'Adresse',
-            subtitle: (auth.adresse == null || auth.adresse!.trim().isEmpty)
-                ? 'Non renseignée'
-                : auth.adresse!,
-            onTap: () => _openEditProfile(auth: auth, focusAdresse: true),
-          ),
-          const SizedBox(height: 10),
-          _SettingTile(
-            icon: Icons.lock_outline,
-            title: 'Mot de passe',
-            subtitle: 'Modifier',
-            onTap: _openChangePassword,
-          ),
-          const SizedBox(height: 10),
-          _SettingTile(
-            icon: Icons.logout_rounded,
-            title: 'Déconnexion',
-            subtitle: '',
-            danger: true,
-            onTap: () => context.read<AuthState>().logout(),
+          const SizedBox(height: 14),
+          _GroupedGlassPanel(
+            child: _SettingsPanelRow(
+              icon: Icons.logout_rounded,
+              title: 'Déconnexion',
+              subtitle: 'Quitter ce compte sur cet appareil',
+              danger: true,
+              showChevron: false,
+              onTap: () => context.read<AuthState>().logout(),
+            ),
           ),
         ],
       ],
+    );
+  }
+}
+
+Widget _panelDivider() => Divider(
+      height: 1,
+      thickness: 1,
+      indent: 62,
+      color: Colors.white.withValues(alpha: 0.09),
+    );
+
+class _ProfileSectionLabel extends StatelessWidget {
+  const _ProfileSectionLabel({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title.toUpperCase(),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.2,
+          color: AppTheme.textMuted.withValues(alpha: 0.95),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupedGlassPanel extends StatelessWidget {
+  const _GroupedGlassPanel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.11)),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileHeroCard extends StatelessWidget {
+  const _ProfileHeroCard({required this.auth});
+
+  final AuthState auth;
+
+  @override
+  Widget build(BuildContext context) {
+    final phone = auth.phone?.trim();
+    final hasPhone = phone != null && phone.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.surface.withValues(alpha: 0.95),
+            AppTheme.surface2.withValues(alpha: 0.9),
+          ],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.brandGold.withValues(alpha: 0.12),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.brandGoldLight,
+                  AppTheme.accent.withValues(alpha: 0.85),
+                ],
+              ),
+            ),
+            child: CircleAvatar(
+              radius: 38,
+              backgroundColor: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Image.asset(
+                  'logo.jpeg',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Icon(
+                    Icons.person_rounded,
+                    color: AppTheme.bgTop,
+                    size: 36,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  auth.userName ?? 'Client',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  auth.email ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                if (hasPhone) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.phone_iphone_rounded,
+                        size: 15,
+                        color: AppTheme.textMuted.withValues(alpha: 0.9),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          phone,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: AppTheme.textMuted.withValues(alpha: 0.95),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.brandGold.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppTheme.brandGoldLight.withValues(alpha: 0.45),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.stars_rounded,
+                      size: 18,
+                      color: AppTheme.accent,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${auth.pointsFidelite} pts',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoPanelRow extends StatelessWidget {
+  const _InfoPanelRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+    this.valuePositive = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String value;
+  final bool valuePositive;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: AppTheme.text, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: valuePositive
+                  ? Colors.green.withValues(alpha: 0.16)
+                  : Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: valuePositive
+                    ? Colors.greenAccent.withValues(alpha: 0.35)
+                    : Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+            child: Text(
+              value,
+              style: TextStyle(
+                color: valuePositive
+                    ? Colors.lightGreenAccent.shade100
+                    : AppTheme.textMuted,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsPanelRow extends StatelessWidget {
+  const _SettingsPanelRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.danger = false,
+    this.showChevron = true,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool danger;
+  final bool showChevron;
+
+  @override
+  Widget build(BuildContext context) {
+    final titleColor = danger ? Colors.redAccent.shade100 : AppTheme.text;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: danger
+                      ? Colors.redAccent.withValues(alpha: 0.14)
+                      : Colors.white.withValues(alpha: 0.08),
+                ),
+                child: Icon(icon, color: danger ? Colors.redAccent : AppTheme.text, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                        color: titleColor,
+                      ),
+                    ),
+                    if (subtitle.trim().isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        maxLines: danger ? 2 : 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          height: 1.25,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (showChevron)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white.withValues(alpha: 0.4),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -315,86 +625,6 @@ class _InfoTile extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SettingTile extends StatelessWidget {
-  const _SettingTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.danger = false,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final bool danger;
-
-  @override
-  Widget build(BuildContext context) {
-    final titleColor = danger ? Colors.redAccent : AppTheme.text;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
-        child: Ink(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(icon, color: titleColor),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: titleColor,
-                      ),
-                    ),
-                    if (subtitle.trim().isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppTheme.textMuted,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white.withValues(alpha: 0.45),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

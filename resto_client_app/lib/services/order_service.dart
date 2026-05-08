@@ -53,6 +53,35 @@ class OrderService {
     return const [];
   }
 
+  /// Détail complet d’une commande (produits, notes, lieu…).
+  Future<Map<String, dynamic>> fetchOrderById(int id) async {
+    try {
+      final res = await _apiClient.dio.get('commandes/$id');
+      final status = res.statusCode ?? 0;
+      final body = res.data;
+
+      if (status >= 400) {
+        final msg =
+            body is Map ? _apiClient.extractMessage(body) : 'Commande inaccessible';
+        throw Exception(msg);
+      }
+
+      if (body is Map) {
+        if (body['success'] == false) {
+          throw Exception(_apiClient.extractMessage(body));
+        }
+        final inner = body['data'];
+        if (inner is Map) {
+          return Map<String, dynamic>.from(inner);
+        }
+      }
+      throw Exception('Réponse invalide du serveur');
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw Exception(data is Map ? _apiClient.extractMessage(data) : 'Erreur réseau');
+    }
+  }
+
   Future<Map<String, dynamic>> initPaiement({
     required int commandeId,
     required String moyenPaiement,

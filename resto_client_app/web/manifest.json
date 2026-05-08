@@ -1,6 +1,6 @@
 {
-    "name": "resto_client_app",
-    "short_name": "resto_client_app",
+    "name": "ART MOMENT",
+    "short_name": "ART MOMENT",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

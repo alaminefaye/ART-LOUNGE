@@ -1,18 +1,17 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
-import 'tabs/cart_tab.dart';
 import 'tabs/favorites_tab.dart';
 import 'tabs/menu_tab.dart';
 import 'tabs/orders_tab.dart';
 import 'tabs/profile_tab.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, required this.cartNavTargetKey});
+
+  final GlobalKey cartNavTargetKey;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -23,12 +22,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = const [
-      MenuTab(),
-      CartTab(),
-      OrdersTab(),
-      FavoritesTab(),
-      ProfileTab(),
+    final tabs = [
+      MenuTab(cartButtonKey: widget.cartNavTargetKey),
+      const OrdersTab(),
+      const FavoritesTab(),
+      const ProfileTab(),
     ];
 
     return Scaffold(
@@ -51,73 +49,58 @@ class _HomeScreenState extends State<HomeScreen> {
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-                  child: Consumer<CartState>(
-                    builder: (context, cart, _) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.06),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.10),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Expanded(
-                                  child: _NavItem(
-                                    icon: Icons.home_rounded,
-                                    label: 'Menu',
-                                    active: _index == 0,
-                                    onTap: () => setState(() => _index = 0),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _NavItem(
-                                    icon: Icons.shopping_bag_outlined,
-                                    label: 'Panier',
-                                    badge: cart.itemCount > 0
-                                        ? cart.itemCount.toString()
-                                        : null,
-                                    active: _index == 1,
-                                    onTap: () => setState(() => _index = 1),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _NavItem(
-                                    icon: Icons.receipt_long,
-                                    label: 'Commandes',
-                                    active: _index == 2,
-                                    onTap: () => setState(() => _index = 2),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _NavItem(
-                                    icon: Icons.favorite_border_rounded,
-                                    label: 'Favoris',
-                                    active: _index == 3,
-                                    onTap: () => setState(() => _index = 3),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _NavItem(
-                                    icon: Icons.person_outline,
-                                    label: 'Profil',
-                                    active: _index == 4,
-                                    onTap: () => setState(() => _index = 4),
-                                  ),
-                                ),
-                              ],
-                            ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.10),
                           ),
                         ),
-                      );
-                    },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.home_rounded,
+                                label: 'Menu',
+                                active: _index == 0,
+                                onTap: () => setState(() => _index = 0),
+                              ),
+                            ),
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.receipt_long,
+                                label: 'Commandes',
+                                active: _index == 1,
+                                onTap: () => setState(() => _index = 1),
+                              ),
+                            ),
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.favorite_border_rounded,
+                                label: 'Favoris',
+                                active: _index == 2,
+                                onTap: () => setState(() => _index = 2),
+                              ),
+                            ),
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.person_outline,
+                                label: 'Profil',
+                                active: _index == 3,
+                                onTap: () => setState(() => _index = 3),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

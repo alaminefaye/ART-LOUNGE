@@ -8,8 +8,30 @@ import '../../theme/app_theme.dart';
 import '../checkout_screen.dart';
 import '../login_screen.dart';
 
+class CartScreen extends StatelessWidget {
+  const CartScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppTheme.bgTop, AppTheme.bgBottom],
+          ),
+        ),
+        child: SafeArea(child: CartTab(showBackButton: true)),
+      ),
+    );
+  }
+}
+
 class CartTab extends StatelessWidget {
-  const CartTab({super.key});
+  const CartTab({super.key, this.showBackButton = false});
+
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +48,16 @@ class CartTab extends StatelessWidget {
           children: [
             Row(
               children: [
+                if (showBackButton) ...[
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: AppTheme.text,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
                 const Expanded(
                   child: Text(
                     'Mon panier',

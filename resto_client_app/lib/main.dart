@@ -12,6 +12,7 @@ import 'state/cart_state.dart';
 import 'state/favorites_state.dart';
 import 'theme/app_theme.dart';
 import 'ui/home_screen.dart';
+import 'widgets/cart_add_feedback.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,24 +20,32 @@ void main() {
   runApp(ArtRestoClientApp(apiClient: apiClient));
 }
 
-class ArtRestoClientApp extends StatelessWidget {
+class ArtRestoClientApp extends StatefulWidget {
   const ArtRestoClientApp({super.key, required this.apiClient});
 
   final ApiClient apiClient;
 
   @override
+  State<ArtRestoClientApp> createState() => _ArtRestoClientAppState();
+}
+
+class _ArtRestoClientAppState extends State<ArtRestoClientApp> {
+  /// Cible l’entrée Panier pour l’animation « vol depuis le plat » sur toutes les routes.
+  final GlobalKey _cartNavTargetKey = GlobalKey(debugLabel: 'cartNavTarget');
+
+  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider.value(value: apiClient),
-        ChangeNotifierProvider(create: (_) => AuthState(apiClient)..init()),
+        Provider.value(value: widget.apiClient),
+        ChangeNotifierProvider(create: (_) => AuthState(widget.apiClient)..init()),
         ChangeNotifierProvider(create: (_) => CartState()),
         ChangeNotifierProvider(create: (_) => FavoritesState()..init()),
-        Provider(create: (_) => MenuService(apiClient)),
-        Provider(create: (_) => OrderService(apiClient)),
+        Provider(create: (_) => MenuService(widget.apiClient)),
+        Provider(create: (_) => OrderService(widget.apiClient)),
       ],
       child: MaterialApp(
-        title: 'ART RESTO',
+        title: 'ART MOMENT',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         locale: const Locale('fr', 'FR'),
@@ -46,14 +55,20 @@ class ArtRestoClientApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        home: const SplashScreen(),
+        builder: (context, child) => CartFlightTargetScope(
+          cartTargetKey: _cartNavTargetKey,
+          child: child ?? const SizedBox.shrink(),
+        ),
+        home: SplashScreen(cartNavTargetKey: _cartNavTargetKey),
       ),
     );
   }
 }
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key, required this.cartNavTargetKey});
+
+  final GlobalKey cartNavTargetKey;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -89,7 +104,11 @@ class _SplashScreenState extends State<SplashScreen>
       Future.delayed(const Duration(milliseconds: 5000), () {
         if (!mounted) return;
         Navigator.of(context, rootNavigator: true).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(
+            builder: (_) => HomeScreen(
+              cartNavTargetKey: widget.cartNavTargetKey,
+            ),
+          ),
         );
       });
     });

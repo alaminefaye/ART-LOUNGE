@@ -12,10 +12,14 @@ import '../../state/cart_state.dart';
 import '../../state/auth_state.dart';
 import '../../state/favorites_state.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/cart_add_feedback.dart';
+import 'cart_tab.dart';
 import '../login_screen.dart';
 
 class MenuTab extends StatefulWidget {
-  const MenuTab({super.key});
+  const MenuTab({super.key, this.cartButtonKey});
+
+  final GlobalKey? cartButtonKey;
 
   @override
   State<MenuTab> createState() => _MenuTabState();
@@ -80,6 +84,12 @@ class _MenuTabState extends State<MenuTab> {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(builder: (_) => const NotificationsScreen()),
     );
+  }
+
+  void _openCart() {
+    Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => const CartScreen()));
   }
 
   List<Product> get _filteredProducts {
@@ -164,6 +174,65 @@ class _MenuTabState extends State<MenuTab> {
                   ),
                 ),
               ),
+              const SizedBox(width: 10),
+              Consumer<CartState>(
+                builder: (context, cart, _) {
+                  final badge = cart.itemCount;
+                  final button = GestureDetector(
+                    onTap: _openCart,
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        color: Colors.white.withValues(alpha: 0.08),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Center(
+                            child: Icon(
+                              Icons.shopping_bag_outlined,
+                              color: AppTheme.text,
+                            ),
+                          ),
+                          if (badge > 0)
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accent,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  badge.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+
+                  return widget.cartButtonKey == null
+                      ? button
+                      : KeyedSubtree(key: widget.cartButtonKey, child: button);
+                },
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -191,7 +260,15 @@ class _MenuTabState extends State<MenuTab> {
                 product: featured,
                 priceLabel: _money.format(featured.prix),
                 onAdd: featured.disponible
-                    ? () => context.read<CartState>().add(featured)
+                    ? (anchor) {
+                        CartAddFeedback.run(
+                          context: context,
+                          buttonContext: anchor,
+                          product: featured,
+                          onAddToCart: () =>
+                              context.read<CartState>().add(featured),
+                        );
+                      }
                     : null,
               ),
               const SizedBox(height: 18),
@@ -265,7 +342,15 @@ class _MenuTabState extends State<MenuTab> {
                     product: p,
                     priceLabel: _money.format(p.prix),
                     onAdd: p.disponible
-                        ? () => context.read<CartState>().add(p)
+                        ? (anchor) {
+                            CartAddFeedback.run(
+                              context: context,
+                              buttonContext: anchor,
+                              product: p,
+                              onAddToCart: () =>
+                                  context.read<CartState>().add(p),
+                            );
+                          }
                         : null,
                   );
                 },
@@ -329,7 +414,7 @@ class _FeaturedCard extends StatelessWidget {
 
   final Product product;
   final String priceLabel;
-  final VoidCallback? onAdd;
+  final void Function(BuildContext anchorContext)? onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -446,18 +531,24 @@ class _FeaturedCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: onAdd,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.accent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        child: Builder(
+                          builder: (anchorCtx) => ElevatedButton(
+                            onPressed: onAdd == null
+                                ? null
+                                : () => onAdd!(anchorCtx),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.accent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 9),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 9),
-                          ),
-                          child: Text(
-                            product.disponible ? 'Commander' : 'Indispo',
-                            style: const TextStyle(fontWeight: FontWeight.w900),
+                            child: Text(
+                              product.disponible ? 'Commander' : 'Indispo',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -482,7 +573,7 @@ class _ModernProductCard extends StatelessWidget {
 
   final Product product;
   final String priceLabel;
-  final VoidCallback? onAdd;
+  final void Function(BuildContext anchorContext)? onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -623,22 +714,26 @@ class _ModernProductCard extends StatelessWidget {
                         alignment: Alignment.centerRight,
                         child: SizedBox(
                           height: 32,
-                          child: ElevatedButton(
-                            onPressed: onAdd,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.accent,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
+                          child: Builder(
+                            builder: (anchorCtx) => ElevatedButton(
+                              onPressed: onAdd == null
+                                  ? null
+                                  : () => onAdd!(anchorCtx),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.accent,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              product.disponible ? 'Commander' : 'Indispo',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 12,
+                              child: Text(
+                                product.disponible ? 'Commander' : 'Indispo',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ),
@@ -689,6 +784,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void dispose() {
     _noteCtrl.dispose();
     super.dispose();
+  }
+
+  void _submitToCartWithFeedback(BuildContext anchorCtx) {
+    final p = widget.product;
+    if (!p.disponible) return;
+    CartAddFeedback.run(
+      context: context,
+      buttonContext: anchorCtx,
+      product: p,
+      onAddToCart: () {
+        final cart = context.read<CartState>();
+        final existing = cart.quantityOf(p.id);
+        if (existing == 0) {
+          cart.add(p);
+          if (_qty > 1) {
+            cart.setQuantity(p.id, _qty);
+          }
+        } else {
+          cart.setQuantity(p.id, existing + _qty);
+        }
+        cart.setNote(p.id, _noteCtrl.text.trim());
+      },
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Ajouté au panier (x$_qty)')));
   }
 
   Future<void> _loadRating() async {
@@ -999,39 +1121,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: !p.disponible
-                      ? null
-                      : () {
-                          final cart = context.read<CartState>();
-                          final existing = cart.quantityOf(p.id);
-                          if (existing == 0) {
-                            cart.add(p);
-                            if (_qty > 1) {
-                              cart.setQuantity(p.id, _qty);
-                            }
-                          } else {
-                            cart.setQuantity(p.id, existing + _qty);
-                          }
-                          cart.setNote(p.id, _noteCtrl.text);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Ajouté au panier (x$_qty)'),
-                            ),
-                          );
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.accent,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                child: Builder(
+                  builder: (anchorCtx) => ElevatedButton(
+                    onPressed: !p.disponible
+                        ? null
+                        : () => _submitToCartWithFeedback(anchorCtx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accent,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    p.disponible ? 'Ajouter au panier' : 'Indisponible',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
+                    child: Text(
+                      p.disponible ? 'Ajouter au panier' : 'Indisponible',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ),
