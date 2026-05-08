@@ -22,6 +22,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/login-pin-only', [AuthController::class, 'loginWithPinOnly']);
 });
 
+Route::post('/paiements/wave/webhook', [App\Http\Controllers\Api\PaiementController::class, 'waveWebhook']);
+Route::get('/paiements/wave/return', [App\Http\Controllers\Api\PaiementController::class, 'waveReturn']);
+
 // Endpoints publics pour le menu via QR code (accessibles sans authentification)
 Route::get('/tables/{id}/menu', [App\Http\Controllers\Api\TableController::class, 'getMenuForTable']);
 // Endpoint pour récupérer les détails d'une table (public pour le scan QR)
@@ -194,6 +197,9 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Initier un paiement (client pour Wave/Orange Money, gérant pour tous)
         Route::post('/', [App\Http\Controllers\Api\PaiementController::class, 'store'])
+            ->middleware('permission:create_orders,process_payments');
+
+        Route::post('/{paiement}/wave/checkout', [App\Http\Controllers\Api\PaiementController::class, 'waveCheckout'])
             ->middleware('permission:create_orders,process_payments');
         
         // Workflow rapide paiement espèces (caissier, manager, admin uniquement)

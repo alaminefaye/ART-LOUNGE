@@ -125,8 +125,10 @@ class _MenuTabState extends State<MenuTab> {
                 child: Padding(
                   padding: const EdgeInsets.all(6),
                   child: Image.asset(
-                    '../resto_caisse_app/assets/logo.png',
+                    'logo.jpeg',
                     fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) =>
+                        Image.asset('assets/logo.png', fit: BoxFit.contain),
                   ),
                 ),
               ),
@@ -693,7 +695,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     setState(() => _ratingLoading = true);
     try {
       final api = context.read<ApiClient>();
-      final res = await api.dio.get('produits/${widget.product.id}/rating');
+      final res = await api.dio.get(
+        'produits/${widget.product.id}/rating',
+        options: Options(
+          validateStatus: (status) =>
+              status != null && status >= 200 && status < 500,
+        ),
+      );
+      if (res.statusCode != 200) {
+        if (!mounted) return;
+        setState(() {
+          _avgRating = null;
+          _ratingCount = 0;
+        });
+        return;
+      }
       final data = res.data;
       if (!mounted) return;
 
@@ -710,7 +726,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               : int.tryParse('$total') ?? 0;
         });
       }
-    } on DioException {
     } finally {
       if (mounted) setState(() => _ratingLoading = false);
     }

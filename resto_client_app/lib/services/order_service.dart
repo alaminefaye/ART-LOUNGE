@@ -82,4 +82,24 @@ class OrderService {
       data: {'transaction_id': transactionId},
     );
   }
+
+  Future<String> createWaveCheckoutSession({required int paiementId}) async {
+    try {
+      final res = await _apiClient.dio.post(
+        'paiements/$paiementId/wave/checkout',
+      );
+      final data = res.data;
+      if (data is Map && data['data'] is Map) {
+        final d = Map<String, dynamic>.from(data['data'] as Map);
+        final url = d['payment_url']?.toString();
+        if (url != null && url.trim().isNotEmpty) return url;
+      }
+      throw Exception('URL Wave introuvable');
+    } on DioException catch (e) {
+      final message = e.response?.data is Map
+          ? (e.response?.data['message'] as String?)
+          : null;
+      throw Exception(message ?? 'Erreur Wave');
+    }
+  }
 }

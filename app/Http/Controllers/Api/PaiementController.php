@@ -14,19 +14,23 @@ use App\Enums\TableStatus;
 use App\Models\CaisseSession;
 use App\Services\FactureService;
 use App\Services\FCMService;
+use App\Services\WavePaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PaiementController extends Controller
 {
     protected $factureService;
     protected $fcmService;
+    protected $wavePaymentService;
 
-    public function __construct(FactureService $factureService, FCMService $fcmService)
+    public function __construct(FactureService $factureService, FCMService $fcmService, WavePaymentService $wavePaymentService)
     {
         $this->factureService = $factureService;
         $this->fcmService = $fcmService;
+        $this->wavePaymentService = $wavePaymentService;
     }
 
     /**
@@ -560,5 +564,173 @@ class PaiementController extends Controller
                 ],
             ], 201);
         });
+    }
+
+    public function waveCheckout(Request $request, Paiement $paiement)
+    {
+        $user = $request->user();
+
+        if ($paiement->moyen_paiement !== MoyenPaiement::Wave) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce paiement n’est pas un paiement Wave.',
+            ], 400);
+        }
+
+        if ($user->hasRole('client') && $paiement->commande?->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous n’êtes pas autorisé à initier ce paiement.',
+            ], 403);
+        }
+
+        if ($paiement->statut === StatutPaiement::Valide) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Paiement déjà validé.',
+                'data' => [
+                    'paiement_id' => $paiement->id,
+                    'status' => 'already_paid',
+                ],
+            ]);
+        }
+
+        if ($paiement->statut !== StatutPaiement::EnAttente) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce paiement n’est pas en attente.',
+            ], 409);
+        }
+
+        $result = $this->wavePaymentService->createCheckoutSession($paiement);
+        if (!($result['success'] ?? false)) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Erreur Wave',
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Session Wave créée',
+            'data' => [
+                'paiement_id' => $paiement->id,
+                'payment_url' => $result['payment_url'],
+                'wave_id' => $result['wave_id'] ?? null,
+                'client_reference' => $result['client_reference'] ?? null,
+            ],
+        ]);
+    }
+
+    public function waveWebhook(Request $request)
+    {
+        $payload = $request->all();
+        $waveSignature = $request->header('wave-signature');
+        $signatureOk = $this->wavePaymentService->validateWebhookSignature($payload, $waveSignature);
+
+        if (!$signatureOk) {
+            Log::warning('Wave webhook: signature invalide', [
+                'has_signature' => (bool) $waveSignature,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Signature invalide',
+            ], 401);
+        }
+
+        $data = $payload['data'] ?? [];
+        $paymentStatus = $data['payment_status'] ?? null;
+        $eventType = $payload['type'] ?? $payload['event_type'] ?? null;
+        $clientReference = $data['client_reference'] ?? null;
+        $waveId = $data['transaction_id'] ?? $data['id'] ?? null;
+
+        $paiementId = $this->wavePaymentService->parsePaiementIdFromClientReference($clientReference);
+        $paiement = null;
+
+        if ($paiementId) {
+            $paiement = Paiement::with(['commande.table', 'commande.client'])->find($paiementId);
+        }
+        if (!$paiement && $waveId) {
+            $paiement = Paiement::with(['commande.table', 'commande.client'])
+                ->where('transaction_id', $waveId)
+                ->latest()
+                ->first();
+        }
+
+        if (!$paiement) {
+            Log::warning('Wave webhook: paiement introuvable', [
+                'client_reference' => $clientReference,
+                'wave_id' => $waveId,
+                'event_type' => $eventType,
+                'payment_status' => $paymentStatus,
+            ]);
+            return response()->json(['success' => true], 200);
+        }
+
+        $isPaid = in_array($paymentStatus, ['succeeded', 'successful', 'completed', 'paid'], true);
+        $isFailed = in_array($paymentStatus, ['failed', 'cancelled', 'expired'], true)
+            || in_array($eventType, ['checkout.session.failed', 'payment.failed'], true);
+
+        if ($isPaid) {
+            if ($paiement->statut === StatutPaiement::Valide) {
+                return response()->json(['success' => true], 200);
+            }
+
+            return DB::transaction(function () use ($paiement, $waveId) {
+                if ($waveId && ($paiement->transaction_id === null || $paiement->transaction_id === '')) {
+                    $paiement->update(['transaction_id' => $waveId]);
+                }
+
+                $paiement->valider();
+
+                $commande = $paiement->commande;
+                if ($commande) {
+                    $commande->update(['statut' => OrderStatus::Terminee->value]);
+                    if ($commande->table) {
+                        $commande->table->liberer();
+                    }
+                }
+
+                $facture = $commande ? $this->factureService->genererFacture($commande, $paiement) : null;
+
+                if ($commande) {
+                    $montantReel = app(\App\Services\FidelityService::class)->montantPayeReel($commande);
+                    if ($montantReel > 0 && $commande->client_id) {
+                        app(\App\Services\FidelityService::class)->crediterPointsPourPaiement($commande, $montantReel);
+                    }
+                }
+
+                try {
+                    if ($commande && $facture) {
+                        $this->fcmService->notifyClientPaymentValidated($commande, $facture);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('FCM: échec notification paiement Wave', [
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                return response()->json(['success' => true], 200);
+            });
+        }
+
+        if ($isFailed) {
+            if ($paiement->statut !== StatutPaiement::Valide) {
+                $paiement->echouer();
+            }
+            return response()->json(['success' => true], 200);
+        }
+
+        return response()->json(['success' => true], 200);
+    }
+
+    public function waveReturn(Request $request)
+    {
+        $status = (string) $request->query('status', '');
+        $message = $status === 'success'
+            ? 'Paiement Wave réussi. Vous pouvez fermer cette page et revenir dans l’application.'
+            : 'Paiement Wave annulé / échoué. Vous pouvez fermer cette page et revenir dans l’application.';
+
+        return response($message, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
     }
 }

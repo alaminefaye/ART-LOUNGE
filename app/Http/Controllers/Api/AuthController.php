@@ -371,6 +371,9 @@ class AuthController extends Controller
                 'id' => $client->id,
                 'nom' => $client->nom,
                 'prenom' => $client->prenom,
+                'telephone' => $client->telephone,
+                'email' => $client->email,
+                'adresse' => $client->adresse,
                 'points_fidelite' => (int) $client->points_fidelite,
             ] : null,
             'fidelity_settings' => [
@@ -464,6 +467,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+            'adresse' => 'nullable|string|max:1000',
         ]);
 
         try {
@@ -488,6 +492,7 @@ class AuthController extends Controller
                         'prenom' => $prenom,
                         'email' => $validated['email'],
                         'telephone' => $validated['phone'],
+                        'adresse' => $validated['adresse'] ?? $client->adresse,
                     ]);
                 }
             });

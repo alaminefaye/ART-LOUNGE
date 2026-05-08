@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../services/order_service.dart';
 import '../state/auth_state.dart';
@@ -109,27 +110,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           throw Exception('Paiement non initialisé');
         }
 
-        final transactionId = await _askTransactionId(context);
-        if (transactionId == null || transactionId.trim().isEmpty) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Transaction ID requis pour confirmer Wave'),
-            ),
-          );
-          return;
-        }
-
-        await orderService.confirmerPaiementWave(
+        final paymentUrl = await orderService.createWaveCheckoutSession(
           paiementId: paiementId,
-          transactionId: transactionId.trim(),
         );
+        final uri = Uri.tryParse(paymentUrl);
+        if (uri == null) {
+          throw Exception('URL Wave invalide');
+        }
+        final opened = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!opened) {
+          throw Exception('Impossible d’ouvrir Wave');
+        }
         cart.clear();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Paiement Wave confirmé. En attente de validation. (#$commandeId)',
+              'Wave ouvert. Après paiement, ça se valide automatiquement. (#$commandeId)',
             ),
           ),
         );
@@ -143,34 +143,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  Future<String?> _askTransactionId(BuildContext context) async {
-    final ctrl = TextEditingController();
-    final result = await showDialog<String?>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Transaction ID Wave'),
-          content: TextField(
-            controller: ctrl,
-            decoration: const InputDecoration(labelText: 'ID de transaction'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(null),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(ctrl.text),
-              child: const Text('Confirmer'),
-            ),
-          ],
-        );
-      },
-    );
-    ctrl.dispose();
-    return result;
   }
 
   @override
@@ -269,7 +241,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _ChoiceTile(
                 title: 'Wave',
                 subtitle: auth.waveEnabled
-                    ? 'Payer via Wave (validation par le gérant).'
+                    ? 'Payer via Wave (validation automatique).'
                     : 'Wave est désactivé.',
                 value: PaymentChoice.wave,
                 groupValue: _choice,
