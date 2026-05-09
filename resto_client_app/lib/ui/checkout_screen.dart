@@ -21,12 +21,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _notesCtrl = TextEditingController();
   final _pointsCtrl = TextEditingController();
   final _seatCtrl = TextEditingController();
+  final _heureCtrl = TextEditingController();
   PaymentChoice _choice = PaymentChoice.later;
   bool _loading = false;
   bool _isPassager = false;
   bool _trajetsLoading = false;
   List<Map<String, dynamic>> _trajets = const [];
   int? _trajetId;
+  TimeOfDay? _heureDepart;
 
   final _money = NumberFormat.currency(
     locale: 'fr_FR',
@@ -39,17 +41,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _notesCtrl.dispose();
     _pointsCtrl.dispose();
     _seatCtrl.dispose();
+    _heureCtrl.dispose();
     super.dispose();
+  }
+
+  String _formatTime(TimeOfDay t) {
+    final hh = t.hour.toString().padLeft(2, '0');
+    final mm = t.minute.toString().padLeft(2, '0');
+    return '$hh:$mm';
+  }
+
+  Future<void> _pickHeureDepart() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _heureDepart ?? TimeOfDay.now(),
+    );
+    if (picked == null) return;
+    setState(() {
+      _heureDepart = picked;
+      _heureCtrl.text = _formatTime(picked);
+    });
   }
 
   String _trajetLabel(Map<String, dynamic> t) {
     final depart = (t['depart'] ?? '').toString();
     final destination = (t['destination'] ?? '').toString();
-    final heure = (t['heure_depart'] ?? '').toString();
-    final hhmm = heure.length >= 5 ? heure.substring(0, 5) : heure;
     final a = depart.trim().isEmpty ? 'Départ' : depart.trim();
     final b = destination.trim().isEmpty ? 'Destination' : destination.trim();
-    return '$a → $b • $hhmm';
+    return '$a → $b';
   }
 
   Future<void> _loadTrajets() async {
@@ -99,6 +118,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (_trajetId == null) {
           throw Exception('Choisis ton trajet');
         }
+        if (_heureDepart == null) {
+          throw Exception('Indique ton heure de départ');
+        }
         if (seat.isEmpty) {
           throw Exception('Indique ton numéro de siège');
         }
@@ -110,6 +132,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         isPassager: _isPassager,
         trajetId: _isPassager ? _trajetId : null,
         numeroSiege: _isPassager ? _seatCtrl.text.trim() : null,
+        heureDepart: _isPassager ? _formatTime(_heureDepart!) : null,
       );
       final commandeId = (created['id'] as num?)?.toInt();
       if (commandeId == null) {
@@ -352,6 +375,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   Icons.route_rounded,
                                   color: AppTheme.textMuted,
                                 ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _heureCtrl,
+                        readOnly: true,
+                        enabled: !_loading,
+                        onTap: _loading ? null : _pickHeureDepart,
+                        style: const TextStyle(color: AppTheme.text),
+                        decoration: const InputDecoration(
+                          labelText: 'Heure de départ',
+                          prefixIcon: Icon(
+                            Icons.access_time_rounded,
+                            color: AppTheme.textMuted,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),

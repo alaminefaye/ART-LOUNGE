@@ -13,6 +13,7 @@ class OrderService {
     bool isPassager = false,
     int? trajetId,
     String? numeroSiege,
+    String? heureDepart,
   }) async {
     try {
       final res = await _apiClient.dio.post(
@@ -22,6 +23,7 @@ class OrderService {
           if (isPassager) 'is_passager': true,
           if (isPassager) 'trajet_id': trajetId,
           if (isPassager) 'numero_siege': numeroSiege,
+          if (isPassager) 'heure_depart': heureDepart,
           'produits': produits,
         },
       );

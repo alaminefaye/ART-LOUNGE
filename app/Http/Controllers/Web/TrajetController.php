@@ -12,7 +12,6 @@ class TrajetController extends Controller
     {
         $trajets = Trajet::query()
             ->orderByDesc('actif')
-            ->orderBy('heure_depart')
             ->orderBy('depart')
             ->paginate(20);
 
@@ -29,14 +28,13 @@ class TrajetController extends Controller
         $validated = $request->validate([
             'depart' => 'required|string|max:255',
             'destination' => 'required|string|max:255',
-            'heure_depart' => 'required|date_format:H:i',
             'actif' => 'boolean',
         ]);
 
         Trajet::create([
             'depart' => trim($validated['depart']),
             'destination' => trim($validated['destination']),
-            'heure_depart' => $validated['heure_depart'],
+            'heure_depart' => '00:00:00',
             'actif' => $request->boolean('actif'),
         ]);
 
@@ -55,14 +53,13 @@ class TrajetController extends Controller
         $validated = $request->validate([
             'depart' => 'required|string|max:255',
             'destination' => 'required|string|max:255',
-            'heure_depart' => 'required|date_format:H:i',
             'actif' => 'boolean',
         ]);
 
         $trajet->update([
             'depart' => trim($validated['depart']),
             'destination' => trim($validated['destination']),
-            'heure_depart' => $validated['heure_depart'],
+            'heure_depart' => $trajet->heure_depart ?? '00:00:00',
             'actif' => $request->boolean('actif'),
         ]);
 

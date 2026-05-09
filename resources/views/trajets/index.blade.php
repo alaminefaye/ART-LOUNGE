@@ -19,7 +19,6 @@
                     <tr>
                         <th>Départ</th>
                         <th>Destination</th>
-                        <th>Heure</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -29,7 +28,6 @@
                         <tr>
                             <td><strong>{{ $trajet->depart }}</strong></td>
                             <td>{{ $trajet->destination }}</td>
-                            <td>{{ \Illuminate\Support\Str::of($trajet->heure_depart)->limit(5, '') }}</td>
                             <td>
                                 @if($trajet->actif)
                                     <span class="badge bg-success">Actif</span>
@@ -48,7 +46,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">Aucun trajet</td>
+                            <td colspan="4" class="text-center text-muted">Aucun trajet</td>
                         </tr>
                     @endforelse
                 </tbody>

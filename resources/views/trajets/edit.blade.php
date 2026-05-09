@@ -21,11 +21,6 @@
                     <input type="text" name="destination" class="form-control @error('destination') is-invalid @enderror" value="{{ old('destination', $trajet->destination) }}" required>
                     @error('destination')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Heure de départ</label>
-                    <input type="time" name="heure_depart" class="form-control @error('heure_depart') is-invalid @enderror" value="{{ old('heure_depart', \Illuminate\Support\Str::of($trajet->heure_depart)->limit(5, '')) }}" required>
-                    @error('heure_depart')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
                 <div class="col-md-4 mb-3 d-flex align-items-end">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" role="switch" id="actif" name="actif" value="1" {{ old('actif', $trajet->actif ? '1' : '') ? 'checked' : '' }}>

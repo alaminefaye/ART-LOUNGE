@@ -30,6 +30,7 @@ class Commande extends Model
         'is_passager',
         'trajet_id',
         'numero_siege',
+        'heure_depart_passager',
     ];
 
     protected $casts = [

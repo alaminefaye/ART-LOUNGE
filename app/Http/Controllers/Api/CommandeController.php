@@ -35,8 +35,9 @@ class CommandeController extends Controller
     {
         $trajets = Trajet::query()
             ->where('actif', true)
-            ->orderBy('heure_depart')
-            ->get(['id', 'depart', 'destination', 'heure_depart']);
+            ->orderBy('depart')
+            ->orderBy('destination')
+            ->get(['id', 'depart', 'destination']);
 
         return response()->json([
             'success' => true,
@@ -311,6 +312,7 @@ class CommandeController extends Controller
             'is_passager' => 'nullable|boolean',
             'trajet_id' => 'nullable|required_if:is_passager,1|exists:trajets,id',
             'numero_siege' => 'nullable|required_if:is_passager,1|string|max:50',
+            'heure_depart' => 'nullable|required_if:is_passager,1|date_format:H:i',
             'produits' => 'required|array|min:1',
             'produits.*.produit_id' => 'required|exists:produits,id',
             'produits.*.quantite' => 'required|integer|min:1',
@@ -338,6 +340,7 @@ class CommandeController extends Controller
                 'is_passager' => $isPassager,
                 'trajet_id' => $isPassager ? (int) $request->input('trajet_id') : null,
                 'numero_siege' => $isPassager ? $request->input('numero_siege') : null,
+                'heure_depart_passager' => $isPassager ? $request->input('heure_depart') : null,
             ]);
 
             foreach ($request->produits as $item) {
@@ -932,11 +935,11 @@ class CommandeController extends Controller
             'notes' => $commande->notes,
             'is_passager' => (bool) $commande->is_passager,
             'numero_siege' => $commande->numero_siege,
+            'heure_depart_passager' => $commande->heure_depart_passager,
             'trajet' => $trajet ? [
                 'id' => (int) $trajet->id,
                 'depart' => $trajet->depart,
                 'destination' => $trajet->destination,
-                'heure_depart' => $trajet->heure_depart,
             ] : null,
             // Agréger les lignes pivot par produit_id pour éviter les doublons
             // (plusieurs lignes pivot peuvent exister si un produit a été ajouté

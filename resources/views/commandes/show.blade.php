@@ -72,12 +72,16 @@
                         <div class="col-12 col-md-8">
                             <strong>Trajet :</strong>
                             <p class="mb-0">
-                                {{ $commande->trajet ? ($commande->trajet->depart . ' → ' . $commande->trajet->destination . ' • ' . \Illuminate\Support\Str::of($commande->trajet->heure_depart)->limit(5, '')) : '—' }}
+                                {{ $commande->trajet ? ($commande->trajet->depart . ' → ' . $commande->trajet->destination) : '—' }}
                             </p>
                         </div>
                         <div class="col-12 col-md-4">
                             <strong>Siège :</strong>
                             <p class="mb-0">{{ $commande->numero_siege ?? '—' }}</p>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <strong>Heure de départ :</strong>
+                            <p class="mb-0">{{ $commande->heure_depart_passager ? \Illuminate\Support\Str::of($commande->heure_depart_passager)->limit(5, '') : '—' }}</p>
                         </div>
                     </div>
                 @endif
