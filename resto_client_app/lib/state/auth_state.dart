@@ -291,4 +291,16 @@ class AuthState extends ChangeNotifier {
     _pointsFidelite = 0;
     notifyListeners();
   }
+
+  Future<void> deleteAccount({required String code}) async {
+    try {
+      await _apiClient.dio.post('auth/delete-account', data: {'code': code});
+      await logout();
+    } on DioException catch (e) {
+      final message = e.response?.data is Map
+          ? (e.response?.data['message'] as String?)
+          : null;
+      throw Exception(message ?? 'Impossible de supprimer le compte');
+    }
+  }
 }

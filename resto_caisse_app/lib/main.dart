@@ -8,7 +8,7 @@ import 'models/cart.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   runApp(const ArtMomentsApp());
 }
 
@@ -70,7 +70,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
               Image.asset(
                 'assets/logo.png',
                 width: 200,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.storefront,
                   color: AppTheme.brandGold,
                   size: 80,

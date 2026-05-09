@@ -66,6 +66,21 @@
                         </div>
                     </div>
                 @endif
+
+                @if($commande->is_passager)
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-8">
+                            <strong>Trajet :</strong>
+                            <p class="mb-0">
+                                {{ $commande->trajet ? ($commande->trajet->depart . ' → ' . $commande->trajet->destination . ' • ' . \Illuminate\Support\Str::of($commande->trajet->heure_depart)->limit(5, '')) : '—' }}
+                            </p>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <strong>Siège :</strong>
+                            <p class="mb-0">{{ $commande->numero_siege ?? '—' }}</p>
+                        </div>
+                    </div>
+                @endif
                 
                 <div class="row mb-3">
                     <div class="col-md-6">

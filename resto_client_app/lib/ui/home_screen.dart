@@ -118,14 +118,12 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.active,
     required this.onTap,
-    this.badge,
   });
 
   final IconData icon;
   final String label;
   final bool active;
   final VoidCallback onTap;
-  final String? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -139,35 +137,7 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(icon, color: color),
-                if (badge != null)
-                  Positioned(
-                    right: -10,
-                    top: -8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accent,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        badge!,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            Icon(icon, color: color),
             const SizedBox(height: 4),
             Text(
               label,

@@ -1,9 +1,5 @@
 class Category {
-  const Category({
-    required this.id,
-    required this.nom,
-    this.description,
-  });
+  const Category({required this.id, required this.nom, this.description});
 
   final int id;
   final String nom;
@@ -17,4 +13,3 @@ class Category {
     );
   }
 }
-

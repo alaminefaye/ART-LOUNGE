@@ -197,12 +197,11 @@ class _LoginScreenState extends State<LoginScreen>
                                         child: Image.asset(
                                           'logo.jpeg',
                                           fit: BoxFit.contain,
-                                          errorBuilder: (_, __, ___) =>
-                                              const Icon(
-                                                Icons.restaurant_rounded,
-                                                color: AppTheme.bgTop,
-                                                size: 44,
-                                              ),
+                                          errorBuilder: (_, _, _) => const Icon(
+                                            Icons.restaurant_rounded,
+                                            color: AppTheme.bgTop,
+                                            size: 44,
+                                          ),
                                         ),
                                       ),
                                       _OrbitIcon(
@@ -848,12 +847,11 @@ class _RegisterScreenState extends State<RegisterScreen>
                                         child: Image.asset(
                                           'logo.jpeg',
                                           fit: BoxFit.contain,
-                                          errorBuilder: (_, __, ___) =>
-                                              const Icon(
-                                                Icons.restaurant_rounded,
-                                                color: AppTheme.bgTop,
-                                                size: 40,
-                                              ),
+                                          errorBuilder: (_, _, _) => const Icon(
+                                            Icons.restaurant_rounded,
+                                            color: AppTheme.bgTop,
+                                            size: 40,
+                                          ),
                                         ),
                                       ),
                                     ],

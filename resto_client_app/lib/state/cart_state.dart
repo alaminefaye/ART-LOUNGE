@@ -23,7 +23,8 @@ class CartState extends ChangeNotifier {
 
   String? noteOf(int productId) => _itemsByProductId[productId]?.note;
 
-  double get total => _itemsByProductId.values.fold(0, (sum, it) => sum + it.total);
+  double get total =>
+      _itemsByProductId.values.fold(0, (sum, it) => sum + it.total);
 
   void add(Product product) {
     final existing = _itemsByProductId[product.id];
@@ -73,12 +74,7 @@ class CartState extends ChangeNotifier {
 
   List<Map<String, dynamic>> toCommandeProduitsPayload() {
     return items
-        .map(
-          (it) => {
-            'produit_id': it.product.id,
-            'quantite': it.quantite,
-          },
-        )
+        .map((it) => {'produit_id': it.product.id, 'quantite': it.quantite})
         .toList(growable: false);
   }
 }

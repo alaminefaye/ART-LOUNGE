@@ -20,8 +20,13 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _notesCtrl = TextEditingController();
   final _pointsCtrl = TextEditingController();
+  final _seatCtrl = TextEditingController();
   PaymentChoice _choice = PaymentChoice.later;
   bool _loading = false;
+  bool _isPassager = false;
+  bool _trajetsLoading = false;
+  List<Map<String, dynamic>> _trajets = const [];
+  int? _trajetId;
 
   final _money = NumberFormat.currency(
     locale: 'fr_FR',
@@ -33,7 +38,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void dispose() {
     _notesCtrl.dispose();
     _pointsCtrl.dispose();
+    _seatCtrl.dispose();
     super.dispose();
+  }
+
+  String _trajetLabel(Map<String, dynamic> t) {
+    final depart = (t['depart'] ?? '').toString();
+    final destination = (t['destination'] ?? '').toString();
+    final heure = (t['heure_depart'] ?? '').toString();
+    final hhmm = heure.length >= 5 ? heure.substring(0, 5) : heure;
+    final a = depart.trim().isEmpty ? 'Départ' : depart.trim();
+    final b = destination.trim().isEmpty ? 'Destination' : destination.trim();
+    return '$a → $b • $hhmm';
+  }
+
+  Future<void> _loadTrajets() async {
+    if (_trajetsLoading) return;
+    setState(() => _trajetsLoading = true);
+    try {
+      final service = context.read<OrderService>();
+      final list = await service.fetchTrajets();
+      if (!mounted) return;
+      setState(() {
+        _trajets = list;
+        if (_trajetId != null &&
+            !_trajets.any((t) => (t['id'] as num?)?.toInt() == _trajetId)) {
+          _trajetId = null;
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _trajets = const []);
+    } finally {
+      if (mounted) setState(() => _trajetsLoading = false);
+    }
   }
 
   Future<void> _submit() async {
@@ -55,9 +93,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (headerNote.isNotEmpty) headerNote,
         if (itemNotes.isNotEmpty) 'Détails:\n${itemNotes.join('\n')}',
       ].join('\n\n');
+
+      if (_isPassager) {
+        final seat = _seatCtrl.text.trim();
+        if (_trajetId == null) {
+          throw Exception('Choisis ton trajet');
+        }
+        if (seat.isEmpty) {
+          throw Exception('Indique ton numéro de siège');
+        }
+      }
+
       final created = await orderService.createEmporter(
         notes: combinedNotes,
         produits: cart.toCommandeProduitsPayload(),
+        isPassager: _isPassager,
+        trajetId: _isPassager ? _trajetId : null,
+        numeroSiege: _isPassager ? _seatCtrl.text.trim() : null,
       );
       final commandeId = (created['id'] as num?)?.toInt();
       if (commandeId == null) {
@@ -218,6 +270,106 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Note (optionnel)',
                   prefixIcon: Icon(Icons.edit_note, color: AppTheme.textMuted),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.10),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Êtes-vous passager ?',
+                                style: TextStyle(fontWeight: FontWeight.w900),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Si oui, indique ton trajet pour anticiper la commande.',
+                                style: TextStyle(
+                                  color: AppTheme.textMuted,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: _isPassager,
+                          onChanged: _loading
+                              ? null
+                              : (v) {
+                                  setState(() => _isPassager = v);
+                                  if (v) _loadTrajets();
+                                },
+                          activeColor: AppTheme.accent,
+                        ),
+                      ],
+                    ),
+                    if (_isPassager) ...[
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<int>(
+                        value: _trajetId,
+                        items: _trajets
+                            .map(
+                              (t) => DropdownMenuItem<int>(
+                                value: (t['id'] as num?)?.toInt(),
+                                child: Text(_trajetLabel(t)),
+                              ),
+                            )
+                            .toList(growable: false),
+                        onChanged: _loading
+                            ? null
+                            : (v) => setState(() => _trajetId = v),
+                        decoration: InputDecoration(
+                          labelText: 'Trajet',
+                          prefixIcon: _trajetsLoading
+                              ? const Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppTheme.accent,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.route_rounded,
+                                  color: AppTheme.textMuted,
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _seatCtrl,
+                        enabled: !_loading,
+                        keyboardType: TextInputType.text,
+                        style: const TextStyle(color: AppTheme.text),
+                        decoration: const InputDecoration(
+                          labelText: 'Numéro de siège',
+                          prefixIcon: Icon(
+                            Icons.event_seat_rounded,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(height: 14),

@@ -381,7 +381,7 @@ class _PosScreenState extends State<PosScreen> {
               Image.asset(
                 'assets/logo.png',
                 height: isMobile ? 32 : 48,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.storefront,
                   color: AppTheme.brandGold,
                   size: 32,
@@ -1038,7 +1038,7 @@ class _PosScreenState extends State<PosScreen> {
                     : Image.asset(
                         'assets/logo.png',
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (_, _, _) => Container(
                           color: AppTheme.backgroundColor,
                           alignment: Alignment.center,
                           child: const Icon(

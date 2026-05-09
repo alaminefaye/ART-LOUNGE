@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Commande;
 use App\Models\Product;
 use App\Models\Table;
+use App\Models\Trajet;
 use App\Models\User;
 use App\Enums\MoyenPaiement;
 use App\Enums\OrderStatus;
@@ -27,6 +28,23 @@ class CommandeController extends Controller
     }
 
     /**
+     * Liste des trajets actifs (pour l'app client)
+     * GET /api/trajets
+     */
+    public function trajets()
+    {
+        $trajets = Trajet::query()
+            ->where('actif', true)
+            ->orderBy('heure_depart')
+            ->get(['id', 'depart', 'destination', 'heure_depart']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $trajets,
+        ]);
+    }
+
+    /**
      * Liste des commandes
      * GET /api/commandes
      */
@@ -34,7 +52,7 @@ class CommandeController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = $request->user();
-        $query = Commande::with(['table', 'user', 'serveur', 'produits', 'client']);
+        $query = Commande::with(['table', 'user', 'serveur', 'produits', 'client', 'trajet']);
 
         // Si l'utilisateur est un client, filtrer par ses commandes uniquement
         if ($user->hasRole('client')) {
@@ -290,6 +308,9 @@ class CommandeController extends Controller
 
         $validator = Validator::make($request->all(), [
             'notes' => 'nullable|string',
+            'is_passager' => 'nullable|boolean',
+            'trajet_id' => 'nullable|required_if:is_passager,1|exists:trajets,id',
+            'numero_siege' => 'nullable|required_if:is_passager,1|string|max:50',
             'produits' => 'required|array|min:1',
             'produits.*.produit_id' => 'required|exists:produits,id',
             'produits.*.quantite' => 'required|integer|min:1',
@@ -306,6 +327,7 @@ class CommandeController extends Controller
 
         DB::beginTransaction();
         try {
+            $isPassager = $request->boolean('is_passager');
             $commande = Commande::create([
                 'table_id' => null,
                 'user_id' => $user->id,
@@ -313,6 +335,9 @@ class CommandeController extends Controller
                 'client_id' => $user->client?->id,
                 'statut' => OrderStatus::Attente,
                 'notes' => $request->notes,
+                'is_passager' => $isPassager,
+                'trajet_id' => $isPassager ? (int) $request->input('trajet_id') : null,
+                'numero_siege' => $isPassager ? $request->input('numero_siege') : null,
             ]);
 
             foreach ($request->produits as $item) {
@@ -342,7 +367,7 @@ class CommandeController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Commande à emporter créée avec succès',
-                'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits', 'client'])),
+                'data' => $this->formatCommande($commande->fresh()->load(['table', 'user', 'serveur', 'produits', 'client', 'trajet'])),
             ], 201);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -362,7 +387,7 @@ class CommandeController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $commande = Commande::with(['table', 'user', 'serveur', 'produits', 'paiements.facture'])->find($id);
+        $commande = Commande::with(['table', 'user', 'serveur', 'produits', 'paiements.facture', 'trajet'])->find($id);
 
         if (!$commande) {
             return response()->json([
@@ -860,6 +885,7 @@ class CommandeController extends Controller
 
         /** @var \App\Models\User|null $user */
         $user = $commande->user;
+        $trajet = $commande->trajet;
 
         return [
             'id' => $commande->id,
@@ -904,6 +930,14 @@ class CommandeController extends Controller
                 ->where('statut', StatutPaiement::Valide)
                 ->sum('points_utilises'),
             'notes' => $commande->notes,
+            'is_passager' => (bool) $commande->is_passager,
+            'numero_siege' => $commande->numero_siege,
+            'trajet' => $trajet ? [
+                'id' => (int) $trajet->id,
+                'depart' => $trajet->depart,
+                'destination' => $trajet->destination,
+                'heure_depart' => $trajet->heure_depart,
+            ] : null,
             // Agréger les lignes pivot par produit_id pour éviter les doublons
             // (plusieurs lignes pivot peuvent exister si un produit a été ajouté
             //  en plusieurs vagues ; on consolide pour l'affichage client)

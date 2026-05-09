@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../services/order_service.dart';
 import '../theme/app_theme.dart';
@@ -18,6 +19,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool _loading = true;
   String? _error;
   Map<String, dynamic>? _detail;
+  bool _factureLoading = false;
+  Map<String, dynamic>? _facture;
 
   final _money = NumberFormat.currency(
     locale: 'fr_FR',
@@ -44,12 +47,48 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _detail = data;
         _loading = false;
       });
+      _loadFacture(silentNotFound: true);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _error = e.toString().replaceFirst('Exception: ', '');
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _loadFacture({required bool silentNotFound}) async {
+    if (_factureLoading) return;
+    setState(() => _factureLoading = true);
+    try {
+      final data = await context.read<OrderService>().fetchFactureForOrder(
+            widget.orderId,
+          );
+      if (!mounted) return;
+      setState(() => _facture = data);
+    } catch (e) {
+      if (!mounted) return;
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      if (!silentNotFound || !msg.toLowerCase().contains('aucune facture')) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } finally {
+      if (mounted) setState(() => _factureLoading = false);
+    }
+  }
+
+  Future<void> _openFacturePdf() async {
+    if (_facture == null) {
+      await _loadFacture(silentNotFound: false);
+    }
+    final pdfUrl = _facture?['pdf_url']?.toString();
+    final uri = pdfUrl == null ? null : Uri.tryParse(pdfUrl);
+    if (uri == null) return;
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible d’ouvrir la facture')),
+      );
     }
   }
 
@@ -358,6 +397,87 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                 ],
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Facture',
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                    ),
+                  ),
+                  if (_factureLoading)
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.accent,
+                      ),
+                    )
+                  else
+                    IconButton(
+                      onPressed: _openFacturePdf,
+                      icon: const Icon(Icons.download_rounded),
+                      color: AppTheme.text,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (_facture == null)
+                const Text(
+                  'Aucune facture disponible pour cette commande.',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                  ),
+                )
+              else ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      (_facture?['numero_facture'] ?? '').toString().isEmpty
+                          ? 'Facture'
+                          : 'Facture ${_facture!['numero_facture']}',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    Text(
+                      _money.format((_facture?['montant_total'] ?? montant) as num),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.accent,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _openFacturePdf,
+                    icon: const Icon(Icons.receipt_long),
+                    label: const Text(
+                      'Voir la facture',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

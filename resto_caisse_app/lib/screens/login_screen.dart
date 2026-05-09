@@ -50,7 +50,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result['message'] ?? 'Code PIN incorrect', style: const TextStyle(color: Colors.white)),
+          content: Text(
+            result['message'] ?? 'Code PIN incorrect',
+            style: const TextStyle(color: Colors.white),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -102,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
-              )
+              ),
             ],
           ),
           child: Center(
@@ -246,8 +249,11 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final cardWidth = constraints.maxWidth < 500 ? constraints.maxWidth - 24 : 450.0;
-          final isCompact = constraints.maxHeight < 740 || constraints.maxWidth < 900;
+          final cardWidth = constraints.maxWidth < 500
+              ? constraints.maxWidth - 24
+              : 450.0;
+          final isCompact =
+              constraints.maxHeight < 740 || constraints.maxWidth < 900;
           final contentPadding = isCompact ? 22.0 : 40.0;
           final buttonSize = isCompact ? 62.0 : 80.0;
           final buttonPadding = isCompact ? 5.0 : 8.0;
@@ -274,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Image.asset(
                       'assets/logo.png',
                       height: logoHeight,
-                      errorBuilder: (_, __, ___) => const Icon(
+                      errorBuilder: (_, _, _) => const Icon(
                         Icons.storefront,
                         color: AppTheme.brandGold,
                         size: 72,
@@ -303,7 +309,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(
                         height: 24,
                         width: 24,
-                        child: CircularProgressIndicator(color: AppTheme.brandGold),
+                        child: CircularProgressIndicator(
+                          color: AppTheme.brandGold,
+                        ),
                       )
                     else
                       _buildPinDots(dotSize: dotSize, spacing: dotSpacing),

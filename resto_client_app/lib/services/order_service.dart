@@ -10,12 +10,18 @@ class OrderService {
   Future<Map<String, dynamic>> createEmporter({
     String? notes,
     required List<Map<String, dynamic>> produits,
+    bool isPassager = false,
+    int? trajetId,
+    String? numeroSiege,
   }) async {
     try {
       final res = await _apiClient.dio.post(
         'commandes/emporter',
         data: {
           if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+          if (isPassager) 'is_passager': true,
+          if (isPassager) 'trajet_id': trajetId,
+          if (isPassager) 'numero_siege': numeroSiege,
           'produits': produits,
         },
       );
@@ -30,6 +36,18 @@ class OrderService {
           : null;
       throw Exception(message ?? 'Erreur création commande');
     }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchTrajets() async {
+    final res = await _apiClient.dio.get('trajets');
+    final data = _apiClient.extractData(res.data, (d) => d);
+    if (data is List) {
+      return data
+          .whereType<Map>()
+          .map((m) => Map<String, dynamic>.from(m))
+          .toList();
+    }
+    return const [];
   }
 
   Future<List<Map<String, dynamic>>> fetchMyOrders({
@@ -61,8 +79,9 @@ class OrderService {
       final body = res.data;
 
       if (status >= 400) {
-        final msg =
-            body is Map ? _apiClient.extractMessage(body) : 'Commande inaccessible';
+        final msg = body is Map
+            ? _apiClient.extractMessage(body)
+            : 'Commande inaccessible';
         throw Exception(msg);
       }
 
@@ -78,7 +97,40 @@ class OrderService {
       throw Exception('Réponse invalide du serveur');
     } on DioException catch (e) {
       final data = e.response?.data;
-      throw Exception(data is Map ? _apiClient.extractMessage(data) : 'Erreur réseau');
+      throw Exception(
+        data is Map ? _apiClient.extractMessage(data) : 'Erreur réseau',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchFactureForOrder(int commandeId) async {
+    try {
+      final res = await _apiClient.dio.get('commandes/$commandeId/facture');
+      final status = res.statusCode ?? 0;
+      final body = res.data;
+
+      if (status >= 400) {
+        final msg = body is Map
+            ? _apiClient.extractMessage(body)
+            : 'Facture inaccessible';
+        throw Exception(msg);
+      }
+
+      if (body is Map) {
+        if (body['success'] == false) {
+          throw Exception(_apiClient.extractMessage(body));
+        }
+        final inner = body['data'];
+        if (inner is Map) {
+          return Map<String, dynamic>.from(inner);
+        }
+      }
+      throw Exception('Réponse invalide du serveur');
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw Exception(
+        data is Map ? _apiClient.extractMessage(data) : 'Erreur réseau',
+      );
     }
   }
 
@@ -93,7 +145,7 @@ class OrderService {
         data: {
           'commande_id': commandeId,
           'moyen_paiement': moyenPaiement,
-          if (pointsUtilises != null) 'points_utilises': pointsUtilises,
+          'points_utilises': ?pointsUtilises,
         },
       );
       final data = res.data;

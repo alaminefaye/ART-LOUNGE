@@ -46,6 +46,154 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
+  Future<void> _confirmDeleteAccount() async {
+    final auth = context.read<AuthState>();
+    if (!auth.isAuthenticated) return;
+
+    final ctrl = TextEditingController();
+    bool loading = false;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (sheetCtx, setSheetState) {
+            Future<void> submit() async {
+              final code = ctrl.text.trim();
+              if (code.isEmpty) return;
+              setSheetState(() => loading = true);
+              try {
+                await context.read<AuthState>().deleteAccount(code: code);
+                if (!mounted) return;
+                Navigator.of(sheetCtx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Compte supprimé')),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString().replaceFirst('Exception: ', '')),
+                  ),
+                );
+              } finally {
+                if (sheetCtx.mounted) setSheetState(() => loading = false);
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0E132E),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(22),
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.10),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Supprimer le compte',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: loading
+                              ? null
+                              : () => Navigator.of(sheetCtx).pop(),
+                          icon: const Icon(
+                            Icons.close,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Cette action est définitive. Pour confirmer, saisis le code de ton compte.',
+                      style: TextStyle(
+                        color: AppTheme.textMuted,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: ctrl,
+                      enabled: !loading,
+                      obscureText: true,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: AppTheme.text),
+                      decoration: const InputDecoration(
+                        labelText: 'Code du compte',
+                        prefixIcon: Icon(
+                          Icons.password_rounded,
+                          color: AppTheme.textMuted,
+                        ),
+                      ),
+                      onSubmitted: (_) => submit(),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: loading
+                                ? null
+                                : () => Navigator.of(sheetCtx).pop(),
+                            child: const Text('Annuler'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: loading ? null : submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                            ),
+                            child: loading
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('Supprimer'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    ctrl.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthState>();
@@ -55,7 +203,11 @@ class _ProfileTabState extends State<ProfileTab> {
       children: [
         const Text(
           'Profil',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
@@ -106,7 +258,7 @@ class _ProfileTabState extends State<ProfileTab> {
                       child: Image.asset(
                         'logo.jpeg',
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorBuilder: (_, _, _) => const Icon(
                           Icons.person_outline,
                           color: AppTheme.bgTop,
                           size: 34,
@@ -191,7 +343,8 @@ class _ProfileTabState extends State<ProfileTab> {
                 _SettingsPanelRow(
                   icon: Icons.location_on_outlined,
                   title: 'Adresse',
-                  subtitle: (auth.adresse == null || auth.adresse!.trim().isEmpty)
+                  subtitle:
+                      (auth.adresse == null || auth.adresse!.trim().isEmpty)
                       ? 'Non renseignée'
                       : auth.adresse!,
                   onTap: () => _openEditProfile(auth: auth, focusAdresse: true),
@@ -208,13 +361,27 @@ class _ProfileTabState extends State<ProfileTab> {
           ),
           const SizedBox(height: 14),
           _GroupedGlassPanel(
-            child: _SettingsPanelRow(
-              icon: Icons.logout_rounded,
-              title: 'Déconnexion',
-              subtitle: 'Quitter ce compte sur cet appareil',
-              danger: true,
-              showChevron: false,
-              onTap: () => context.read<AuthState>().logout(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _SettingsPanelRow(
+                  icon: Icons.logout_rounded,
+                  title: 'Déconnexion',
+                  subtitle: 'Quitter ce compte sur cet appareil',
+                  danger: true,
+                  showChevron: false,
+                  onTap: () => context.read<AuthState>().logout(),
+                ),
+                _panelDivider(),
+                _SettingsPanelRow(
+                  icon: Icons.delete_forever_rounded,
+                  title: 'Supprimer le compte',
+                  subtitle: 'Suppression définitive (confirmation par code)',
+                  danger: true,
+                  showChevron: false,
+                  onTap: _confirmDeleteAccount,
+                ),
+              ],
             ),
           ),
         ],
@@ -224,11 +391,11 @@ class _ProfileTabState extends State<ProfileTab> {
 }
 
 Widget _panelDivider() => Divider(
-      height: 1,
-      thickness: 1,
-      indent: 62,
-      color: Colors.white.withValues(alpha: 0.09),
-    );
+  height: 1,
+  thickness: 1,
+  indent: 62,
+  color: Colors.white.withValues(alpha: 0.09),
+);
 
 class _ProfileSectionLabel extends StatelessWidget {
   const _ProfileSectionLabel({required this.title});
@@ -329,7 +496,7 @@ class _ProfileHeroCard extends StatelessWidget {
                 child: Image.asset(
                   'logo.jpeg',
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Icon(
+                  errorBuilder: (_, _, _) => Icon(
                     Icons.person_rounded,
                     color: AppTheme.bgTop,
                     size: 36,
@@ -397,7 +564,10 @@ class _ProfileHeroCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.brandGold.withValues(alpha: 0.22),
                   borderRadius: BorderRadius.circular(20),
@@ -408,11 +578,7 @@ class _ProfileHeroCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.stars_rounded,
-                      size: 18,
-                      color: AppTheme.accent,
-                    ),
+                    Icon(Icons.stars_rounded, size: 18, color: AppTheme.accent),
                     const SizedBox(width: 6),
                     Text(
                       '${auth.pointsFidelite} pts',
@@ -534,7 +700,11 @@ class _SettingsPanelRow extends StatelessWidget {
                       ? Colors.redAccent.withValues(alpha: 0.14)
                       : Colors.white.withValues(alpha: 0.08),
                 ),
-                child: Icon(icon, color: danger ? Colors.redAccent : AppTheme.text, size: 22),
+                child: Icon(
+                  icon,
+                  color: danger ? Colors.redAccent : AppTheme.text,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(

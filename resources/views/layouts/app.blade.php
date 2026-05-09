@@ -60,6 +60,12 @@
                             <div>Dashboard</div>
                         </a>
                     </li>
+                    <li class="menu-item {{ request()->routeIs('trajets.*') ? 'active' : '' }}">
+                        <a href="{{ route('trajets.index') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-map"></i>
+                            <div>Trajets</div>
+                        </a>
+                    </li>
                     @endcan
                     
                     @can('view_reports')

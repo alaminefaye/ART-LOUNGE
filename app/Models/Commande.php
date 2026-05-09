@@ -27,6 +27,9 @@ class Commande extends Model
         'statut',
         'montant_total',
         'notes',
+        'is_passager',
+        'trajet_id',
+        'numero_siege',
     ];
 
     protected $casts = [
@@ -35,6 +38,8 @@ class Commande extends Model
         'user_id' => 'integer',
         'serveur_id' => 'integer',
         'montant_total' => 'decimal:2',
+        'is_passager' => 'boolean',
+        'trajet_id' => 'integer',
     ];
 
     /**
@@ -67,6 +72,11 @@ class Commande extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function trajet(): BelongsTo
+    {
+        return $this->belongsTo(Trajet::class);
     }
 
     /**

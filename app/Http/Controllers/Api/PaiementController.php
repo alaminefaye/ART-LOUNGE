@@ -181,7 +181,7 @@ class PaiementController extends Controller
                     try {
                         $this->fcmService->notifyClientPaymentValidated($commande, $facture);
                     } catch (\Throwable $e) {
-                        \Log::warning('FCM: échec notification paiement client', ['error' => $e->getMessage()]);
+                        Log::warning('FCM: échec notification paiement client', ['error' => $e->getMessage()]);
                     }
                     return response()->json([
                         'success' => true,

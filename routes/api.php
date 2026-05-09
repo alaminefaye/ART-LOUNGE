@@ -36,6 +36,9 @@ Route::prefix('categories')->group(function () {
     Route::get('/{id}', [App\Http\Controllers\Api\CategoryController::class, 'show']);
 });
 
+// Trajets publics - pour la sélection côté app (passager)
+Route::get('/trajets', [App\Http\Controllers\Api\CommandeController::class, 'trajets']);
+
 Route::prefix('produits')->group(function () {
     Route::get('/', [App\Http\Controllers\Api\ProductController::class, 'index']);
     Route::get('/{id}', [App\Http\Controllers\Api\ProductController::class, 'show']);

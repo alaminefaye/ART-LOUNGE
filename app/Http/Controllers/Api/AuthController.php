@@ -395,7 +395,8 @@ class AuthController extends Controller
     public function deleteAccount(Request $request)
     {
         $request->validate([
-            'password' => 'required|string',
+            'code' => 'nullable|string',
+            'password' => 'nullable|string',
         ]);
 
         $user = $request->user();
@@ -415,10 +416,24 @@ class AuthController extends Controller
             ], 403);
         }
 
-        if (! Hash::check($request->password, $user->password)) {
+        $code = $request->input('code') ?? $request->input('password');
+        if (!is_string($code) || trim($code) === '') {
             return response()->json([
-                'message' => 'Mot de passe incorrect.',
-                'errors' => ['password' => ['Mot de passe incorrect.']],
+                'message' => 'Code requis.',
+                'errors' => ['code' => ['Code requis.']],
+            ], 422);
+        }
+        $code = trim($code);
+
+        $pinHash = $user->getAttributes()['pin'] ?? null;
+        $valid =
+            Hash::check($code, $user->password) ||
+            (!empty($pinHash) && Hash::check($code, $pinHash));
+
+        if (! $valid) {
+            return response()->json([
+                'message' => 'Code incorrect.',
+                'errors' => ['code' => ['Code incorrect.']],
             ], 422);
         }
 

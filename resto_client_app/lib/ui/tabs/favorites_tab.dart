@@ -49,7 +49,9 @@ class _FavoritesTabState extends State<FavoritesTab> {
   @override
   Widget build(BuildContext context) {
     final fav = context.watch<FavoritesState>();
-    final favProducts = _products.where((p) => fav.isFavorite(p.id)).toList(growable: false);
+    final favProducts = _products
+        .where((p) => fav.isFavorite(p.id))
+        .toList(growable: false);
 
     return RefreshIndicator(
       onRefresh: _load,
@@ -75,7 +77,9 @@ class _FavoritesTabState extends State<FavoritesTab> {
           if (_loading)
             const Padding(
               padding: EdgeInsets.only(top: 48),
-              child: Center(child: CircularProgressIndicator(color: AppTheme.accent)),
+              child: Center(
+                child: CircularProgressIndicator(color: AppTheme.accent),
+              ),
             )
           else if (favProducts.isEmpty)
             Container(
@@ -87,9 +91,16 @@ class _FavoritesTabState extends State<FavoritesTab> {
               ),
               child: const Column(
                 children: [
-                  Icon(Icons.favorite_border, color: AppTheme.textMuted, size: 34),
+                  Icon(
+                    Icons.favorite_border,
+                    color: AppTheme.textMuted,
+                    size: 34,
+                  ),
                   SizedBox(height: 10),
-                  Text('Aucun favori', style: TextStyle(color: AppTheme.textMuted)),
+                  Text(
+                    'Aucun favori',
+                    style: TextStyle(color: AppTheme.textMuted),
+                  ),
                 ],
               ),
             )
@@ -122,7 +133,9 @@ class _FavoriteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+            MaterialPageRoute(
+              builder: (_) => ProductDetailScreen(product: product),
+            ),
           );
         },
         child: Container(
@@ -142,12 +155,17 @@ class _FavoriteCard extends StatelessWidget {
                   child: (product.imageUrlCacheBusted == null)
                       ? Container(
                           color: Colors.white.withValues(alpha: 0.06),
-                          child: const Icon(Icons.fastfood, color: AppTheme.textMuted),
+                          child: const Icon(
+                            Icons.fastfood,
+                            color: AppTheme.textMuted,
+                          ),
                         )
                       : CachedNetworkImage(
                           imageUrl: product.imageUrlCacheBusted!,
                           fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => Container(color: Colors.white.withValues(alpha: 0.06)),
+                          errorWidget: (_, _, _) => Container(
+                            color: Colors.white.withValues(alpha: 0.06),
+                          ),
                         ),
                 ),
               ),
@@ -165,14 +183,20 @@ class _FavoriteCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       priceLabel,
-                      style: const TextStyle(color: AppTheme.textMuted, fontWeight: FontWeight.w800),
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ],
                 ),
               ),
               IconButton(
                 onPressed: () => fav.toggle(product.id),
-                icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: AppTheme.accent),
+                icon: Icon(
+                  isFav ? Icons.favorite : Icons.favorite_border,
+                  color: AppTheme.accent,
+                ),
               ),
             ],
           ),

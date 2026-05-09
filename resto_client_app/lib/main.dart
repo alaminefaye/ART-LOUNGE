@@ -38,7 +38,9 @@ class _ArtRestoClientAppState extends State<ArtRestoClientApp> {
     return MultiProvider(
       providers: [
         Provider.value(value: widget.apiClient),
-        ChangeNotifierProvider(create: (_) => AuthState(widget.apiClient)..init()),
+        ChangeNotifierProvider(
+          create: (_) => AuthState(widget.apiClient)..init(),
+        ),
         ChangeNotifierProvider(create: (_) => CartState()),
         ChangeNotifierProvider(create: (_) => FavoritesState()..init()),
         Provider(create: (_) => MenuService(widget.apiClient)),
@@ -105,9 +107,8 @@ class _SplashScreenState extends State<SplashScreen>
         if (!mounted) return;
         Navigator.of(context, rootNavigator: true).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => HomeScreen(
-              cartNavTargetKey: widget.cartNavTargetKey,
-            ),
+            builder: (_) =>
+                HomeScreen(cartNavTargetKey: widget.cartNavTargetKey),
           ),
         );
       });
@@ -253,7 +254,7 @@ class _SplashScreenState extends State<SplashScreen>
                                         child: Image.asset(
                                           'logo.jpeg',
                                           fit: BoxFit.contain,
-                                          errorBuilder: (_, __, ___) =>
+                                          errorBuilder: (_, _, _) =>
                                               Image.asset(
                                                 'assets/logo.png',
                                                 fit: BoxFit.contain,

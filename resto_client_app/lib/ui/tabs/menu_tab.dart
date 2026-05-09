@@ -97,8 +97,9 @@ class _MenuTabState extends State<MenuTab> {
     return _products
         .where((p) {
           if (_selectedCategoryId != null &&
-              p.categorieId != _selectedCategoryId)
+              p.categorieId != _selectedCategoryId) {
             return false;
+          }
           if (q.isEmpty) return true;
           return p.nom.toLowerCase().contains(q) ||
               (p.description ?? '').toLowerCase().contains(q);
@@ -137,7 +138,7 @@ class _MenuTabState extends State<MenuTab> {
                   child: Image.asset(
                     'logo.jpeg',
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) =>
+                    errorBuilder: (_, _, _) =>
                         Image.asset('assets/logo.png', fit: BoxFit.contain),
                   ),
                 ),
@@ -464,7 +465,7 @@ class _FeaturedCard extends StatelessWidget {
                         : CachedNetworkImage(
                             imageUrl: product.imageUrlCacheBusted!,
                             fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => Container(
+                            errorWidget: (_, _, _) => Container(
                               color: Colors.white.withValues(alpha: 0.06),
                             ),
                           ),
@@ -613,7 +614,7 @@ class _ModernProductCard extends StatelessWidget {
                             : CachedNetworkImage(
                                 imageUrl: product.imageUrlCacheBusted!,
                                 fit: BoxFit.cover,
-                                errorWidget: (_, __, ___) => Container(
+                                errorWidget: (_, _, _) => Container(
                                   color: Colors.white.withValues(alpha: 0.06),
                                 ),
                               ),
@@ -945,7 +946,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       : CachedNetworkImage(
                           imageUrl: p.imageUrlCacheBusted!,
                           fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => Container(
+                          errorWidget: (_, _, _) => Container(
                             color: Colors.white.withValues(alpha: 0.06),
                           ),
                         ),

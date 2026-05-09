@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\CommandeController;
 use App\Http\Controllers\Web\PaiementController;
 use App\Http\Controllers\Web\AvisController;
 use App\Http\Controllers\Web\CaisseSessionController;
+use App\Http\Controllers\Web\TrajetController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Web\StatsController;
 
@@ -24,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['can:view_dashboard'])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard', [DashboardController::class, 'index']);
+
+        Route::resource('trajets', TrajetController::class)->except(['show']);
     });
     
     // Tables
