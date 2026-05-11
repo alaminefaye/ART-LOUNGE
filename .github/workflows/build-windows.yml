@@ -1,0 +1,51 @@
+name: Build Windows App
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "resto_caisse_app/**"
+      - ".github/workflows/build-windows.yml"
+  pull_request:
+    paths:
+      - "resto_caisse_app/**"
+      - ".github/workflows/build-windows.yml"
+
+jobs:
+  build-windows:
+    name: Build resto_caisse_app for Windows
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: resto_caisse_app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Show Flutter version
+        run: flutter --version
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: art-moments-windows-${{ github.run_number }}
+          path: resto_caisse_app/build/windows/x64/runner/Release/
+          if-no-files-found: error
+          retention-days: 14
